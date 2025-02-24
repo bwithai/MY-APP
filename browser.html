@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Advanced Custom Browser</title>
+  <style>
+    /* Base styling */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e5e5e5;
+      overflow: hidden;
+    }
+    /* Toolbar styling with gradient background and shadow */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: linear-gradient(90deg, #4b6cb7, #182848);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      color: #fff;
+    }
+    /* Button styling */
+    #toolbar button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    #toolbar button:hover {
+      transform: scale(1.1);
+    }
+    /* URL input styling */
+    #urlInput {
+      flex-grow: 1;
+      padding: 8px 12px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    #urlInput:focus {
+      outline: none;
+      box-shadow: 0 0 5px rgba(66, 133, 244, 0.5);
+    }
+    /* Webview styling */
+    #browserView {
+      width: 100%;
+      height: calc(100vh - 50px);
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button id="backButton" title="Back">&larr;</button>
+    <button id="forwardButton" title="Forward">&rarr;</button>
+    <button id="refreshButton" title="Refresh">&#x21bb;</button>
+    <input type="text" id="urlInput" placeholder="Enter URL" value="https://www.example.com">
+    <button id="goButton" title="Go">&#128269;</button>
+  </div>
+  <webview id="browserView" src="https://www.example.com" allowpopups></webview>
+
+  <script>
+    const urlInput = document.getElementById('urlInput');
+    const goButton = document.getElementById('goButton');
+    const backButton = document.getElementById('backButton');
+    const forwardButton = document.getElementById('forwardButton');
+    const refreshButton = document.getElementById('refreshButton');
+    const browserView = document.getElementById('browserView');
+
+    // Navigate to the entered URL
+    function navigate() {
+      let url = urlInput.value.trim();
+      // Prepend http:// if no protocol is specified
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'http://' + url;
+      }
+      browserView.src = url;
+    }
+
+    goButton.addEventListener('click', navigate);
+
+    // Navigate when Enter key is pressed in the URL input
+    urlInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        navigate();
+      }
+    });
+
+    // Back navigation
+    backButton.addEventListener('click', () => {
+      if (browserView.canGoBack()) {
+        browserView.goBack();
+      }
+    });
+
+    // Forward navigation
+    forwardButton.addEventListener('click', () => {
+      if (browserView.canGoForward()) {
+        browserView.goForward();
+      }
+    });
+
+    // Refresh the current page
+    refreshButton.addEventListener('click', () => {
+      browserView.reload();
+    });
+
+    // Update URL input when navigation occurs in the webview
+    browserView.addEventListener('did-navigate', (event) => {
+      urlInput.value = event.url;
+    });
+    browserView.addEventListener('did-navigate-in-page', (event) => {
+      urlInput.value = event.url;
+    });
+  </script>
+</body>
+</html>
