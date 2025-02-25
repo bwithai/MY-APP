@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Command Fund Management</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+  </head>
+  <body>
+    <div id="app">
+        <div class="dashboard-layout">
+            <button class="menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <aside class="sidebar"></aside>
+            <div class="dashboard-container">
+                <div id="content"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Load scripts in order -->
+    <script nomodule src="/js/polyfills.js"></script>
+    <script src="/js/api-client.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/inflow.js"></script>
+    <script src="/js/index.js"></script>
+  </body>
+</html>

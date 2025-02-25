@@ -1,0 +1,467 @@
+/* Dashboard Layout */
+.dashboard-layout {
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+.dashboard-container {
+    flex: 1;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 2rem;
+}
+
+/* Navigation */
+.main-nav {
+    width: 250px;
+    background: var(--pak-green);
+    color: var(--white);
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.nav-logo img {
+    width: 120px;
+    height: auto;
+    filter: brightness(0) invert(1);
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-links li {
+    margin-bottom: 0.5rem;
+}
+
+.nav-links a {
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    display: block;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+.nav-links a:hover,
+.nav-links .active a {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    background: var(--off-white);
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    color: var(--pak-green);
+    font-size: 2rem;
+}
+
+/* Stats Cards */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+    color: var(--pak-green);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.stat-card p {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--pak-light-green);
+}
+
+/* Profile Section */
+.nav-profile {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.profile-link {
+    display: flex;
+    align-items: center;
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.profile-icon {
+    margin-right: 0.5rem;
+}
+
+.profile-icon .icon {
+    fill: var(--white);
+}
+
+.btn-logout {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-logout:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Sidebar adjustments */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: var(--white);
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .dashboard-container {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+}
+
+.sidebar-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--pak-green);
+    color: var(--white);
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-logo {
+    width: 120px;
+    height: auto;
+    filter: brightness(0) invert(1);
+}
+
+.close-btn {
+    font-size: 1.5rem;
+    color: var(--white);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--white);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.nav-item.active {
+    background: var(--white);
+    color: var(--pak-green);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.nav-item.active .icon {
+    fill: var(--pak-green);
+}
+
+.nav-item .icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.75rem;
+    fill: currentColor;
+}
+
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    color: var(--error-red);
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-info {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.menu-btn {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 900;
+    padding: 0.5rem;
+    background: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Inflow Table Styles */
+.table-responsive {
+    width: 100%;
+    margin: 1rem 0;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow-x: auto; /* Ensures table scrolls horizontally if needed */
+}
+
+.table {
+    width: 100%;
+    min-width: 1200px; /* Ensures all columns are visible */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    background: linear-gradient(135deg, var(--pak-green), var(--pak-light-green));
+    color: var(--white);
+    padding: 1rem;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.table tr:hover {
+    background: var(--off-white);
+}
+
+.deleted-row {
+    background: #ffebee;
+}
+
+.truncate {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Search Bar */
+.search-bar {
+    max-width: 400px;
+    margin: 1rem 0;
+}
+
+/* Page Header */
+.page-header {
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(1, 65, 28, 0.1);
+    padding-bottom: 1rem;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.page-title {
+    font-size: 1.8rem;
+    color: var(--pak-green);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Pagination */
+.pagination-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.page-info {
+    color: var(--pak-green);
+    font-weight: 500;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+}
+
+.action-buttons > * + * {
+    margin-left: 0.5rem;
+}
+
+.btn-edit {
+    color: var(--pak-green);
+}
+
+.btn-delete {
+    color: var(--error-red);
+}
+
+/* Update container styles */
+.container-fluid {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem;
+    }
+}
+
+/* Optional: Adjust column widths */
+.table th,
+.table td {
+    padding: 1rem;
+    white-space: nowrap;
+}
+
+/* Fixed column widths */
+.table th:nth-child(1), /* ID */
+.table td:nth-child(1) {
+    width: 60px;
+}
+
+.table th:nth-child(5), /* Amount */
+.table td:nth-child(5) {
+    width: 100px;
+}
+
+.table th:nth-child(6), /* Payment Method */
+.table td:nth-child(6) {
+    width: 120px;
+}
+
+.table th:nth-child(7), /* IBAN */
+.table td:nth-child(7) {
+    width: 150px;
+}
+
+.table th:nth-child(8), /* Date of Entry */
+.table th:nth-child(9), /* Date */
+.table td:nth-child(8),
+.table td:nth-child(9) {
+    width: 120px;
+}
+
+.table th:nth-child(10), /* User */
+.table td:nth-child(10) {
+    width: 100px;
+}
+
+.table th:nth-child(11), /* Actions */
+.table td:nth-child(11) {
+    width: 80px;
+}
+
+.content-wrapper {
+    background: var(--white);
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    padding: 2rem;
+    min-height: calc(100vh - 4rem);
+    border: 1px solid rgba(1, 65, 28, 0.1);
+}
+
+/* Replace gap with margins */
+.stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -0.5rem;
+}
+.stats-grid > * {
+    margin: 0.5rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+}
+.filter-group > * + * {
+    margin-left: 1rem;
+} 
