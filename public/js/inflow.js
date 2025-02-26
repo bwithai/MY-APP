@@ -79,13 +79,20 @@ var InflowApp = {
 
     getPageTitle: function() {
         if (this.currentUser.is_superuser) {
-            return this.storedUserName === 'admin' ? 'All Inflows' : this.storedUserName + ' Inflows';
+            return this.storedUserName.toLowerCase() === 'admin' ? 'All Inflows' : this.storedUserName + ' Inflows';
         }
         return 'Inflow Management';
     },
 
     goBack: function() {
         history.pushState(null, '', '/');
+        // Update sidebar visual selection
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.path === '/index.html') {
+                item.classList.add('active');
+            }
+        });
         MainApp.handleNavigation();
     },
 
@@ -152,7 +159,11 @@ var InflowApp = {
                     <td>${inflow.id}</td>
                     <td class="truncate" title="${inflow.head}">${inflow.head}</td>
                     <td class="truncate" title="${inflow.sub_heads}">${inflow.sub_heads}</td>
-                    <td class="truncate" title="${inflow.fund_details}">${inflow.fund_details}</td>
+                    <td class="long-text">
+                        <div class="truncate-text" title="${inflow.fund_details}">
+                            ${inflow.fund_details}
+                        </div>
+                    </td>
                     <td>${this.formatNumber(inflow.amount)}</td>
                     <td>${inflow.payment_method}</td>
                     <td>${inflow.iban || 'N/A'}</td>
@@ -214,7 +225,9 @@ var InflowApp = {
         var addButton = document.querySelector('.add-inflow-btn');
         if (addButton) {
             addButton.addEventListener('click', function() {
-                self.showAddInflowModal();
+                AddInflow.init(function() {
+                    self.loadInflowData();
+                });
             });
         }
     },

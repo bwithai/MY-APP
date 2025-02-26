@@ -53,7 +53,7 @@ var MainApp = {
     showDashboard: function() {
         var content = document.getElementById('content');
         content.innerHTML = `
-            <div class="content-wrapper">
+            <div class="container-fluid">
                 <div class="page-header">
                     <h1 class="page-title">Dashboard</h1>
                     <p class="text-muted">Welcome to Command Fund Management System</p>

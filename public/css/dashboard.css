@@ -7,7 +7,7 @@
 
 .dashboard-container {
     flex: 1;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #cfd8e2 0%, #156820 100%);
     margin-left: 250px;
     width: calc(100% - 250px);
     min-height: 100vh;
@@ -188,11 +188,20 @@
 }
 
 .close-btn {
-    font-size: 1.5rem;
-    color: var(--white);
     background: none;
     border: none;
+    color: var(--pak-green);
+    font-size: 1.5rem;
     cursor: pointer;
+    padding: 0.5rem;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    transition: transform 0.2s;
+}
+
+.close-btn:hover {
+    transform: scale(1.1);
 }
 
 .sidebar-nav {
@@ -204,36 +213,32 @@
     display: flex;
     align-items: center;
     padding: 0.75rem 1rem;
-    color: var(--white);
+    color: var(--off-white);
     text-decoration: none;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    transition: background 0.3s ease;
+    border-radius: 6px;
+    margin-bottom: 0.25rem;
+}
+
+.nav-item .icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--off-white);
+    margin-right: 12px;
+    flex-shrink: 0;
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-item.active {
-    background: var(--white);
+    background: #cfd8e2;
     color: var(--pak-green);
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .nav-item.active .icon {
     fill: var(--pak-green);
-}
-
-.nav-item .icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 0.75rem;
-    fill: currentColor;
 }
 
 .sidebar-footer {
@@ -258,6 +263,13 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+.logout-btn .icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--error-red);
+    margin-right: 8px;
+}
+
 .user-info {
     margin-top: 1rem;
     font-size: 0.875rem;
@@ -277,50 +289,49 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* Inflow Table Styles */
+.menu-btn .icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--off-white);
+}
+
+/* Table improvements */
 .table-responsive {
-    width: 100%;
     margin: 1rem 0;
-    background: var(--white);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow-x: auto; /* Ensures table scrolls horizontally if needed */
+    overflow: hidden;
 }
 
 .table {
     width: 100%;
-    min-width: 1200px; /* Ensures all columns are visible */
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
+    margin-bottom: 0;
 }
 
 .table th {
-    background: linear-gradient(135deg, var(--pak-green), var(--pak-light-green));
-    color: var(--white);
+    background: linear-gradient(135deg, #e3e3e4 0%, #b6d4b5 100%);
     padding: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     text-align: left;
     white-space: nowrap;
 }
 
+.table tr:hover {
+    background: #ddd;
+}
+
 .table td {
     padding: 1rem;
-    border-bottom: 1px solid #eee;
+    border-top: 1px solid #eee;
+    vertical-align: middle;
 }
 
-.table tr:hover {
-    background: var(--off-white);
-}
-
-.deleted-row {
-    background: #ffebee;
-}
-
-.truncate {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+/* Fund details cell specific styling */
+.table td.fund-details {
+    max-width: 300px;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 /* Search Bar */
@@ -353,8 +364,8 @@
 /* Pagination */
 .pagination-footer {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: right;
+    align-items: right;
     margin: 2rem 0;
 }
 
@@ -382,9 +393,13 @@
 
 /* Update container styles */
 .container-fluid {
+    width: 100%;
     height: 100%;
-    padding: 0;
+    padding: 2rem;
     margin: 0;
+    /* background: #c8cac3; */
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
 }
 
 /* Responsive adjustments */
@@ -464,4 +479,154 @@
 }
 .filter-group > * + * {
     margin-left: 1rem;
+}
+
+/* Modal improvements */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    width: 95%;
+    max-width: 800px; /* Increased for grid layout */
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--pak-green);
+    flex: 1;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+}
+
+/* Form improvements */
+.form-group {
+    margin-bottom: 0.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+/* Fund details textarea specific */
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--pak-green);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 128, 0, 0.1);
+}
+
+/* Button improvements */
+.modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--pak-green);
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #006400;
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+}
+
+/* Modal form grid layout */
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+/* Full width items */
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Responsive grid */
+@media (max-width: 768px) {
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Text truncation styles */
+.truncate-text {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help; /* Shows help cursor on hover */
+}
+
+/* Table cell with long text */
+td.long-text {
+    max-width: 200px;
+    padding: 0.75rem 1rem;
 } 

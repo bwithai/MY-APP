@@ -14,11 +14,21 @@
     --success-green: #00b894;
 }
 
+#content {
+    flex: 1;
+    /* background: linear-gradient(135deg, #cfd8e2 0%, #0b6417 100%); */
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 2rem;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--pak-green);
-    background: linear-gradient(135deg, var(--pak-green) 0%, var(--pak-light-green) 100%);
+    background: linear-gradient(135deg, #cfd8e2 0%, #3e803c 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;

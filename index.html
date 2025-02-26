@@ -17,15 +17,18 @@
                 <span></span>
             </button>
             <aside class="sidebar"></aside>
-            <div class="dashboard-container">
+            <div id="content"></div>
+            <!-- <div class="dashboard-container">
                 <div id="content"></div>
-            </div>
+            </div> -->
         </div>
     </div>
     <!-- Load scripts in order -->
     <script nomodule src="/js/polyfills.js"></script>
     <script src="/js/api-client.js"></script>
     <script src="/js/sidebar.js"></script>
+    <!-- Load AddInflow before inflow.js -->
+    <script src="/js/components/inflow/AddInflow.js"></script>
     <script src="/js/inflow.js"></script>
     <script src="/js/index.js"></script>
   </body>
