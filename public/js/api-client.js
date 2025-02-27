@@ -2,6 +2,9 @@ var ApiClient = {
     baseUrl: 'http://localhost:8001/api/v1/',
     token: null,
 
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Users API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
     login: function(username, password) {
         var formData = new URLSearchParams();
         formData.append('username', username);
@@ -51,6 +54,9 @@ var ApiClient = {
         });
     },
 
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Dashboard API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
     getDashboardData: function() {
         return fetch(this.baseUrl + 'dashboard', {
             headers: {
@@ -64,7 +70,9 @@ var ApiClient = {
         });
     },
 
-    /*------------------------------------------[ All the Inflows API calls will be handled bellow this line ]------------------------------------------*/
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Inflows API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
     getInflows: function({ skip, limit, search, userId }) {
         var url = new URL(this.baseUrl + 'inflows/');  // Note the trailing slash
         url.searchParams.append('skip', skip);
@@ -99,6 +107,43 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
+    getInflow: function(id) {
+        return fetch(this.baseUrl + 'inflows/' + id, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    updateInflow: function(id, data) {
+        return fetch(this.baseUrl + 'inflows/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    deleteInflow: function(id) {
+        return fetch(this.baseUrl + 'inflows/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Common API calls which will be used in multiple pages will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
     getHeads: function() {
         return fetch(this.baseUrl + 'common/heads?type=1', {
             headers: {

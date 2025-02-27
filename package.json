@@ -11,9 +11,9 @@
   "homepage": "http://localhost:5173",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --mode legacy",
     "lint": "biome check --apply-unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
-    "preview": "vite preview",
+    "preview": "vite preview --mode legacy",
     "generate-client": "openapi-ts",
     "electron": "electron electron.cjs",
     "electron-build": "electron-builder"

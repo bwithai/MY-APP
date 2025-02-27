@@ -1,38 +1,49 @@
-var AddInflow = {
-    init: function(onSuccess) {
-        // Clear any existing modal first
-        this.cleanup();
-        
-        this.onSuccess = onSuccess;
+var EditInflow = {
+    init: function(type, id, onClose) {
+        this.type = type;
+        this.inflowId = id;
+        this.onClose = onClose;
         this.render();
         
         // Wait for DOM to be ready before setting up events and loading data
         setTimeout(() => {
             this.setupEventListeners();
             this.loadHeadsData();
+            this.loadInflowData();
         }, 0);
+        
     },
 
-    cleanup: function() {
-        // Remove any existing modal
-        var existingModal = document.getElementById('addInflowModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-        // Clear any global event listeners
-        window.onclick = null;
+    loadInflowData: function() {
+        var self = this;
+        ApiClient.getInflow(this.inflowId)
+            .then(function(inflow) {
+                self.render(inflow);
+                self.setupEventListeners();
+                self.loadHeadsData(inflow.head_id);
+                if (inflow.payment_method === 'Bank Transfer') {
+                    self.loadIBANs();
+                }
+                self.show();
+            })
+            .catch(function(error) {
+                console.error('Failed to load inflow:', error);
+            });
     },
 
     render: function() {
+        // Remove any existing alert
+        this.cleanup();
+
         var modalHtml = `
-            <div class="modal" id="addInflowModal">
+            <div class="modal" id="editInflowModal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Add Inflow</h2>
+                        <h2>Edit Inflow</h2>
                         <button type="button" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <form id="addInflowForm" class="modal-form-grid">
+                        <form id="editInflowForm" class="modal-form-grid">
                             <div class="form-group">
                                 <label for="head">Head*</label>
                                 <select id="head" name="head_id" required>
@@ -100,7 +111,7 @@ var AddInflow = {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" form="addInflowForm" class="btn btn-primary" id="submitInflow">Save</button>
+                        <button type="submit" form="editInflowForm" class="btn btn-primary" id="submitInflow">Save</button>
                     </div>
                 </div>
             </div>
@@ -111,15 +122,8 @@ var AddInflow = {
 
     setupEventListeners: function() {
         var self = this;
-        var modal = document.getElementById('addInflowModal');
-        
-        // Check if modal exists
-        if (!modal) {
-            console.error('Modal not found');
-            return;
-        }
-
-        var form = document.getElementById('addInflowForm');
+        var modal = document.getElementById('editInflowModal');
+        var form = document.getElementById('editInflowForm');
         var headSelect = document.getElementById('head');
         var paymentMethodSelect = document.getElementById('payment_method');
         var closeBtn = modal.querySelector('.close-btn');
@@ -222,6 +226,7 @@ var AddInflow = {
         }
     },
 
+
     loadIBANs: function() {
         var self = this;
         var userId = sessionStorage.getItem('selectedUserId');
@@ -245,14 +250,6 @@ var AddInflow = {
 
     handleSubmit: function(formData) {
         var self = this;
-        var submitButton = document.querySelector('button[type="submit"]');
-        
-        // Prevent double submission
-        if (submitButton.disabled) {
-            return;
-        }
-        submitButton.disabled = true;
-        
         // Build the data object manually from FormData
         var data = {};
         var entries = formData.entries();
@@ -261,13 +258,10 @@ var AddInflow = {
             data[entry.value[0]] = entry.value[1];
         }
         
-        // Validate and format amount - ensure it's treated as a string first
-        var amountStr = data.amount.toString();
-        var amount = Number(parseFloat(amountStr).toFixed(2));
-        
+        // Validate amount
+        var amount = Number(parseFloat(data.amount).toFixed(2));
         if (amount <= 0) {
             alert('Amount must be greater than 0');
-            submitButton.disabled = false;
             return;
         }
         
@@ -289,27 +283,30 @@ var AddInflow = {
             formattedData.iban_id = Number(data.iban_id);
         }
         
-        console.log('Submitting formatted data:', formattedData);
-        
-        ApiClient.createInflow(formattedData)
+        // Call the API endpoint for updating the inflow
+        ApiClient.updateInflow(this.inflowId, formattedData)
             .then(function(response) {
                 self.close();
-                if (self.onSuccess) self.onSuccess();
+                // Refresh the inflow list
+                InflowApp.loadInflowData();
             })
             .catch(function(error) {
-                console.error('Failed to create inflow:', error);
-                var errorMessage = error.message || 'Failed to create inflow';
-                alert(errorMessage);
-            })
-            .finally(function() {
-                // Re-enable submit button
-                submitButton.disabled = false;
+                console.error('Failed to update inflow:', error);
+                alert(error.message || 'Failed to update inflow');
             });
+    },
+
+    cleanup: function() {
+        var existingModal = document.getElementById('editInflowModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
     },
 
     close: function() {
         this.cleanup();
+        if (this.onClose) this.onClose();
     }
 };
 
-window.AddInflow = AddInflow; 
+window.DeleteAlert = DeleteAlert; 

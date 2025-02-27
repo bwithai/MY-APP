@@ -1,38 +1,45 @@
-var AddInflow = {
-    init: function(onSuccess) {
-        // Clear any existing modal first
+var EditInflow = {
+    init: function(id) {
         this.cleanup();
-        
-        this.onSuccess = onSuccess;
-        this.render();
-        
-        // Wait for DOM to be ready before setting up events and loading data
-        setTimeout(() => {
-            this.setupEventListeners();
-            this.loadHeadsData();
-        }, 0);
+        this.inflowId = id;
+        this.loadInflowData();
     },
 
     cleanup: function() {
-        // Remove any existing modal
-        var existingModal = document.getElementById('addInflowModal');
+        var existingModal = document.getElementById('editInflowModal');
         if (existingModal) {
             existingModal.remove();
         }
-        // Clear any global event listeners
-        window.onclick = null;
     },
 
-    render: function() {
+    loadInflowData: function() {
+        var self = this;
+        ApiClient.getInflow(this.inflowId)
+            .then(function(inflow) {
+                self.render(inflow);
+                self.setupEventListeners(inflow);
+                self.loadHeadsData(inflow.head_id);
+                if (inflow.payment_method === 'Bank Transfer') {
+                    self.loadIBANs();
+                }
+                self.show();
+            })
+            .catch(function(error) {
+                console.error('Failed to load inflow:', error);
+                alert('Failed to load inflow data');
+            });
+    },
+
+    render: function(inflow) {
         var modalHtml = `
-            <div class="modal" id="addInflowModal">
+            <div class="modal" id="editInflowModal" style="display: none;">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>Add Inflow</h2>
+                        <h2>Edit Inflow</h2>
                         <button type="button" class="close-btn">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <form id="addInflowForm" class="modal-form-grid">
+                        <form id="editInflowForm" class="modal-form-grid">
                             <div class="form-group">
                                 <label for="head">Head*</label>
                                 <select id="head" name="head_id" required>
@@ -53,9 +60,8 @@ var AddInflow = {
                                     id="fund_details" 
                                     name="fund_details" 
                                     required
-                                    placeholder="Enter fund details..."
                                     rows="3"
-                                ></textarea>
+                                >${inflow.fund_details}</textarea>
                             </div>
 
                             <div class="form-group">
@@ -64,81 +70,87 @@ var AddInflow = {
                                     type="number" 
                                     id="amount" 
                                     name="amount" 
+                                    value="${inflow.amount}"
                                     step="0.01" 
                                     min="0.01"
                                     required
-                                    onchange="this.value = Math.max(0.01, Math.abs(this.value))"
                                 >
                             </div>
 
                             <div class="form-group">
                                 <label for="received_from">Received From*</label>
-                                <input type="text" id="received_from" name="received_from" required>
+                                <input type="text" id="received_from" name="received_from" value="${inflow.received_from}" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="payment_method">Payment Method*</label>
                                 <select id="payment_method" name="payment_method" required>
                                     <option value="">Select payment method</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cash Transfer">Cash Transfer</option>
+                                    <option value="Bank Transfer" ${inflow.payment_method === 'Bank Transfer' ? 'selected' : ''}>Bank Transfer</option>
+                                    <option value="Cash Transfer" ${inflow.payment_method === 'Cash Transfer' ? 'selected' : ''}>Cash Transfer</option>
                                 </select>
                             </div>
 
-                            <div class="form-group" id="ibanContainer" style="display: none;">
+                            <div class="form-group" id="ibanContainer" style="display: ${inflow.payment_method === 'Bank Transfer' ? 'block' : 'none'};">
                                 <label for="iban">IBAN*</label>
-                                <select id="iban" name="iban_id">
+                                <select id="iban" name="iban_id" ${inflow.payment_method === 'Bank Transfer' ? 'required' : ''}>
                                     <option value="">Select IBAN</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="date">Date of Entry*</label>
-                                <input type="date" id="date" name="date" required>
+                                <input type="date" id="date" name="date" value="${inflow.date}" required>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" form="addInflowForm" class="btn btn-primary" id="submitInflow">Save</button>
+                        <button type="submit" form="editInflowForm" class="btn btn-primary">Update</button>
                     </div>
                 </div>
             </div>
         `;
-
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     },
 
-    setupEventListeners: function() {
-        var self = this;
-        var modal = document.getElementById('addInflowModal');
-        
-        // Check if modal exists
-        if (!modal) {
-            console.error('Modal not found');
-            return;
+    show: function() {
+        var modal = document.getElementById('editInflowModal');
+        if (modal) {
+            modal.style.display = 'block';
+            modal.className = 'modal show';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
         }
+    },
 
-        var form = document.getElementById('addInflowForm');
-        var headSelect = document.getElementById('head');
+    hide: function() {
+        var modal = document.getElementById('editInflowModal');
+        if (modal) {
+            modal.className = 'modal';
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    },
+
+    setupEventListeners: function(inflow) {
+        var self = this;
+        var modal = document.getElementById('editInflowModal');
+        var form = document.getElementById('editInflowForm');
+        var headSelect = document.getElentById('head');em
         var paymentMethodSelect = document.getElementById('payment_method');
         var closeBtn = modal.querySelector('.close-btn');
         var cancelBtn = modal.querySelector('[data-dismiss="modal"]');
 
         // Close button
         if (closeBtn) {
-            closeBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            closeBtn.onclick = function() {
                 self.close();
             };
         }
 
         // Cancel button
         if (cancelBtn) {
-            cancelBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            cancelBtn.onclick = function() {
                 self.close();
             };
         }
@@ -172,24 +184,31 @@ var AddInflow = {
         }
     },
 
-    loadHeadsData: function() {
+    loadHeadsData: function(selectedHeadId) {
         var self = this;
         ApiClient.getHeads()
             .then(function(response) {
                 var headSelect = document.getElementById('head');
-                // Clear existing options first, keeping only the default option
                 headSelect.innerHTML = '<option value="">Select a head</option>';
                 
                 response.data.forEach(function(head) {
                     var option = document.createElement('option');
                     option.value = head.id;
                     option.textContent = head.heads;
+                    if (head.id === selectedHeadId) {
+                        option.selected = true;
+                    }
                     // Store sub_heads data in the option element
                     if (head.sub_heads && head.sub_heads.length > 0) {
                         option.dataset.subheads = JSON.stringify(head.sub_heads);
                     }
                     headSelect.appendChild(option);
                 });
+
+                // If there's a selected head, load its subheads
+                if (selectedHeadId) {
+                    self.loadSubHeads(selectedHeadId);
+                }
             })
             .catch(function(error) {
                 console.error('Failed to load heads:', error);
@@ -223,7 +242,6 @@ var AddInflow = {
     },
 
     loadIBANs: function() {
-        var self = this;
         var userId = sessionStorage.getItem('selectedUserId');
         if (!userId) return;
 
@@ -245,71 +263,45 @@ var AddInflow = {
 
     handleSubmit: function(formData) {
         var self = this;
-        var submitButton = document.querySelector('button[type="submit"]');
+        var data = Object.fromEntries(formData.entries());
         
-        // Prevent double submission
-        if (submitButton.disabled) {
-            return;
-        }
-        submitButton.disabled = true;
-        
-        // Build the data object manually from FormData
-        var data = {};
-        var entries = formData.entries();
-        var entry;
-        while (!(entry = entries.next()).done) {
-            data[entry.value[0]] = entry.value[1];
-        }
-        
-        // Validate and format amount - ensure it's treated as a string first
-        var amountStr = data.amount.toString();
-        var amount = Number(parseFloat(amountStr).toFixed(2));
-        
+        // Validate amount
+        const amount = Number(parseFloat(data.amount).toFixed(2));
         if (amount <= 0) {
             alert('Amount must be greater than 0');
-            submitButton.disabled = false;
             return;
         }
-        
-        // Format data according to API requirements
+
         var formattedData = {
             head_id: Number(data.head_id),
             amount: amount,
             fund_details: data.fund_details,
             received_from: data.received_from,
             payment_method: data.payment_method,
-            date: data.date
+            date: data.date,
+            ...(data.subhead_id && { subhead_id: Number(data.subhead_id) }),
+            ...(data.payment_method === 'Bank Transfer' && { iban_id: Number(data.iban_id) })
         };
-        
-        // Conditionally add properties without using spread syntax
-        if (data.subhead_id) {
-            formattedData.subhead_id = Number(data.subhead_id);
-        }
-        if (data.payment_method === 'Bank Transfer') {
-            formattedData.iban_id = Number(data.iban_id);
-        }
-        
-        console.log('Submitting formatted data:', formattedData);
-        
-        ApiClient.createInflow(formattedData)
+
+        // You'll need to implement this API endpoint
+        ApiClient.updateInflow(this.inflowId, formattedData)
             .then(function(response) {
                 self.close();
-                if (self.onSuccess) self.onSuccess();
+                // Refresh the inflow list
+                InflowApp.loadInflowData();
             })
             .catch(function(error) {
-                console.error('Failed to create inflow:', error);
-                var errorMessage = error.message || 'Failed to create inflow';
-                alert(errorMessage);
-            })
-            .finally(function() {
-                // Re-enable submit button
-                submitButton.disabled = false;
+                console.error('Failed to update inflow:', error);
+                alert(error.message || 'Failed to update inflow');
             });
     },
 
     close: function() {
-        this.cleanup();
+        this.hide();
+        setTimeout(() => {
+            this.cleanup();
+        }, 300);
     }
 };
 
-window.AddInflow = AddInflow; 
+window.EditInflow = EditInflow; 

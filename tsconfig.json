@@ -1,17 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "es5",
     "useDefineForClassFields": true,
     "lib": [
-      "ES2018",
-      "ES2017",
-      "ES2016",
-      "ES2015",
-      "DOM",
-      "DOM.Iterable",
-      "ScriptHost"
+      "es5",
+      "dom"
     ],
-    "module": "ESNext",
+    "module": "es2015",
     "skipLibCheck": true,
 
     /* Bundler mode */

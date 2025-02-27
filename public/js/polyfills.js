@@ -206,4 +206,110 @@ window.safeAccess = function(obj, path) {
 
 // Replace arrow functions with regular functions
 // Instead of: (mod) => deps?.(mod)
-// Use: function(mod) { return deps && deps(mod); } 
+// Use: function(mod) { return deps && deps(mod); }
+
+// Object.entries polyfill
+if (!Object.entries) {
+    Object.entries = function(obj) {
+        var ownProps = Object.keys(obj),
+            i = ownProps.length,
+            resArray = new Array(i);
+        while (i--)
+            resArray[i] = [ownProps[i], obj[ownProps[i]]];
+        return resArray;
+    };
+}
+
+// Object.fromEntries polyfill
+if (!Object.fromEntries) {
+    Object.fromEntries = function(entries) {
+        if (!entries || !entries[Symbol.iterator]) { throw new Error('Object.fromEntries() requires a single iterable argument'); }
+        var obj = {};
+        for (var entry of entries) {
+            if (Object(entry) !== entry) { throw new TypeError('Each entry must be an object'); }
+            if (!Array.isArray(entry)) { throw new TypeError('Each entry must be an array'); }
+            if (entry.length !== 2) { throw new TypeError('Each entry must be a [key, value] array'); }
+            obj[entry[0]] = entry[1];
+        }
+        return obj;
+    };
+}
+
+// Add these to your existing polyfills
+(function() {
+    // Array.from polyfill
+    if (!Array.from) {
+        Array.from = function(arrayLike) {
+            return [].slice.call(arrayLike);
+        };
+    }
+
+    // Object.assign polyfill
+    if (!Object.assign) {
+        Object.assign = function(target) {
+            if (target == null) {
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+            var to = Object(target);
+            for (var i = 1; i < arguments.length; i++) {
+                var nextSource = arguments[i];
+                if (nextSource != null) {
+                    for (var nextKey in nextSource) {
+                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                            to[nextKey] = nextSource[nextKey];
+                        }
+                    }
+                }
+            }
+            return to;
+        };
+    }
+
+    // Promise polyfill (simplified version)
+    if (!window.Promise) {
+        window.Promise = function(executor) {
+            // Basic Promise implementation
+            var callbacks = [];
+            var state = 'pending';
+            var value;
+
+            function resolve(result) {
+                state = 'fulfilled';
+                value = result;
+                callbacks.forEach(function(callback) {
+                    callback(value);
+                });
+            }
+
+            function reject(error) {
+                state = 'rejected';
+                value = error;
+                callbacks.forEach(function(callback) {
+                    callback(value);
+                });
+            }
+
+            try {
+                executor(resolve, reject);
+            } catch (error) {
+                reject(error);
+            }
+
+            return {
+                then: function(onFulfilled) {
+                    if (state === 'pending') {
+                        callbacks.push(onFulfilled);
+                    } else {
+                        onFulfilled(value);
+                    }
+                    return this;
+                },
+                catch: function(onRejected) {
+                    return this.then(function(value) {
+                        onRejected(value);
+                    });
+                }
+            };
+        };
+    }
+})(); 

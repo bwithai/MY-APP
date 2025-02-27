@@ -1,11 +1,40 @@
 var InflowApp = {
     init: function() {
-        this.currentPage = parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
+        // Reset page to 1 only if coming from another route
+        if (!sessionStorage.getItem('isInflow')) {
+            this.currentPage = 1;
+            sessionStorage.setItem('inflowCurrentPage', '1');
+        } else {
+            this.currentPage = parseInt(sessionStorage.getItem('inflowCurrentPage')) || 1;
+        }
+        
         this.perPage = 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
+        
+        // Mark that we're in inflow page
+        sessionStorage.setItem('isInflow', 'true');
+        
+        // Show inflow page
         this.showInflowPage();
+    },
+
+    cleanup: function() {
+        // Remove existing event listeners
+        var prevPage = document.getElementById('prevPage');
+        var nextPage = document.getElementById('nextPage');
+        var searchInput = document.getElementById('searchInput');
+
+        if (prevPage) {
+            prevPage.removeEventListener('click', this.prevPageHandler);
+        }
+        if (nextPage) {
+            nextPage.removeEventListener('click', this.nextPageHandler);
+        }
+        if (searchInput) {
+            searchInput.removeEventListener('input', this.searchHandler);
+        }
     },
 
     showInflowPage: function() {
@@ -71,10 +100,8 @@ var InflowApp = {
         `;
 
         // Setup event listeners after content is rendered
-        setTimeout(() => {
-            this.setupEventListeners();
-            this.loadInflowData();
-        }, 0);
+        this.setupEventListeners();
+        this.loadInflowData();
     },
 
     getPageTitle: function() {
@@ -106,13 +133,6 @@ var InflowApp = {
         var self = this;
         var skip = (this.currentPage - 1) * this.perPage;
         
-        console.log('Fetching inflows with params:', {
-            skip: skip,
-            limit: this.perPage,
-            search: query,
-            userId: this.storedUserId
-        });
-
         ApiClient.getInflows({ 
             skip: skip, 
             limit: this.perPage, 
@@ -120,10 +140,9 @@ var InflowApp = {
             userId: this.storedUserId
         })
         .then(function(response) {
-            console.log('Inflows response:', response);
             if (response && response.data) {
                 self.renderInflowTable(response.data);
-                self.updatePagination(response.data.length === self.perPage);
+                self.updatePagination(response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -154,11 +173,14 @@ var InflowApp = {
         }
 
         tableBody.innerHTML = inflows.map(function(inflow) {
+            // Add deleted-row class if is_deleted is true
+            const rowClass = inflow.is_deleted ? 'deleted-row' : '';
+            
             return `
-                <tr class="${inflow.is_deleted ? 'deleted-row' : ''}" data-id="${inflow.id}">
+                <tr class="${rowClass}" data-id="${inflow.id}">
                     <td>${inflow.id}</td>
                     <td class="truncate" title="${inflow.head}">${inflow.head}</td>
-                    <td class="truncate" title="${inflow.sub_heads}">${inflow.sub_heads}</td>
+                    <td class="truncate" title="${inflow.sub_heads || ''}">${inflow.sub_heads || '-'}</td>
                     <td class="long-text">
                         <div class="truncate-text" title="${inflow.fund_details}">
                             ${inflow.fund_details}
@@ -171,14 +193,10 @@ var InflowApp = {
                     <td>${this.formatDate(inflow.created_at)}</td>
                     <td>${inflow.user}</td>
                     <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-sm btn-edit" onclick="InflowApp.editInflow(${inflow.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-delete" onclick="InflowApp.deleteInflow(${inflow.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        ${ActionsMenu.init('Inflow', inflow, {
+                            delete: !inflow.is_deleted,
+                            disabled: inflow.is_deleted
+                        })}
                     </td>
                 </tr>
             `;
@@ -187,38 +205,45 @@ var InflowApp = {
 
     setupEventListeners: function() {
         var self = this;
-        
+
         // Search functionality
         var searchInput = document.getElementById('searchInput');
         if (searchInput) {
-            var searchTimeout;
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(function() {
+            this.searchHandler = function() {
+                clearTimeout(self.searchTimeout);
+                self.searchTimeout = setTimeout(function() {
                     self.currentPage = 1;
+                    sessionStorage.setItem('inflowCurrentPage', '1');
                     self.loadInflowData(searchInput.value);
                 }, 300);
-            });
+            };
+            searchInput.addEventListener('input', this.searchHandler);
         }
 
         // Pagination
         var prevPage = document.getElementById('prevPage');
         var nextPage = document.getElementById('nextPage');
-        
+
         if (prevPage) {
-            prevPage.addEventListener('click', function() {
+            this.prevPageHandler = function(e) {
+                e.preventDefault();
                 if (self.currentPage > 1) {
                     self.currentPage--;
-                    self.loadInflowData(searchInput.value || '');
+                    sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
+                    self.loadInflowData(searchInput ? searchInput.value : '');
                 }
-            });
+            };
+            prevPage.addEventListener('click', this.prevPageHandler);
         }
 
         if (nextPage) {
-            nextPage.addEventListener('click', function() {
+            this.nextPageHandler = function(e) {
+                e.preventDefault();
                 self.currentPage++;
-                self.loadInflowData(searchInput.value || '');
-            });
+                sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
+                self.loadInflowData(searchInput ? searchInput.value : '');
+            };
+            nextPage.addEventListener('click', this.nextPageHandler);
         }
 
         // Add new inflow
@@ -233,9 +258,19 @@ var InflowApp = {
     },
 
     updatePagination: function(hasNextPage) {
-        document.getElementById('currentPage').textContent = this.currentPage;
-        document.getElementById('prevPage').disabled = this.currentPage === 1;
-        document.getElementById('nextPage').disabled = !hasNextPage;
+        var currentPageSpan = document.getElementById('currentPage');
+        var prevPageBtn = document.getElementById('prevPage');
+        var nextPageBtn = document.getElementById('nextPage');
+
+        // Update current page display
+        currentPageSpan.textContent = this.currentPage;
+
+        // Update button states
+        prevPageBtn.disabled = this.currentPage === 1;
+        nextPageBtn.disabled = !hasNextPage;
+
+        // Store current page in sessionStorage
+        sessionStorage.setItem('inflowCurrentPage', this.currentPage);
     },
 
     formatNumber: function(number) {
@@ -261,6 +296,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('popstate', function() {
     MainApp.handleNavigation();
+});
+
+// Clean up when leaving inflow page
+window.addEventListener('beforeunload', function() {
+    if (window.location.pathname !== '/inflow.html') {
+        sessionStorage.removeItem('isInflow');
+    }
 });
 
 // Make it globally available

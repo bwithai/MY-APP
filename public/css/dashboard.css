@@ -318,7 +318,7 @@
 }
 
 .table tr:hover {
-    background: #ddd;
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .table td {
@@ -377,18 +377,37 @@
 /* Action Buttons */
 .action-buttons {
     display: flex;
+    gap: 0.5rem;
 }
 
-.action-buttons > * + * {
-    margin-left: 0.5rem;
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 4px;
 }
 
 .btn-edit {
     color: var(--pak-green);
+    background: rgba(0, 128, 0, 0.1);
+}
+
+.btn-edit:hover {
+    background: rgba(0, 128, 0, 0.2);
 }
 
 .btn-delete {
     color: var(--error-red);
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.btn-delete:hover {
+    background: rgba(255, 0, 0, 0.2);
+}
+
+/* Tooltip */
+[title] {
+    position: relative;
+    cursor: pointer;
 }
 
 /* Update container styles */
@@ -496,8 +515,8 @@
 }
 
 .modal-content {
-    width: 95%;
-    max-width: 800px; /* Increased for grid layout */
+    width: 90%;
+    max-width: 600px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -629,4 +648,103 @@
 td.long-text {
     max-width: 200px;
     padding: 0.75rem 1rem;
+}
+
+/* Add this to your existing CSS */
+.deleted-row {
+    background-color: rgba(255, 0, 0, 0.356) !important; /* Light red background */
+    /* color: #666; Dimmed text */
+}
+
+.deleted-row:hover {
+    background-color: rgba(255, 0, 0, 0.356) !important; /* Slightly darker on hover */
+}
+
+/* Action Menu Styles */
+.action-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--pak-green);
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 50%;
+}
+
+.btn-icon:hover {
+    background: rgba(0, 128, 0, 0.1);
+}
+
+.action-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 120px;
+    display: none;
+    z-index: 1000;
+}
+
+.action-menu-dropdown.show {
+    display: block;
+}
+
+.action-menu-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+.action-menu-item:hover {
+    background: #f5f5f5;
+}
+
+.action-menu-item i {
+    width: 16px;
+}
+
+.action-menu-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.action-menu-item:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+/* Delete Alert Styles */
+.delete-alert .modal-content {
+    max-width: 500px;
+}
+
+.delete-alert .modal-body {
+    padding: 1.5rem;
+}
+
+.delete-alert .modal-body p {
+    margin-bottom: 1rem;
+}
+
+.btn-danger {
+    background-color: var(--error-red);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+}
+
+.btn-danger:disabled {
+    background-color: #ffcdd2;
+    cursor: not-allowed;
 } 
