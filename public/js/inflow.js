@@ -1,5 +1,11 @@
 var InflowApp = {
+    initialized: false, // Guard flag
+
     init: function() {
+        // Prevent double initialization
+        if (this.initialized) return;
+        this.initialized = true;
+
         // Reset page to 1 only if coming from another route
         if (!sessionStorage.getItem('isInflow')) {
             this.currentPage = 1;
@@ -132,6 +138,7 @@ var InflowApp = {
     loadInflowData: function(query = '') {
         var self = this;
         var skip = (this.currentPage - 1) * this.perPage;
+        console.log("skip, limit", skip, this.perPage);
         
         ApiClient.getInflows({ 
             skip: skip, 

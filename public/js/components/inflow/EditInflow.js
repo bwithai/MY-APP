@@ -1,40 +1,27 @@
 var EditInflow = {
-    init: function(type, id, onClose) {
+    init: function (type, id, onClose) {
         this.type = type;
         this.inflowId = id;
         this.onClose = onClose;
+        this.cleanup();
         this.render();
-        
-        // Wait for DOM to be ready before setting up events and loading data
-        setTimeout(() => {
-            this.setupEventListeners();
-            this.loadHeadsData();
-            this.loadInflowData();
-        }, 0);
-        
+        this.setupEventListeners();
+        this.loadHeadsData();
+        if (id) this.loadInflowData();
     },
 
-    loadInflowData: function() {
+    loadInflowData: function () {
         var self = this;
         ApiClient.getInflow(this.inflowId)
-            .then(function(inflow) {
-                self.render(inflow);
-                self.setupEventListeners();
-                self.loadHeadsData(inflow.head_id);
-                if (inflow.payment_method === 'Bank Transfer') {
-                    self.loadIBANs();
-                }
-                self.show();
+            .then(function (inflow) {
+                self.populateForm(inflow);
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.error('Failed to load inflow:', error);
             });
     },
 
-    render: function() {
-        // Remove any existing alert
-        this.cleanup();
-
+    render: function () {
         var modalHtml = `
             <div class="modal" id="editInflowModal">
                 <div class="modal-content">
@@ -46,63 +33,35 @@ var EditInflow = {
                         <form id="editInflowForm" class="modal-form-grid">
                             <div class="form-group">
                                 <label for="head">Head*</label>
-                                <select id="head" name="head_id" required>
-                                    <option value="">Select a head</option>
-                                </select>
+                                <select id="head" name="head_id" required></select>
                             </div>
-
                             <div class="form-group" id="subHeadContainer" style="display: none;">
                                 <label for="subhead">Sub Head</label>
-                                <select id="subhead" name="subhead_id">
-                                    <option value="">Select a sub-head</option>
-                                </select>
+                                <select id="subhead" name="subhead_id"></select>
                             </div>
-
                             <div class="form-group full-width">
                                 <label for="fund_details">Fund Details*</label>
-                                <textarea 
-                                    id="fund_details" 
-                                    name="fund_details" 
-                                    required
-                                    placeholder="Enter fund details..."
-                                    rows="3"
-                                ></textarea>
+                                <textarea id="fund_details" name="fund_details" required rows="3"></textarea>
                             </div>
-
                             <div class="form-group">
                                 <label for="amount">Amount*</label>
-                                <input 
-                                    type="number" 
-                                    id="amount" 
-                                    name="amount" 
-                                    step="0.01" 
-                                    min="0.01"
-                                    required
-                                    onchange="this.value = Math.max(0.01, Math.abs(this.value))"
-                                >
+                                <input type="number" id="amount" name="amount" min="0.01" required>
                             </div>
-
                             <div class="form-group">
                                 <label for="received_from">Received From*</label>
                                 <input type="text" id="received_from" name="received_from" required>
                             </div>
-
                             <div class="form-group">
                                 <label for="payment_method">Payment Method*</label>
                                 <select id="payment_method" name="payment_method" required>
-                                    <option value="">Select payment method</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                     <option value="Cash Transfer">Cash Transfer</option>
                                 </select>
                             </div>
-
                             <div class="form-group" id="ibanContainer" style="display: none;">
                                 <label for="iban">IBAN*</label>
-                                <select id="iban" name="iban_id">
-                                    <option value="">Select IBAN</option>
-                                </select>
+                                <select id="iban" name="iban_id"></select>
                             </div>
-
                             <div class="form-group">
                                 <label for="date">Date of Entry*</label>
                                 <input type="date" id="date" name="date" required>
@@ -110,111 +69,94 @@ var EditInflow = {
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" form="editInflowForm" class="btn btn-primary" id="submitInflow">Save</button>
+                        <button type="button" class="btn btn-secondary close-btn">Cancel</button>
+                        <button type="submit" form="editInflowForm" class="btn btn-primary">Save</button>
                     </div>
                 </div>
-            </div>
-        `;
-
+            </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     },
 
-    setupEventListeners: function() {
+    setupEventListeners: function () {
         var self = this;
-        var modal = document.getElementById('editInflowModal');
-        var form = document.getElementById('editInflowForm');
-        var headSelect = document.getElementById('head');
-        var paymentMethodSelect = document.getElementById('payment_method');
-        var closeBtn = modal.querySelector('.close-btn');
-        var cancelBtn = modal.querySelector('[data-dismiss="modal"]');
+        document.querySelectorAll('.close-btn').forEach(function (btn) {
+            btn.onclick = function () { self.close(); };
+        });
 
-        // Close button
-        if (closeBtn) {
-            closeBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.close();
-            };
+        document.getElementById('head').addEventListener('change', function () {
+            self.loadSubHeads(this.value);
+        });
+
+        document.getElementById('payment_method').addEventListener('change', function () {
+            var ibanContainer = document.getElementById('ibanContainer');
+            ibanContainer.style.display = this.value === 'Bank Transfer' ? 'block' : 'none';
+            if (this.value === 'Bank Transfer') self.loadIBANs();
+        });
+
+        document.getElementById('editInflowForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            self.handleSubmit(new FormData(this));
+        });
+    },
+
+    populateForm: function (inflow) {
+        console.log("Populating form with inflow:", inflow);
+        
+        // Use the correct keys from the inflow object
+        document.getElementById('head').value = inflow.head_id;
+        document.getElementById('fund_details').value = inflow.fund_details;
+        document.getElementById('amount').value = inflow.amount;
+        document.getElementById('received_from').value = inflow.received_from;
+        if (inflow.payment_method) {  // Set Payment Method (if valid)
+            let paymentSelect = document.getElementById('payment_method');
+            let validOptions = [...paymentSelect.options].map(opt => opt.value);
+            if (validOptions.includes(inflow.payment_method)) {
+                paymentSelect.value = inflow.payment_method;
+            } else {
+                console.warn('Invalid payment method:', inflow.payment_method);
+            }
         }
-
-        // Cancel button
-        if (cancelBtn) {
-            cancelBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                self.close();
-            };
+        if (inflow.date) {
+            let formattedDate = inflow.date.split('T')[0]; // Extract only YYYY-MM-DD
+            document.getElementById('date').value = formattedDate;
         }
-
-        // Head change
-        if (headSelect) {
-            headSelect.addEventListener('change', function() {
-                self.loadSubHeads(this.value);
-            });
+        if (inflow.subhead_id) { // For sub-head, if provided (using the correct key, e.g., 'sub_heads')
+            this.loadSubHeads(inflow.head_id); // You might need to adjust this if the value differs
+            setTimeout(() => {
+                document.getElementById('subhead').value = inflow.subhead_id;
+            }, 100);
         }
-
-        // Payment method change
-        if (paymentMethodSelect) {
-            paymentMethodSelect.addEventListener('change', function() {
-                var ibanContainer = document.getElementById('ibanContainer');
-                if (this.value === 'Bank Transfer') {
-                    ibanContainer.style.display = 'block';
-                    self.loadIBANs();
-                } else {
-                    ibanContainer.style.display = 'none';
-                }
-            });
-        }
-
-        // Form submission
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                self.handleSubmit(new FormData(this));
-            });
+        if (inflow.payment_method === 'Bank Transfer') { // Handle IBAN display for Bank Transfer
+            document.getElementById('ibanContainer').style.display = 'block';
+            this.loadIBANs();
+        } else {
+            document.getElementById('ibanContainer').style.display = 'none';
         }
     },
 
-    loadHeadsData: function() {
-        var self = this;
+    loadHeadsData: function () {
         ApiClient.getHeads()
-            .then(function(response) {
+            .then(function (response) {
                 var headSelect = document.getElementById('head');
-                // Clear existing options first, keeping only the default option
                 headSelect.innerHTML = '<option value="">Select a head</option>';
-                
-                response.data.forEach(function(head) {
+                response.data.forEach(function (head) {
                     var option = document.createElement('option');
                     option.value = head.id;
                     option.textContent = head.heads;
-                    // Store sub_heads data in the option element
-                    if (head.sub_heads && head.sub_heads.length > 0) {
-                        option.dataset.subheads = JSON.stringify(head.sub_heads);
-                    }
+                    option.dataset.subheads = JSON.stringify(head.sub_heads || []);
                     headSelect.appendChild(option);
                 });
             })
-            .catch(function(error) {
-                console.error('Failed to load heads:', error);
-            });
+            .catch(console.error);
     },
 
-    loadSubHeads: function(headId) {
+    loadSubHeads: function (headId) {
         var subHeadContainer = document.getElementById('subHeadContainer');
         var subHeadSelect = document.getElementById('subhead');
-        
-        if (!headId) {
-            subHeadContainer.style.display = 'none';
-            return;
-        }
-
-        // Get selected head's option element
-        var selectedHead = document.getElementById('head').querySelector(`option[value="${headId}"]`);
+        var selectedHead = document.querySelector(`#head option[value='${headId}']`);
+        subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
         if (selectedHead && selectedHead.dataset.subheads) {
-            var subHeads = JSON.parse(selectedHead.dataset.subheads);
-            subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-            subHeads.forEach(function(subHead) {
+            JSON.parse(selectedHead.dataset.subheads).forEach(function (subHead) {
                 var option = document.createElement('option');
                 option.value = subHead.id;
                 option.textContent = subHead.subheads;
@@ -226,87 +168,26 @@ var EditInflow = {
         }
     },
 
-
-    loadIBANs: function() {
+    handleSubmit: function (formData) {
         var self = this;
-        var userId = sessionStorage.getItem('selectedUserId');
-        if (!userId) return;
-
-        ApiClient.getIBANs(userId)
-            .then(function(response) {
-                var ibanSelect = document.getElementById('iban');
-                ibanSelect.innerHTML = '<option value="">Select IBAN</option>';
-                response.forEach(function(iban) {
-                    var option = document.createElement('option');
-                    option.value = iban.id;
-                    option.textContent = iban.iban;
-                    ibanSelect.appendChild(option);
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load IBANs:', error);
-            });
-    },
-
-    handleSubmit: function(formData) {
-        var self = this;
-        // Build the data object manually from FormData
         var data = {};
-        var entries = formData.entries();
-        var entry;
-        while (!(entry = entries.next()).done) {
-            data[entry.value[0]] = entry.value[1];
-        }
-        
-        // Validate amount
-        var amount = Number(parseFloat(data.amount).toFixed(2));
-        if (amount <= 0) {
-            alert('Amount must be greater than 0');
-            return;
-        }
-        
-        // Format data according to API requirements
-        var formattedData = {
-            head_id: Number(data.head_id),
-            amount: amount,
-            fund_details: data.fund_details,
-            received_from: data.received_from,
-            payment_method: data.payment_method,
-            date: data.date
-        };
-        
-        // Conditionally add properties without using spread syntax
-        if (data.subhead_id) {
-            formattedData.subhead_id = Number(data.subhead_id);
-        }
-        if (data.payment_method === 'Bank Transfer') {
-            formattedData.iban_id = Number(data.iban_id);
-        }
-        
-        // Call the API endpoint for updating the inflow
-        ApiClient.updateInflow(this.inflowId, formattedData)
-            .then(function(response) {
+        formData.forEach(function (value, key) { data[key] = value; });
+        data.amount = parseFloat(data.amount).toFixed(2);
+        ApiClient.updateInflow(this.inflowId, data)
+            .then(function () {
                 self.close();
-                // Refresh the inflow list
                 InflowApp.loadInflowData();
             })
-            .catch(function(error) {
-                console.error('Failed to update inflow:', error);
-                alert(error.message || 'Failed to update inflow');
-            });
+            .catch(console.error);
     },
 
-    cleanup: function() {
-        var existingModal = document.getElementById('editInflowModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
+    cleanup: function () {
+        var modal = document.getElementById('editInflowModal');
+        if (modal) modal.remove();
     },
 
-    close: function() {
+    close: function () {
         this.cleanup();
         if (this.onClose) this.onClose();
     }
 };
-
-window.DeleteAlert = DeleteAlert; 

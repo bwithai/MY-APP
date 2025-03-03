@@ -2,10 +2,10 @@ var AddInflow = {
     init: function(onSuccess) {
         // Clear any existing modal first
         this.cleanup();
-        
+
         this.onSuccess = onSuccess;
         this.render();
-        
+
         // Wait for DOM to be ready before setting up events and loading data
         setTimeout(() => {
             this.setupEventListeners();
@@ -94,7 +94,7 @@ var AddInflow = {
 
                             <div class="form-group">
                                 <label for="date">Date of Entry*</label>
-                                <input type="date" id="date" name="date" required>
+                                <input type="text" id="date" name="date" required placeholder="YYYY-MM-DD" readonly>
                             </div>
                         </form>
                     </div>
@@ -105,15 +105,13 @@ var AddInflow = {
                 </div>
             </div>
         `;
-
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     },
 
     setupEventListeners: function() {
         var self = this;
         var modal = document.getElementById('addInflowModal');
-        
-        // Check if modal exists
+
         if (!modal) {
             console.error('Modal not found');
             return;
@@ -125,7 +123,6 @@ var AddInflow = {
         var closeBtn = modal.querySelector('.close-btn');
         var cancelBtn = modal.querySelector('[data-dismiss="modal"]');
 
-        // Close button
         if (closeBtn) {
             closeBtn.onclick = function(e) {
                 e.preventDefault();
@@ -134,7 +131,6 @@ var AddInflow = {
             };
         }
 
-        // Cancel button
         if (cancelBtn) {
             cancelBtn.onclick = function(e) {
                 e.preventDefault();
@@ -143,14 +139,12 @@ var AddInflow = {
             };
         }
 
-        // Head change
         if (headSelect) {
             headSelect.addEventListener('change', function() {
                 self.loadSubHeads(this.value);
             });
         }
 
-        // Payment method change
         if (paymentMethodSelect) {
             paymentMethodSelect.addEventListener('change', function() {
                 var ibanContainer = document.getElementById('ibanContainer');
@@ -163,12 +157,17 @@ var AddInflow = {
             });
         }
 
-        // Form submission
         if (form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 self.handleSubmit(new FormData(this));
             });
+        }
+
+        // Initialize the restricted datepicker component on the date input
+        var dateInput = document.getElementById('date');
+        if (dateInput) {
+            RestrictedDatePicker(dateInput);
         }
     },
 
@@ -177,14 +176,11 @@ var AddInflow = {
         ApiClient.getHeads()
             .then(function(response) {
                 var headSelect = document.getElementById('head');
-                // Clear existing options first, keeping only the default option
                 headSelect.innerHTML = '<option value="">Select a head</option>';
-                
                 response.data.forEach(function(head) {
                     var option = document.createElement('option');
                     option.value = head.id;
                     option.textContent = head.heads;
-                    // Store sub_heads data in the option element
                     if (head.sub_heads && head.sub_heads.length > 0) {
                         option.dataset.subheads = JSON.stringify(head.sub_heads);
                     }
@@ -199,13 +195,12 @@ var AddInflow = {
     loadSubHeads: function(headId) {
         var subHeadContainer = document.getElementById('subHeadContainer');
         var subHeadSelect = document.getElementById('subhead');
-        
+
         if (!headId) {
             subHeadContainer.style.display = 'none';
             return;
         }
 
-        // Get selected head's option element
         var selectedHead = document.getElementById('head').querySelector(`option[value="${headId}"]`);
         if (selectedHead && selectedHead.dataset.subheads) {
             var subHeads = JSON.parse(selectedHead.dataset.subheads);
@@ -246,32 +241,28 @@ var AddInflow = {
     handleSubmit: function(formData) {
         var self = this;
         var submitButton = document.querySelector('button[type="submit"]');
-        
-        // Prevent double submission
+
         if (submitButton.disabled) {
             return;
         }
         submitButton.disabled = true;
-        
-        // Build the data object manually from FormData
+
         var data = {};
         var entries = formData.entries();
         var entry;
         while (!(entry = entries.next()).done) {
             data[entry.value[0]] = entry.value[1];
         }
-        
-        // Validate and format amount - ensure it's treated as a string first
+
         var amountStr = data.amount.toString();
         var amount = Number(parseFloat(amountStr).toFixed(2));
-        
+
         if (amount <= 0) {
             alert('Amount must be greater than 0');
             submitButton.disabled = false;
             return;
         }
-        
-        // Format data according to API requirements
+
         var formattedData = {
             head_id: Number(data.head_id),
             amount: amount,
@@ -280,17 +271,16 @@ var AddInflow = {
             payment_method: data.payment_method,
             date: data.date
         };
-        
-        // Conditionally add properties without using spread syntax
+
         if (data.subhead_id) {
             formattedData.subhead_id = Number(data.subhead_id);
         }
         if (data.payment_method === 'Bank Transfer') {
             formattedData.iban_id = Number(data.iban_id);
         }
-        
+
         console.log('Submitting formatted data:', formattedData);
-        
+
         ApiClient.createInflow(formattedData)
             .then(function(response) {
                 self.close();
@@ -302,7 +292,6 @@ var AddInflow = {
                 alert(errorMessage);
             })
             .finally(function() {
-                // Re-enable submit button
                 submitButton.disabled = false;
             });
     },
@@ -312,4 +301,4 @@ var AddInflow = {
     }
 };
 
-window.AddInflow = AddInflow; 
+window.AddInflow = AddInflow;

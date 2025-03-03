@@ -748,3 +748,44 @@ td.long-text {
     background-color: #ffcdd2;
     cursor: not-allowed;
 } 
+
+/* Datepicker container styling */
+.datepicker {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    z-index: 1000;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-family: Arial, sans-serif;
+}
+
+/* Header with month navigation */
+.datepicker-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+.datepicker-header span {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+/* Calendar table */
+.datepicker table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.datepicker th,
+.datepicker td {
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+}
+.datepicker th {
+    background-color: #f2f2f2;
+}
+.datepicker td:hover {
+    background-color: #e0e0e0;
+}
+

@@ -1,74 +1,93 @@
-// ActionsMenu.js
 var ActionsMenu = {
-    init: function(type, value, options = {}) {
+    init: function(type, value, options) {
         this.type = type;
         this.value = value;
         this.options = {
-            disabled: options.disabled || false,
-            canDelete: options.delete !== false,
-            isPaid: options.isPaid || false,
-            isDelete: options.isDelete || false
+            disabled: options && options.disabled || false,
+            canDelete: options && options.delete !== false,
+            isPaid: options && options.isPaid || false,
+            isDelete: options && options.isDelete || false
         };
         
         return this.render();
     },
 
     render: function() {
-        var menuId = `action-menu-${this.value.id}`;
-        var menuHtml = `
-            <div class="action-menu-container">
-                ${!this.value.is_deleted ? `
-                    <button class="btn btn-sm btn-icon" onclick="ActionsMenu.toggleMenu('${menuId}')" title="Actions">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div id="${menuId}" class="action-menu-dropdown">
-                        <div class="action-menu-item" onclick="ActionsMenu.handleEdit(${this.value.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </div>
-                        ${this.options.canDelete ? `
-                            <div class="action-menu-item" onclick="ActionsMenu.handleDelete(${this.value.id})">
-                                <i class="fas fa-trash"></i> Delete
-                            </div>
-                        ` : ''}
-                    </div>
-                ` : ''}
-            </div>
-        `;
-
+        var menuId = "action-menu-" + this.value.id;
+        var menuHtml = "<div class='action-menu-container'>" +
+            (!this.value.is_deleted ? "<button class='btn btn-sm btn-icon' onclick=\"ActionsMenu.toggleMenu('" + menuId + "', event)\" title='Actions'>" +
+            "<i class='fas fa-ellipsis-v'></i></button>" +
+            "<div id='" + menuId + "' class='action-menu-dropdown'>" +
+            "<div class='action-menu-item' onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
+            "<i class='fas fa-edit'></i> Edit</div>" +
+            (this.options.canDelete ? "<div class='action-menu-item' onclick=\"ActionsMenu.handleDelete(" + this.value.id + ")\">" +
+            "<i class='fas fa-trash'></i> Delete</div>" : "") + "</div>" : "") + "</div>";
         return menuHtml;
     },
 
-    toggleMenu: function(menuId) {
-        // Close all other open menus first
-        document.querySelectorAll('.action-menu-dropdown.show').forEach(menu => {
-            if (menu.id !== menuId) menu.classList.remove('show');
-        });
-        
-        // Toggle current menu
-        var menu = document.getElementById(menuId);
-        menu.classList.toggle('show');
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function closeMenu(e) {
-            if (!e.target.closest('.action-menu-container')) {
-                menu.classList.remove('show');
-                document.removeEventListener('click', closeMenu);
+        toggleMenu: function(menuId, event) {
+            // Close all other open menus first
+            var openMenus = document.querySelectorAll('.action-menu-dropdown.show');
+            for (var i = 0; i < openMenus.length; i++) {
+                if (openMenus[i].id !== menuId) {
+                    openMenus[i].classList.remove('show');
+                }
             }
-        });
+
+            // Toggle current menu
+            var menu = document.getElementById(menuId);
+            if (!menu) return;
+
+            // Get the action button that triggered the event
+            var button = event.currentTarget;
+            var rect = button.getBoundingClientRect();
+
+            // Append the menu to document.body if it isn't already there
+            if (menu.parentElement !== document.body) {
+                document.body.appendChild(menu);
+            }
+
+            // Ensure menu is visible before measuring size
+            menu.style.display = 'block';
+            var menuWidth = menu.offsetWidth;
+            menu.style.display = '';
+
+            var top = rect.bottom + window.scrollY;
+            var left = rect.right - menuWidth + window.scrollX;
+
+            // Apply position styles
+            menu.style.position = 'absolute';
+            menu.style.top = top + 'px';
+            menu.style.left = left + 'px';
+            menu.style.width = '120px';
+            menu.style.zIndex = '10000';
+            menu.classList.toggle('show');
+
+             // Close menu when clicking outside
+            document.addEventListener('click', function closeMenu(e) {
+                if (!e.target.closest('.action-menu-container')) {
+                    menu.classList.remove('show');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+
+            // Close menu when clicking an item inside it
+            menu.querySelectorAll('.action-menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    menu.classList.remove('show');
+                });
+            });
     },
 
     handleEdit: function(id) {
-        // Pass the inflow ID and a callback function to handle after closing
         EditInflow.init('Inflow', id, function() {
-            // Optional callback after closing
-            InflowApp.loadInflowData(); // Refresh the inflow data after editing
+            InflowApp.loadInflowData();
         });
     },
 
     handleDelete: function(id) {
         DeleteAlert.init('Inflow', id, function() {
-            // Optional callback after closing
-            InflowApp.loadInflowData(); // Refresh the inflow data after deleting
+            InflowApp.loadInflowData();
         });
     }
 };

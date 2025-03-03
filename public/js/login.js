@@ -111,7 +111,7 @@ var LoginApp = {
         var submitBtn = form.querySelector('button[type="submit"]');
         var normalText = submitBtn.querySelector('.normal-text');
         var loadingText = submitBtn.querySelector('.loading-text');
-
+    
         // Clear previous errors
         form.querySelectorAll('.is-invalid').forEach(function(el) {
             el.classList.remove('is-invalid');
@@ -119,10 +119,10 @@ var LoginApp = {
         form.querySelectorAll('.error-message').forEach(function(el) {
             el.textContent = '';
         });
-
+    
         var username = form.username.value;
         var password = form.password.value;
-
+    
         // Validate inputs
         if (!username || !password) {
             if (!username) {
@@ -135,12 +135,12 @@ var LoginApp = {
             }
             return;
         }
-
+    
         // Show loading state
         submitBtn.disabled = true;
         normalText.classList.add('d-none');
         loadingText.classList.remove('d-none');
-
+    
         ApiClient.login(username, password)
             .then(function(response) {
                 if (response.access_token) {
@@ -158,24 +158,17 @@ var LoginApp = {
             })
             .catch(function(error) {
                 console.error('Login error:', error);
-                var errorMessage;
-
-                if (error.message.includes('422')) {
-                    errorMessage = 'Invalid username or password format';
-                } else if (error.message.includes('401')) {
-                    errorMessage = 'Incorrect username or password';
-                } else {
-                    errorMessage = 'Login failed. Please try again.';
-                }
-
+                var errorMessage = error.message;
                 self.showFormError(errorMessage);
             })
-            .finally(function() {
+            .then(function() {
+                // This block executes after either success or error
                 submitBtn.disabled = false;
                 normalText.classList.remove('d-none');
                 loadingText.classList.add('d-none');
             });
     },
+    
 
     // Add this new method to show form-level errors
     showFormError: function(message) {

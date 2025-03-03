@@ -108,6 +108,7 @@ var ApiClient = {
     },
 
     getInflow: function(id) {
+        console.log('Getting Inflow:', id);
         return fetch(this.baseUrl + 'inflows/' + id, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token')

@@ -311,3 +311,12 @@ body {
     background: var(--pak-green);
     color: var(--white);
 } 
+
+@-moz-document url-prefix() {
+    /* Adjust the toggle-password button margin for Firefox 50 */
+    .login-form .input-group .toggle-password {
+      margin-left: -50px; /* Adjust this value as needed */
+      width: 30%;
+    }
+  }
+  
