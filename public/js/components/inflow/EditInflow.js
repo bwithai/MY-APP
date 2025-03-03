@@ -45,7 +45,15 @@ var EditInflow = {
                             </div>
                             <div class="form-group">
                                 <label for="amount">Amount*</label>
-                                <input type="number" id="amount" name="amount" min="0.01" required>
+                                <input 
+                                    type="number" 
+                                    id="amount" 
+                                    name="amount" 
+                                    step="0.01" 
+                                    min="0.01"
+                                    required
+                                    onchange="this.value = Math.max(0.01, Math.abs(this.value))"
+                                >
                             </div>
                             <div class="form-group">
                                 <label for="received_from">Received From*</label>
@@ -129,6 +137,9 @@ var EditInflow = {
         if (inflow.payment_method === 'Bank Transfer') { // Handle IBAN display for Bank Transfer
             document.getElementById('ibanContainer').style.display = 'block';
             this.loadIBANs();
+            setTimeout(() => {
+                document.getElementById('iban').value = inflow.iban_id;
+            }, 100);
         } else {
             document.getElementById('ibanContainer').style.display = 'none';
         }
@@ -167,6 +178,28 @@ var EditInflow = {
             subHeadContainer.style.display = 'none';
         }
     },
+
+    loadIBANs: function() {
+        var self = this;
+        var userId = sessionStorage.getItem('selectedUserId');
+        if (!userId) return;
+
+        ApiClient.getIBANs(userId)
+            .then(function(response) {
+                var ibanSelect = document.getElementById('iban');
+                ibanSelect.innerHTML = '<option value="">Select IBAN</option>';
+                response.forEach(function(iban) {
+                    var option = document.createElement('option');
+                    option.value = iban.id;
+                    option.textContent = iban.iban;
+                    ibanSelect.appendChild(option);
+                });
+            })
+            .catch(function(error) {
+                console.error('Failed to load IBANs:', error);
+            });
+    },
+
 
     handleSubmit: function (formData) {
         var self = this;
