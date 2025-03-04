@@ -1,17 +1,12 @@
-var InflowApp = {
-    // initialized: false, // Guard flag
-
+var OutflowApp = {
     init: function() {
-        // Prevent double initialization
-        // if (this.initialized) return;
-        // this.initialized = true;
 
         // Reset page to 1 only if coming from another route
-        if (!sessionStorage.getItem('isInflow')) {
+        if (!sessionStorage.getItem('isOutflow')) {
             this.currentPage = 1;
-            sessionStorage.setItem('inflowCurrentPage', '1');
+            sessionStorage.setItem('outflowCurrentPage', '1');
         } else {
-            this.currentPage = parseInt(sessionStorage.getItem('inflowCurrentPage')) || 1;
+            this.currentPage = parseInt(sessionStorage.getItem('outflowCurrentPage')) || 1;
         }
         
         this.perPage = 10;
@@ -19,11 +14,11 @@ var InflowApp = {
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         
-        // Mark that we're in inflow page
-        sessionStorage.setItem('isInflow', 'true');
+        // Mark that we're in outflow page
+        sessionStorage.setItem('isOutflow', 'true');
         
-        // Show inflow page
-        this.showInflowPage();
+        // Show outflow page
+        this.showOutflowPage();
     },
 
     cleanup: function() {
@@ -43,7 +38,7 @@ var InflowApp = {
         }
     },
 
-    showInflowPage: function() {
+    showOutflowPage: function() {
         var content = document.getElementById('content');
         if (!content) {
             console.error('Content element not found');
@@ -54,7 +49,7 @@ var InflowApp = {
             <div class="container-fluid">
                 <div class="search-section">
                     <div class="search-bar mb-4">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search inflows...">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search outflows...">
                     </div>
                 </div>
 
@@ -63,12 +58,12 @@ var InflowApp = {
                         <h1 class="page-title">
                             ${this.getPageTitle()}
                         </h1>
-                        <button class="btn btn-outline back-btn" onclick="InflowApp.goBack()">
+                        <button class="btn btn-outline back-btn" onclick="OutflowApp.goBack()">
                             Go back
                         </button>
                     </div>
                     ${!this.currentUser.is_superuser ? `
-                        <button class="btn btn-primary add-inflow-btn">Add New Inflow</button>
+                        <button class="btn btn-primary add-outflow-btn">Add New Outflow</button>
                     ` : ''}
                 </div>
 
@@ -89,7 +84,7 @@ var InflowApp = {
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="inflowTableBody">
+                        <tbody id="outflowTableBody">
                             <tr>
                                 <td colspan="11" class="text-center">Loading...</td>
                             </tr>
@@ -107,14 +102,14 @@ var InflowApp = {
 
         // Setup event listeners after content is rendered
         this.setupEventListeners();
-        this.loadInflowData();
+        this.loadOutflowData();
     },
 
     getPageTitle: function() {
         if (this.currentUser.is_superuser) {
-            return this.storedUserName.toLowerCase() === 'admin' ? 'All Inflows' : this.storedUserName + ' Inflows';
+            return this.storedUserName.toLowerCase() === 'admin' ? 'All Outflows' : this.storedUserName + ' Outflows';
         }
-        return 'Inflow Management';
+        return 'Outflow Management';
     },
 
     goBack: function() {
@@ -155,53 +150,53 @@ var InflowApp = {
             }
         })
         .catch(function(error) {
-            console.error('Failed to load inflows:', error);
-            var tableBody = document.getElementById('inflowTableBody');
+            console.error('Failed to load outflows:', error);
+            var tableBody = document.getElementById('outflowTableBody');
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="11" class="text-center text-danger">
-                        Error loading inflows: ${error.message}
+                        Error loading outflows: ${error.message}
                     </td>
                 </tr>
             `;
         });
     },
 
-    renderInflowTable: function(inflows) {
-        var tableBody = document.getElementById('inflowTableBody');
-        if (!inflows.length) {
+    renderOutflowTable: function(outflows) {
+        var tableBody = document.getElementById('outflowTableBody');
+        if (!outflows.length) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="11" class="text-center">No inflows found.</td>
+                    <td colspan="11" class="text-center">No outflows found.</td>
                 </tr>
             `;
             return;
         }
 
-        tableBody.innerHTML = inflows.map(function(inflow) {
+        tableBody.innerHTML = outflows.map(function(outflow) {
             // Add deleted-row class if is_deleted is true
-            const rowClass = inflow.is_deleted ? 'deleted-row' : '';
+            const rowClass = outflow.is_deleted ? 'deleted-row' : '';
             
             return `
-                <tr class="${rowClass}" data-id="${inflow.id}">
-                    <td>${inflow.id}</td>
-                    <td class="truncate" title="${inflow.head}">${inflow.head}</td>
-                    <td class="truncate" title="${inflow.sub_heads || ''}">${inflow.sub_heads || '-'}</td>
+                <tr class="${rowClass}" data-id="${outflow.id}">
+                    <td>${outflow.id}</td>
+                    <td class="truncate" title="${outflow.head}">${outflow.head}</td>
+                    <td class="truncate" title="${outflow.sub_heads || ''}">${outflow.sub_heads || '-'}</td>
                     <td class="long-text">
-                        <div class="truncate-text" title="${inflow.fund_details}">
-                            ${inflow.fund_details}
+                        <div class="truncate-text" title="${outflow.fund_details}">
+                            ${outflow.fund_details}
                         </div>
                     </td>
-                    <td title="${inflow.amount}">${Utils.formatNumber(inflow.amount)}</td>
-                    <td>${inflow.payment_method}</td>
-                    <td>${inflow.iban || 'N/A'}</td>
-                    <td>${this.formatDate(inflow.date, true)}</td>
-                    <td>${this.formatDate(inflow.created_at)}</td>
-                    <td>${inflow.user}</td>
+                    <td>${Utils.formatNumber(outflow.amount)}</td>
+                    <td>${outflow.payment_method}</td>
+                    <td>${outflow.iban || 'N/A'}</td>
+                    <td>${this.formatDate(outflow.date, true)}</td>
+                    <td>${this.formatDate(outflow.created_at)}</td>
+                    <td>${outflow.user}</td>
                     <td>
-                        ${ActionsMenu.init('Inflow', inflow, {
-                            delete: !inflow.is_deleted,
-                            disabled: inflow.is_deleted
+                        ${ActionsMenu.init('Outflow', outflow, {
+                            delete: !outflow.is_deleted,
+                            disabled: outflow.is_deleted
                         })}
                     </td>
                 </tr>
@@ -235,8 +230,8 @@ var InflowApp = {
                 e.preventDefault();
                 if (self.currentPage > 1) {
                     self.currentPage--;
-                    sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
-                    self.loadInflowData(searchInput ? searchInput.value : '');
+                    sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
+                    self.loadOutflowData(searchInput ? searchInput.value : '');
                 }
             };
             prevPage.addEventListener('click', this.prevPageHandler);
@@ -246,8 +241,8 @@ var InflowApp = {
             this.nextPageHandler = function(e) {
                 e.preventDefault();
                 self.currentPage++;
-                sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
-                self.loadInflowData(searchInput ? searchInput.value : '');
+                sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
+                self.loadOutflowData(searchInput ? searchInput.value : '');
             };
             nextPage.addEventListener('click', this.nextPageHandler);
         }
@@ -256,8 +251,8 @@ var InflowApp = {
         var addButton = document.querySelector('.add-inflow-btn');
         if (addButton) {
             addButton.addEventListener('click', function() {
-                AddInflow.init(function() {
-                    self.loadInflowData();
+                AddOutflow.init(function() {
+                    self.loadOutflowData();
                 });
             });
         }
@@ -306,10 +301,10 @@ window.addEventListener('popstate', function() {
 
 // Clean up when leaving inflow page
 window.addEventListener('beforeunload', function() {
-    if (window.location.pathname !== '/inflow') {
-        sessionStorage.removeItem('isInflow');
+    if (window.location.pathname !== '/outflow.html') {
+        sessionStorage.removeItem('isOutflow');
     }
 });
 
 // Make it globally available
-window.InflowApp = InflowApp; 
+window.OutflowApp = OutflowApp; 

@@ -9,18 +9,12 @@ var AddInflow = {
         // Wait for DOM to be ready before setting up events and loading data
         setTimeout(() => {
             this.setupEventListeners();
-            this.loadHeadsData();
+            Utils.loadHeadsData(1);
         }, 0);
     },
 
-    cleanup: function() {
-        // Remove any existing modal
-        var existingModal = document.getElementById('addInflowModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-        // Clear any global event listeners
-        window.onclick = null;
+    cleanup: function () {
+        Utils.cleanup('addInflowModal');
     },
 
     render: function() {
@@ -141,7 +135,7 @@ var AddInflow = {
 
         if (headSelect) {
             headSelect.addEventListener('change', function() {
-                self.loadSubHeads(this.value);
+                Utils.loadSubHeads(this.value);
             });
         }
 
@@ -150,7 +144,7 @@ var AddInflow = {
                 var ibanContainer = document.getElementById('ibanContainer');
                 if (this.value === 'Bank Transfer') {
                     ibanContainer.style.display = 'block';
-                    self.loadIBANs();
+                    Utils.loadIBANs();
                 } else {
                     ibanContainer.style.display = 'none';
                 }
@@ -169,73 +163,6 @@ var AddInflow = {
         if (dateInput) {
             RestrictedDatePicker(dateInput);
         }
-    },
-
-    loadHeadsData: function() {
-        var self = this;
-        ApiClient.getHeads()
-            .then(function(response) {
-                var headSelect = document.getElementById('head');
-                headSelect.innerHTML = '<option value="">Select a head</option>';
-                response.data.forEach(function(head) {
-                    var option = document.createElement('option');
-                    option.value = head.id;
-                    option.textContent = head.heads;
-                    if (head.sub_heads && head.sub_heads.length > 0) {
-                        option.dataset.subheads = JSON.stringify(head.sub_heads);
-                    }
-                    headSelect.appendChild(option);
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load heads:', error);
-            });
-    },
-
-    loadSubHeads: function(headId) {
-        var subHeadContainer = document.getElementById('subHeadContainer');
-        var subHeadSelect = document.getElementById('subhead');
-
-        if (!headId) {
-            subHeadContainer.style.display = 'none';
-            return;
-        }
-
-        var selectedHead = document.getElementById('head').querySelector(`option[value="${headId}"]`);
-        if (selectedHead && selectedHead.dataset.subheads) {
-            var subHeads = JSON.parse(selectedHead.dataset.subheads);
-            subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-            subHeads.forEach(function(subHead) {
-                var option = document.createElement('option');
-                option.value = subHead.id;
-                option.textContent = subHead.subheads;
-                subHeadSelect.appendChild(option);
-            });
-            subHeadContainer.style.display = 'block';
-        } else {
-            subHeadContainer.style.display = 'none';
-        }
-    },
-
-    loadIBANs: function() {
-        var self = this;
-        var userId = sessionStorage.getItem('selectedUserId');
-        if (!userId) return;
-
-        ApiClient.getIBANs(userId)
-            .then(function(response) {
-                var ibanSelect = document.getElementById('iban');
-                ibanSelect.innerHTML = '<option value="">Select IBAN</option>';
-                response.forEach(function(iban) {
-                    var option = document.createElement('option');
-                    option.value = iban.id;
-                    option.textContent = iban.iban;
-                    ibanSelect.appendChild(option);
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load IBANs:', error);
-            });
     },
 
     handleSubmit: function(formData) {
@@ -284,14 +211,15 @@ var AddInflow = {
         ApiClient.createInflow(formattedData)
             .then(function(response) {
                 self.close();
-                if (self.onSuccess) self.onSuccess();
+                Utils.onSuccess('add', 'Inflow');
+                InflowApp.loadInflowData();
             })
             .catch(function(error) {
                 console.error('Failed to create inflow:', error);
                 var errorMessage = error.message || 'Failed to create inflow';
                 alert(errorMessage);
             })
-            .finally(function() {
+            .then(function() {
                 submitButton.disabled = false;
             });
     },

@@ -20,34 +20,38 @@ var MainApp = {
     setupRoutes: function() {
         this.routes = {
             '/': this.showDashboard,
-            '/inflows': this.showInflows,
-            '/outflows': this.showOutflows,
+            '/inflow': this.showInflows,
+            '/outflow': this.showOutflows,
             '/heads': this.showHeads,
             '/profile': this.showProfile
         };
     },
 
-    handleNavigation: function() {
-        var path = window.location.pathname;
-        console.log('Handling navigation for path:', path);
+    showInflows: function() {
+        InflowApp.init();
+    },
 
-        if (path === '/inflow.html') {
-            InflowApp.init();
-        } else if (path === '/' || path === '/index.html') {
-            this.showDashboard();
-        } else {
-            // Show 404 page for unsupported routes
-            var content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="content-wrapper text-center">
-                    <div class="page-header">
-                        <h1 class="page-title">404 - Page Not Found</h1>
-                    </div>
-                    <p class="mb-4">This page is not yet supported. Currently only inflow management is available.</p>
-                    <button class="btn btn-primary" onclick="window.location.href='/'">Return to Dashboard</button>
+    handleNavigation: function() {
+    var path = window.location.pathname;
+    console.log('Handling navigation for path:', path);
+    var content = document.getElementById('content');
+    content.innerHTML = '';  // Clear previous content
+    
+    if (path === '/inflow') {
+        InflowApp.init(); // This should load the inflow table
+    } else if (path === '/' || path === '/index.html') {
+        this.showDashboard();
+    } else {
+        content.innerHTML = `
+            <div class="content-wrapper text-center">
+                <div class="page-header">
+                    <h1 class="page-title">404 - Page Not Found</h1>
                 </div>
-            `;
-        }
+                <p class="mb-4">This page is not yet supported. Currently only inflow management is available.</p>
+                <button class="btn btn-primary" onclick="window.location.href='/'">Return to Dashboard</button>
+            </div>
+        `;
+    }
     },
 
     showDashboard: function() {

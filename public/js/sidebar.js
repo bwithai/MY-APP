@@ -9,7 +9,7 @@ var Sidebar = {
 
     items: [
         { icon: 'home', title: "Dashboard", path: "/index.html" },
-        { icon: 'arrow-down', title: "Inflow", path: "/inflow.html" },
+        { icon: 'arrow-down', title: "Inflow", path: "/inflow" },
         { icon: 'arrow-up', title: "Outflow", path: "/outflow" },
         { icon: 'hand-holding-usd', title: "Investment", path: "/investment" },
         { icon: 'minus-circle', title: "Liability", path: "/liability" },

@@ -364,14 +364,34 @@
 /* Pagination */
 .pagination-footer {
     display: flex;
-    justify-content: right;
     align-items: right;
-    margin: 2rem 0;
+    justify-content: right;
+    margin-top: 20px;
+}
+
+.pagination-footer .btn {
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination-footer .btn:hover {
+    background-color: var(--pak-green); /* Change to your desired hover color */
+    color: white;
 }
 
 .page-info {
-    color: var(--pak-green);
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 15px;
+    color: var(--pak-green); /* Change to your desired text color */
+}
+
+.pagination-footer .btn:disabled {
+    background-color: #e0e0e0; /* Light gray for disabled state */
+    color: #a0a0a0; /* Darker gray for disabled text */
+    cursor: not-allowed;
 }
 
 /* Action Buttons */
@@ -747,7 +767,7 @@ td.long-text {
 .btn-danger:disabled {
     background-color: #ffcdd2;
     cursor: not-allowed;
-} 
+}
 
 /* Datepicker container styling */
 .datepicker {
@@ -787,5 +807,19 @@ td.long-text {
 }
 .datepicker td:hover {
     background-color: #e0e0e0;
+}
+
+.success-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--pak-light-green); /* Light green background */
+    color: white; /* Dark green text */
+    padding: 10px 20px;
+    border: 1px solid #c3e6cb; /* Border color */
+    border-radius: 5px;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 

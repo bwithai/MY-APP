@@ -6,8 +6,12 @@ var EditInflow = {
         this.cleanup();
         this.render();
         this.setupEventListeners();
-        this.loadHeadsData();
+        Utils.loadHeadsData(1);
         if (id) this.loadInflowData();
+    },
+
+    cleanup: function () {
+        Utils.cleanup('editInflowModal');
     },
 
     loadInflowData: function () {
@@ -72,7 +76,7 @@ var EditInflow = {
                             </div>
                             <div class="form-group">
                                 <label for="date">Date of Entry*</label>
-                                <input type="date" id="date" name="date" required>
+                                <input type="text" id="date" name="date" required placeholder="YYYY-MM-DD" readonly>
                             </div>
                         </form>
                     </div>
@@ -92,19 +96,25 @@ var EditInflow = {
         });
 
         document.getElementById('head').addEventListener('change', function () {
-            self.loadSubHeads(this.value);
+            Utils.loadSubHeads(this.value);
         });
 
         document.getElementById('payment_method').addEventListener('change', function () {
             var ibanContainer = document.getElementById('ibanContainer');
             ibanContainer.style.display = this.value === 'Bank Transfer' ? 'block' : 'none';
-            if (this.value === 'Bank Transfer') self.loadIBANs();
+            if (this.value === 'Bank Transfer') Utils.loadIBANs();
         });
 
         document.getElementById('editInflowForm').addEventListener('submit', function (e) {
             e.preventDefault();
             self.handleSubmit(new FormData(this));
         });
+
+        // Initialize the restricted datepicker component on the date input
+        var dateInput = document.getElementById('date');
+        if (dateInput) {
+            RestrictedDatePicker(dateInput);
+        }
     },
 
     populateForm: function (inflow) {
@@ -129,14 +139,14 @@ var EditInflow = {
             document.getElementById('date').value = formattedDate;
         }
         if (inflow.subhead_id) { // For sub-head, if provided (using the correct key, e.g., 'sub_heads')
-            this.loadSubHeads(inflow.head_id); // You might need to adjust this if the value differs
+            Utils.loadSubHeads(inflow.head_id); // You might need to adjust this if the value differs
             setTimeout(() => {
                 document.getElementById('subhead').value = inflow.subhead_id;
             }, 100);
         }
         if (inflow.payment_method === 'Bank Transfer') { // Handle IBAN display for Bank Transfer
             document.getElementById('ibanContainer').style.display = 'block';
-            this.loadIBANs();
+            Utils.loadIBANs();
             setTimeout(() => {
                 document.getElementById('iban').value = inflow.iban_id;
             }, 100);
@@ -144,62 +154,6 @@ var EditInflow = {
             document.getElementById('ibanContainer').style.display = 'none';
         }
     },
-
-    loadHeadsData: function () {
-        ApiClient.getHeads()
-            .then(function (response) {
-                var headSelect = document.getElementById('head');
-                headSelect.innerHTML = '<option value="">Select a head</option>';
-                response.data.forEach(function (head) {
-                    var option = document.createElement('option');
-                    option.value = head.id;
-                    option.textContent = head.heads;
-                    option.dataset.subheads = JSON.stringify(head.sub_heads || []);
-                    headSelect.appendChild(option);
-                });
-            })
-            .catch(console.error);
-    },
-
-    loadSubHeads: function (headId) {
-        var subHeadContainer = document.getElementById('subHeadContainer');
-        var subHeadSelect = document.getElementById('subhead');
-        var selectedHead = document.querySelector(`#head option[value='${headId}']`);
-        subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-        if (selectedHead && selectedHead.dataset.subheads) {
-            JSON.parse(selectedHead.dataset.subheads).forEach(function (subHead) {
-                var option = document.createElement('option');
-                option.value = subHead.id;
-                option.textContent = subHead.subheads;
-                subHeadSelect.appendChild(option);
-            });
-            subHeadContainer.style.display = 'block';
-        } else {
-            subHeadContainer.style.display = 'none';
-        }
-    },
-
-    loadIBANs: function() {
-        var self = this;
-        var userId = sessionStorage.getItem('selectedUserId');
-        if (!userId) return;
-
-        ApiClient.getIBANs(userId)
-            .then(function(response) {
-                var ibanSelect = document.getElementById('iban');
-                ibanSelect.innerHTML = '<option value="">Select IBAN</option>';
-                response.forEach(function(iban) {
-                    var option = document.createElement('option');
-                    option.value = iban.id;
-                    option.textContent = iban.iban;
-                    ibanSelect.appendChild(option);
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load IBANs:', error);
-            });
-    },
-
 
     handleSubmit: function (formData) {
         var self = this;
@@ -209,18 +163,13 @@ var EditInflow = {
         ApiClient.updateInflow(this.inflowId, data)
             .then(function () {
                 self.close();
+                Utils.onSuccess('edit', 'Inflow');
                 InflowApp.loadInflowData();
             })
             .catch(console.error);
     },
 
-    cleanup: function () {
-        var modal = document.getElementById('editInflowModal');
-        if (modal) modal.remove();
-    },
-
-    close: function () {
+    close: function() {
         this.cleanup();
-        if (this.onClose) this.onClose();
     }
 };

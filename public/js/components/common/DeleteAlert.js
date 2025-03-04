@@ -96,7 +96,7 @@ var DeleteAlert = {
                 // Refresh the data
                 InflowApp.loadInflowData();
                 // Show success message
-                alert(`The ${self.type.toLowerCase()} was deleted successfully.`);
+                Utils.onSuccess('delete', self.type);
             })
             .catch(function(error) {
                 console.error('Delete failed:', error);

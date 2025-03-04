@@ -145,8 +145,8 @@ var ApiClient = {
     /*----------------------------------------------------------------------------------------------------
         [ All the Common API calls which will be used in multiple pages will be handled bellow this line ]
     ----------------------------------------------------------------------------------------------------*/
-    getHeads: function() {
-        return fetch(this.baseUrl + 'common/heads?type=1', {
+    getHeads: function(type) {
+        return fetch(this.baseUrl + 'common/heads?type=' + type, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token')
             }
