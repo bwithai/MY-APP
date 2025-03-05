@@ -141,6 +141,75 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Outflows API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
+    getOutflows: function({ skip, limit, search, userId }) {
+        var url = new URL(this.baseUrl + 'outflows/');  // Note the trailing slash
+        url.searchParams.append('skip', skip);
+        url.searchParams.append('limit', limit);
+        if (search) url.searchParams.append('search', search);
+        if (userId) url.searchParams.append('user_id', userId);
+
+        console.log('Calling Inflow API:', url.toString());
+
+        return fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    createOutflow: function(data) {
+        console.log('Creating Outflow:', JSON.stringify(data));
+        return fetch(this.baseUrl + 'outflows/', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    getOutflow: function(id) {
+        console.log('Getting Outflow:', id);
+        return fetch(this.baseUrl + 'outflows/' + id, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    updateOutflow: function(id, data) {
+        return fetch(this.baseUrl + 'outflows/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    deleteOutflow: function(id) {
+        return fetch(this.baseUrl + 'outflows/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    
 
     /*----------------------------------------------------------------------------------------------------
         [ All the Common API calls which will be used in multiple pages will be handled bellow this line ]

@@ -823,3 +823,7 @@ td.long-text {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.text-muted {
+    color: rgba(58, 58, 58, 0.5); /* Adjust the opacity as needed for muting effect */
+}
+

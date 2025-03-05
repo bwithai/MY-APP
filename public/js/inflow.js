@@ -1,11 +1,7 @@
 var InflowApp = {
-    // initialized: false, // Guard flag
 
     init: function() {
-        // Prevent double initialization
-        // if (this.initialized) return;
-        // this.initialized = true;
-
+        
         // Reset page to 1 only if coming from another route
         if (!sessionStorage.getItem('isInflow')) {
             this.currentPage = 1;
@@ -186,7 +182,7 @@ var InflowApp = {
                 <tr class="${rowClass}" data-id="${inflow.id}">
                     <td>${inflow.id}</td>
                     <td class="truncate" title="${inflow.head}">${inflow.head}</td>
-                    <td class="truncate" title="${inflow.sub_heads || ''}">${inflow.sub_heads || '-'}</td>
+                    <td class="${inflow.sub_heads ? '' : 'text-muted'}">${inflow.sub_heads || 'N/A'}</td>
                     <td class="long-text">
                         <div class="truncate-text" title="${inflow.fund_details}">
                             ${inflow.fund_details}
@@ -194,7 +190,7 @@ var InflowApp = {
                     </td>
                     <td title="${inflow.amount}">${Utils.formatNumber(inflow.amount)}</td>
                     <td>${inflow.payment_method}</td>
-                    <td>${inflow.iban || 'N/A'}</td>
+                    <td class="${inflow.iban ? '' : 'text-muted'}">${inflow.iban || 'N/A'}</td>
                     <td>${this.formatDate(inflow.date, true)}</td>
                     <td>${this.formatDate(inflow.created_at)}</td>
                     <td>${inflow.user}</td>

@@ -75,11 +75,13 @@ var OutflowApp = {
                                 <th>Head</th>
                                 <th>Sub Heads</th>
                                 <th>Fund Details</th>
+                                <th>Type</th>
+                                <th>Entity</th>
                                 <th>Amount</th>
-                                <th>Payment Method</th>
+                                <th>Payment Type</th>
                                 <th>IBAN</th>
-                                <th>Date of Entry</th>
-                                <th>Date</th>
+                                <th>Payment To</th>
+                                <th>Outflow Date</th>
                                 <th>User</th>
                                 <th>Actions</th>
                             </tr>
@@ -130,11 +132,11 @@ var OutflowApp = {
         history.pushState(null, '', '?' + searchParams.toString());
     },
 
-    loadInflowData: function(query = '') {
+    loadOutflowData: function(query = '') {
         var self = this;
         var skip = (this.currentPage - 1) * this.perPage;
 
-        ApiClient.getInflows({ 
+        ApiClient.getOutflows({ 
             skip: skip, 
             limit: this.perPage, 
             search: query,
@@ -142,7 +144,7 @@ var OutflowApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderInflowTable(response.data);
+                self.renderOutflowTable(response.data);
                 self.updatePagination(response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
@@ -181,17 +183,19 @@ var OutflowApp = {
                 <tr class="${rowClass}" data-id="${outflow.id}">
                     <td>${outflow.id}</td>
                     <td class="truncate" title="${outflow.head}">${outflow.head}</td>
-                    <td class="truncate" title="${outflow.sub_heads || ''}">${outflow.sub_heads || '-'}</td>
+                    <td class="${outflow.sub_heads ? '' : 'text-muted'}">${outflow.sub_heads || 'N/A'}</td>
                     <td class="long-text">
-                        <div class="truncate-text" title="${outflow.fund_details}">
-                            ${outflow.fund_details}
+                        <div class="truncate-text" title="${outflow.head_details}">
+                            ${outflow.head_details}
                         </div>
                     </td>
-                    <td>${Utils.formatNumber(outflow.amount)}</td>
-                    <td>${outflow.payment_method}</td>
-                    <td>${outflow.iban || 'N/A'}</td>
-                    <td>${this.formatDate(outflow.date, true)}</td>
-                    <td>${this.formatDate(outflow.created_at)}</td>
+                    <td>${outflow.type}</td>
+                    <td class="${outflow.entity ? '' : 'text-muted'}">${outflow.entity || 'N/A'}</td>
+                    <td title="${outflow.cost}">${Utils.formatNumber(outflow.cost)}</td>
+                    <td>${outflow.payment_type}</td>
+                    <td class="${outflow.iban ? '' : 'text-muted'}">${outflow.iban || 'N/A'}</td>
+                    <td class="${outflow.payment_to ? '' : 'text-muted'}">${outflow.payment_to || 'N/A'}</td>
+                    <td>${this.formatDate(outflow.expense_date, true)}</td>
                     <td>${outflow.user}</td>
                     <td>
                         ${ActionsMenu.init('Outflow', outflow, {
@@ -215,7 +219,7 @@ var OutflowApp = {
                 self.searchTimeout = setTimeout(function() {
                     self.currentPage = 1;
                     sessionStorage.setItem('inflowCurrentPage', '1');
-                    self.loadInflowData(searchInput.value);
+                    self.loadOutflowData(searchInput.value);
                 }, 300);
             };
             searchInput.addEventListener('input', this.searchHandler);
@@ -247,8 +251,8 @@ var OutflowApp = {
             nextPage.addEventListener('click', this.nextPageHandler);
         }
 
-        // Add new inflow
-        var addButton = document.querySelector('.add-inflow-btn');
+        // Add new outflow
+        var addButton = document.querySelector('.add-outflow-btn');
         if (addButton) {
             addButton.addEventListener('click', function() {
                 AddOutflow.init(function() {

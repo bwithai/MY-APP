@@ -28,8 +28,9 @@ var Utils = {
         var subHeadSelect = document.getElementById('subhead');
         var selectedHead = document.querySelector(`#head option[value='${headId}']`);
         subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-        if (selectedHead && selectedHead.dataset.subheads) {
-            JSON.parse(selectedHead.dataset.subheads).forEach(function (subHead) {
+        var subHeads = selectedHead && selectedHead.dataset.subheads ? JSON.parse(selectedHead.dataset.subheads) : [];
+        if (subHeads.length > 0) {
+            subHeads.forEach(function (subHead) {
                 var option = document.createElement('option');
                 option.value = subHead.id;
                 option.textContent = subHead.subheads;
@@ -125,7 +126,84 @@ var Utils = {
         } else {
             return (value / 1_000_000_000_000_000_000).toFixed(2) + 'Qi'; // Quintillions or more
         }
+    },
+
+    handleInflowSubmit: function(formData, options) {
+        var self = this;
+        var submitButton = document.querySelector('button[type="submit"]');
+        if (submitButton.disabled) {
+            return;
+        }
+        submitButton.disabled = true;
+    
+        // Build data object from FormData
+        var data = {};
+        formData.forEach(function(value, key) { 
+            data[key] = value; 
+        });
+    
+        // Validate and format the amount
+        var amount = Number(parseFloat(data.amount).toFixed(2));
+        if (amount <= 0) {
+            alert('Amount must be greater than 0');
+            submitButton.disabled = false;
+            return;
+        }
+    
+        // Prepare the formatted data object
+        var formattedData = {
+            head_id: Number(data.head_id),
+            amount: amount,
+            fund_details: data.fund_details,
+            received_from: data.received_from,
+            payment_method: data.payment_method,
+            date: data.date
+        };
+    
+        if (data.subhead_id) {
+            formattedData.subhead_id = Number(data.subhead_id);
+        }
+        if (data.payment_method === 'Bank Transfer') {
+            formattedData.iban_id = Number(data.iban_id);
+        }
+    
+        console.log('Submitting formatted data:', formattedData);
+    
+        // Determine API call based on options.method ("update" vs. create)
+        var apiPromise;
+        if (options && options.method === 'update') {
+            // Update existing inflow; require options.id
+            apiPromise = ApiClient.updateInflow(options.id, formattedData);
+        } else {
+            // Default: create new inflow
+            apiPromise = ApiClient.createInflow(formattedData);
+        }
+    
+        apiPromise
+            .then(function(response) {
+                self.close();
+                // Show a success message (add vs. edit based on method)
+                if (options && options.method === 'update') {
+                    Utils.onSuccess('edit', 'Inflow');
+                } else {
+                    Utils.onSuccess('add', 'Inflow');
+                }
+                // Optionally reload the data if a callback is provided
+                if (options && typeof options.reloadCallback === 'function') {
+                    options.reloadCallback();
+                }
+            })
+            .catch(function(error) {
+                console.error('Failed to submit inflow:', error);
+                var errorMessage = error.message || 'Failed to submit inflow';
+                alert(errorMessage);
+            })
+            .then(function() {
+                submitButton.disabled = false;
+            });
     }
+    
+    
     
 };
 

@@ -25,70 +25,94 @@ var ActionsMenu = {
         return menuHtml;
     },
 
-        toggleMenu: function(menuId, event) {
-            // Close all other open menus first
-            var openMenus = document.querySelectorAll('.action-menu-dropdown.show');
-            for (var i = 0; i < openMenus.length; i++) {
-                if (openMenus[i].id !== menuId) {
-                    openMenus[i].classList.remove('show');
-                }
+    toggleMenu: function(menuId, event) {
+        // Close all other open menus first
+        var openMenus = document.querySelectorAll('.action-menu-dropdown.show');
+        for (var i = 0; i < openMenus.length; i++) {
+            if (openMenus[i].id !== menuId) {
+                openMenus[i].classList.remove('show');
             }
+        }
 
-            // Toggle current menu
-            var menu = document.getElementById(menuId);
-            if (!menu) return;
+        // Toggle current menu
+        var menu = document.getElementById(menuId);
+        if (!menu) return;
 
-            // Get the action button that triggered the event
-            var button = event.currentTarget;
-            var rect = button.getBoundingClientRect();
+        // Get the action button that triggered the event
+        var button = event.currentTarget;
+        var rect = button.getBoundingClientRect();
 
-            // Append the menu to document.body if it isn't already there
-            if (menu.parentElement !== document.body) {
-                document.body.appendChild(menu);
+        // Append the menu to document.body if it isn't already there
+        if (menu.parentElement !== document.body) {
+            document.body.appendChild(menu);
+        }
+
+        // Ensure menu is visible before measuring size
+        menu.style.display = 'block';
+        var menuWidth = menu.offsetWidth;
+        menu.style.display = '';
+
+        var top = rect.bottom + window.scrollY;
+        var left = rect.right - menuWidth + window.scrollX;
+
+        // Apply position styles
+        menu.style.position = 'absolute';
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        menu.style.width = '120px';
+        menu.style.zIndex = '10000';
+        menu.classList.toggle('show');
+
+            // Close menu when clicking outside
+        document.addEventListener('click', function closeMenu(e) {
+            if (!e.target.closest('.action-menu-container')) {
+                menu.classList.remove('show');
+                document.removeEventListener('click', closeMenu);
             }
+        });
 
-            // Ensure menu is visible before measuring size
-            menu.style.display = 'block';
-            var menuWidth = menu.offsetWidth;
-            menu.style.display = '';
-
-            var top = rect.bottom + window.scrollY;
-            var left = rect.right - menuWidth + window.scrollX;
-
-            // Apply position styles
-            menu.style.position = 'absolute';
-            menu.style.top = top + 'px';
-            menu.style.left = left + 'px';
-            menu.style.width = '120px';
-            menu.style.zIndex = '10000';
-            menu.classList.toggle('show');
-
-             // Close menu when clicking outside
-            document.addEventListener('click', function closeMenu(e) {
-                if (!e.target.closest('.action-menu-container')) {
-                    menu.classList.remove('show');
-                    document.removeEventListener('click', closeMenu);
-                }
+        // Close menu when clicking an item inside it
+        menu.querySelectorAll('.action-menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                menu.classList.remove('show');
             });
-
-            // Close menu when clicking an item inside it
-            menu.querySelectorAll('.action-menu-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    menu.classList.remove('show');
-                });
-            });
+        });
     },
 
     handleEdit: function(id) {
-        EditInflow.init('Inflow', id, function() {
-            InflowApp.loadInflowData();
-        });
+        switch (this.type) {
+            case 'Inflow':
+                EditInflow.init('Inflow', id, function() {
+                    InflowApp.loadInflowData();
+                });
+                break;
+            case 'Outflow':
+                EditOutflow.init('Outflow', id, function() {
+                    OutflowApp.loadOutflowData();
+                });
+                break;
+            // Add more cases for future types here
+            default:
+                console.error('Unknown type:', type);
+        }
     },
 
     handleDelete: function(id) {
-        DeleteAlert.init('Inflow', id, function() {
-            InflowApp.loadInflowData();
-        });
+        switch (this.type) {
+            case 'Inflow':
+                DeleteAlert.init('Inflow', id, function() {
+                    InflowApp.loadInflowData();
+                });
+                break;
+            case 'Outflow':
+                DeleteAlert.init('Outflow', id, function() {
+                    OutflowApp.loadOutflowData();
+                });
+                break;
+            // Add more cases for future types here
+            default:
+                console.error('Unknown type:', type);
+        }
     }
 };
 

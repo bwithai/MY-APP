@@ -28,7 +28,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--pak-green);
-    background: linear-gradient(135deg, #cfd8e2 0%, #3e803c 100%);
+    background: linear-gradient(135deg, #cfd8e2 0%, #8abd89 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;

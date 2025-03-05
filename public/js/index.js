@@ -30,6 +30,9 @@ var MainApp = {
     showInflows: function() {
         InflowApp.init();
     },
+    showOutflows: function() {
+        OutflowApp.init();
+    },
 
     handleNavigation: function() {
     var path = window.location.pathname;
@@ -39,6 +42,8 @@ var MainApp = {
     
     if (path === '/inflow') {
         InflowApp.init(); // This should load the inflow table
+    } else if (path === '/outflow') {
+        OutflowApp.init();
     } else if (path === '/' || path === '/index.html') {
         this.showDashboard();
     } else {
