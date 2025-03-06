@@ -6,6 +6,8 @@ var LoginApp = {
             window.location.href = '/index.html';
             return;
         }
+        // Add login-page class to body
+        document.body.classList.add('login-page');
         this.showLoginPage();
         this.setupEventListeners();
     },
@@ -14,10 +16,10 @@ var LoginApp = {
         var content = document.getElementById('content');
         content.innerHTML = `
             <div class="login-container">
-                <div class="text-center mb-4">
+                <div class="text-center">
                     <img src="/assets/images/fastapi-logo.svg" alt="Logo" class="login-logo">
+                    <h2 class="login-title">Command Fund Management</h2>
                 </div>
-                <h2 class="login-title text-center">Command Fund Management</h2>
                 <form id="loginForm" class="login-form">
                     <div class="form-group">
                         <label class="form-label">Username</label>
@@ -63,9 +65,10 @@ var LoginApp = {
                         <span class="normal-text">Login</span>
                         <span class="loading-text d-none">
                             <span class="spinner"></span>
+                            <span>Logging in...</span>
                         </span>
                     </button>
-                    <div class="signup-link text-center">
+                    <div class="signup-link">
                         Don't have an account? <a href="/signup">Sign up</a>
                     </div>
                 </form>

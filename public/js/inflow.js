@@ -46,71 +46,65 @@ var InflowApp = {
             return;
         }
 
-        content.innerHTML = `
-            <div class="container-fluid">
-                <div class="search-section">
-                    <div class="search-bar mb-4">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search inflows...">
-                    </div>
-                </div>
+        content.innerHTML = '<div class="container-fluid">' +
+            '<div class="page-header">' +
+                '<div class="header-content">' +
+                    '<h1 class="page-title">' + this.getPageTitle() + '</h1>' +
+                    (this.currentUser.is_superuser ? '' : 
+                        '<button class="btn btn-primary" id="addInflowBtn">' +
+                            '<i class="fas fa-plus"></i> Add Inflow' +
+                        '</button>'
+                    ) +
+                '</div>' +
+                '<div class="search-bar">' +
+                    '<input type="text" id="searchInput" placeholder="Search inflows..." class="form-control">' +
+                '</div>' +
+            '</div>' +
+            
+            '<div class="table-responsive horizontal-scroll">' +
+                '<table class="table">' +
+                    '<thead>' +
+                        '<tr>' +
+                            '<th>ID</th>' +
+                            '<th>Head</th>' +
+                            '<th>Sub Head</th>' +
+                            '<th>Fund Details</th>' +
+                            '<th>Amount</th>' +
+                            '<th>Payment Method</th>' +
+                            '<th>IBAN</th>' +
+                            '<th>Date of Entry</th>' +
+                            '<th>Created At</th>' +
+                            '<th>User</th>' +
+                            '<th>Actions</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody id="inflowTableBody">' +
+                        '<tr>' +
+                            '<td colspan="11" class="text-center">Loading...</td>' +
+                        '</tr>' +
+                    '</tbody>' +
+                '</table>' +
+            '</div>' +
+            
+            '<div class="pagination-footer">' +
+                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
+                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
+                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
+            '</div>' +
+        '</div>';
 
-                <div class="page-header">
-                    <div class="header-content">
-                        <h1 class="page-title">
-                            ${this.getPageTitle()}
-                        </h1>
-                        <button class="btn btn-outline back-btn" onclick="InflowApp.goBack()">
-                            Go back
-                        </button>
-                    </div>
-                    ${!this.currentUser.is_superuser ? `
-                        <button class="btn btn-primary add-inflow-btn">Add New Inflow</button>
-                    ` : ''}
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Head</th>
-                                <th>Sub Heads</th>
-                                <th>Fund Details</th>
-                                <th>Amount</th>
-                                <th>Payment Method</th>
-                                <th>IBAN</th>
-                                <th>Date of Entry</th>
-                                <th>Date</th>
-                                <th>User</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inflowTableBody">
-                            <tr>
-                                <td colspan="11" class="text-center">Loading...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="pagination-footer">
-                    <button class="btn btn-outline-primary" id="prevPage" disabled>Previous</button>
-                    <span class="page-info">Page <span id="currentPage">1</span></span>
-                    <button class="btn btn-outline-primary" id="nextPage">Next</button>
-                </div>
-            </div>
-        `;
-
-        // Setup event listeners after content is rendered
+        // Setup event listeners
         this.setupEventListeners();
+        
+        // Load inflow data
         this.loadInflowData();
     },
 
     getPageTitle: function() {
         if (this.currentUser.is_superuser) {
-            return this.storedUserName.toLowerCase() === 'admin' ? 'All Inflows' : this.storedUserName + ' Inflows';
+            return this.storedUserName.toLowerCase() === 'admin' ? 'All Users Inflows' : this.storedUserName + '\'s Inflows';
         }
-        return 'Inflow Management';
+        return 'My Inflows';
     },
 
     goBack: function() {
@@ -153,56 +147,63 @@ var InflowApp = {
         .catch(function(error) {
             console.error('Failed to load inflows:', error);
             var tableBody = document.getElementById('inflowTableBody');
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="11" class="text-center text-danger">
-                        Error loading inflows: ${error.message}
-                    </td>
-                </tr>
-            `;
+            if (tableBody) {
+                tableBody.innerHTML = '<tr>' +
+                    '<td colspan="11" class="text-center text-danger">' +
+                        'Error loading inflows: ' + (error.message || 'Unknown error') +
+                    '</td>' +
+                '</tr>';
+            }
         });
     },
 
     renderInflowTable: function(inflows) {
         var tableBody = document.getElementById('inflowTableBody');
-        if (!inflows.length) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="11" class="text-center">No inflows found.</td>
-                </tr>
-            `;
+        if (!tableBody) {
+            console.error('Table body element not found');
             return;
         }
 
-        tableBody.innerHTML = inflows.map(function(inflow) {
+        if (!inflows || inflows.length === 0) {
+            tableBody.innerHTML = '<tr>' +
+                '<td colspan="11" class="text-center">No inflows found</td>' +
+            '</tr>';
+            return;
+        }
+
+        var self = this;
+        tableBody.innerHTML = '';
+        
+        inflows.forEach(function(inflow) {
             // Add deleted-row class if is_deleted is true
-            const rowClass = inflow.is_deleted ? 'deleted-row' : '';
+            var rowClass = inflow.is_deleted ? 'deleted-row' : '';
+            var row = document.createElement('tr');
+            row.className = rowClass;
+            row.dataset.id = inflow.id;
             
-            return `
-                <tr class="${rowClass}" data-id="${inflow.id}">
-                    <td>${inflow.id}</td>
-                    <td class="truncate" title="${inflow.head}">${inflow.head}</td>
-                    <td class="${inflow.sub_heads ? '' : 'text-muted'}">${inflow.sub_heads || 'N/A'}</td>
-                    <td class="long-text">
-                        <div class="truncate-text" title="${inflow.fund_details}">
-                            ${inflow.fund_details}
-                        </div>
-                    </td>
-                    <td title="${inflow.amount}">${Utils.formatNumber(inflow.amount)}</td>
-                    <td>${inflow.payment_method}</td>
-                    <td class="${inflow.iban ? '' : 'text-muted'}">${inflow.iban || 'N/A'}</td>
-                    <td>${this.formatDate(inflow.date, true)}</td>
-                    <td>${this.formatDate(inflow.created_at)}</td>
-                    <td>${inflow.user}</td>
-                    <td>
-                        ${ActionsMenu.init('Inflow', inflow, {
-                            delete: !inflow.is_deleted,
-                            disabled: inflow.is_deleted
-                        })}
-                    </td>
-                </tr>
-            `;
-        }, this).join('');
+            // Create cells in the same order as the headers
+            row.innerHTML = 
+                '<td>' + inflow.id + '</td>' +
+                '<td class="truncate" title="' + (inflow.head || '') + '">' + (inflow.head || 'N/A') + '</td>' +
+                '<td class="' + (inflow.sub_heads ? '' : 'text-muted') + '">' + (inflow.sub_heads || 'N/A') + '</td>' +
+                '<td class="long-text">' +
+                    '<div class="truncate-text" title="' + (inflow.fund_details || '') + '">' +
+                        (inflow.fund_details || 'N/A') +
+                    '</div>' +
+                '</td>' +
+                '<td title="' + (inflow.amount || 0) + '">' + self.formatNumber(inflow.amount) + '</td>' +
+                '<td>' + (inflow.payment_method || 'N/A') + '</td>' +
+                '<td class="' + (inflow.iban ? '' : 'text-muted') + '">' + (inflow.iban || 'N/A') + '</td>' +
+                '<td>' + self.formatDate(inflow.date, true) + '</td>' +
+                '<td>' + self.formatDate(inflow.created_at) + '</td>' +
+                '<td>' + (inflow.user || 'N/A') + '</td>' +
+                '<td>' + ActionsMenu.init('Inflow', inflow, {
+                    delete: !inflow.is_deleted,
+                    disabled: inflow.is_deleted
+                }) + '</td>';
+            
+            tableBody.appendChild(row);
+        });
     },
 
     setupEventListeners: function() {
@@ -249,7 +250,7 @@ var InflowApp = {
         }
 
         // Add new inflow
-        var addButton = document.querySelector('.add-inflow-btn');
+        var addButton = document.getElementById('addInflowBtn');
         if (addButton) {
             addButton.addEventListener('click', function() {
                 AddInflow.init(function() {
@@ -275,8 +276,23 @@ var InflowApp = {
         sessionStorage.setItem('inflowCurrentPage', this.currentPage);
     },
 
-    formatNumber: function(number) {
-        return new Intl.NumberFormat().format(number);
+    formatNumber: function(value) {
+        value = Number(value);
+        if (value == null || isNaN(value)) {
+            return 'Invalid number'; // Handle null, undefined, or NaN
+        }
+    
+        if (value < 1000) {
+            return value.toFixed(2); // Less than 1,000
+        } else if (value < 1000000) {
+            return (value / 1000).toFixed(2) + 'K'; // Thousands
+        } else if (value < 1000000000) {
+            return (value / 1000000).toFixed(2) + 'M'; // Millions
+        } else if (value < 1000000000000) {
+            return (value / 1000000000).toFixed(2) + 'B'; // Billions
+        } else {
+            return (value / 1000000000000).toFixed(2) + 'T'; // Trillions
+        }
     },
 
     formatDate: function(dateString, includeTime = false) {

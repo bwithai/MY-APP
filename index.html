@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Command Fund Management</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/dashboard.css">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="/fonts/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/firefox-50.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
   </head>
   <body>
     <div id="app">
         <div class="dashboard-layout">
-            <button class="menu-btn">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+            <div class="menu-toggle"></div>
             <aside class="sidebar"></aside>
             <div id="content"></div>
             <!-- <div class="dashboard-container">
@@ -26,12 +27,13 @@
             </div> -->
         </div>
     </div>
-    <!-- Load scripts in order -->
-    <script nomodule src="/js/polyfills.js"></script>
+    <!-- Polyfills for older browsers - load first -->
+    <script src="/js/polyfills.js"></script>
+    <!-- Main application scripts -->
     <script src="/js/api-client.js"></script>
+    <script src="/js/Utils.js"></script>
     <script src="/js/sidebar.js"></script>
     <!-- Load Common Components -->
-    <script src="/js/components/common/Utils.js"></script>
     <script src="/js/components/common/ActionsMenu.js"></script>
     <script src="/js/components/common/DateOfEntry.js"></script>
     <script src="/js/components/common/DeleteAlert.js"></script>

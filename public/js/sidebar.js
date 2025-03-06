@@ -1,10 +1,25 @@
 var Sidebar = {
     init: function() {
-        this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        // Use try-catch for JSON parsing to handle potential errors
+        try {
+            this.currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        } catch(e) {
+            this.currentUser = {};
+            console.error('Error parsing user data:', e);
+        }
+        
         this.isMobile = window.innerWidth < 768;
-        this.isOpen = false;
+        this.isOpen = !this.isMobile; // Default open on desktop, closed on mobile
+        this.sidebarState = localStorage.getItem('sidebarState');
+        
+        // If we have a saved state, use it
+        if (this.sidebarState !== null) {
+            this.isOpen = this.sidebarState === 'open';
+        }
+        
         this.render();
         this.setupEventListeners();
+        this.applySidebarState(); // Apply initial state
     },
 
     items: [
@@ -23,73 +38,85 @@ var Sidebar = {
     ],
 
     render: function() {
-        // Mobile Menu Button
-        if (this.isMobile) {
-            document.querySelector('.menu-toggle').innerHTML = `
-                <button class="menu-btn" aria-label="Open Menu">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                    </svg>
-                </button>
-            `;
+        // Toggle Button (visible on all screen sizes) with tooltip
+        var toggleButton = '<button class="menu-btn" aria-label="' + 
+            (this.isOpen ? 'Close' : 'Open') + ' Menu">' +
+            '<svg class="icon" viewBox="0 0 24 24">' +
+            '<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>' +
+            '</svg>' +
+            '<span class="menu-tooltip">' + (this.isOpen ? 'Hide Sidebar' : 'Show Sidebar') + '</span>' +
+            '</button>';
+        
+        var menuToggle = document.querySelector('.menu-toggle');
+        if (menuToggle) {
+            menuToggle.innerHTML = toggleButton;
         }
 
-        // Sidebar Content
-        var sidebarContent = `
-            <div class="sidebar-content">
-                <div class="sidebar-header">
-                    <img src="/assets/images/fastapi-logo.svg" alt="Logo" class="sidebar-logo">
-                    ${this.isMobile ? '<button class="close-btn">&times;</button>' : ''}
-                </div>
-                <nav class="sidebar-nav">
-                    ${this.renderNavItems()}
-                </nav>
-                <div class="sidebar-footer">
-                    <button class="logout-btn">
-                        <svg class="icon" viewBox="0 0 24 24">
-                            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-                        </svg>
-                        <span>Log out</span>
-                    </button>
-                    ${this.currentUser.email ? `
-                        <div class="user-info">
-                            Logged in as: ${this.currentUser.username}
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
+        // Sidebar Content without close button
+        var userInfo = '';
+        if (this.currentUser && this.currentUser.email) {
+            userInfo = '<div class="user-info">' +
+                'Logged in as: ' + this.currentUser.username +
+                '</div>';
+        }
+        
+        var sidebarContent = '<div class="sidebar-content">' +
+            '<div class="sidebar-header">' +
+            '<img src="/assets/images/fastapi-logo.svg" alt="Logo" class="sidebar-logo">' +
+            '</div>' +
+            '<nav class="sidebar-nav">' +
+            this.renderNavItems() +
+            '</nav>' +
+            '<div class="sidebar-footer">' +
+            '<button class="logout-btn">' +
+            '<svg class="icon" viewBox="0 0 24 24">' +
+            '<path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>' +
+            '</svg>' +
+            '<span>Log out</span>' +
+            '</button>' +
+            userInfo +
+            '</div>' +
+            '</div>';
 
         var sidebarContainer = document.querySelector('.sidebar');
-        sidebarContainer.innerHTML = sidebarContent;
+        if (sidebarContainer) {
+            sidebarContainer.innerHTML = sidebarContent;
+        }
     },
 
     renderNavItems: function() {
         var self = this;
         var currentPath = window.location.pathname;
-        var finalItems = this.currentUser.is_superuser 
-            ? [...this.items, ...this.adminItems]
-            : this.items;
+        var finalItems = this.items;
+        
+        // Add admin items if user is superuser
+        if (this.currentUser && this.currentUser.is_superuser) {
+            finalItems = this.items.concat(this.adminItems);
+        }
 
-        return finalItems.map(function(item) {
+        var navItemsHtml = '';
+        for (var i = 0; i < finalItems.length; i++) {
+            var item = finalItems[i];
             var isActive = currentPath === item.path;
-            return `
-                <a href="#" 
-                   class="nav-item ${isActive ? 'active' : ''}"
-                   data-path="${item.path}" 
-                   onclick="Sidebar.handleNavigation(event, '${item.path}')">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="${self.getIconPath(item.icon)}"/>
-                    </svg>
-                    <span>${item.title}</span>
-                </a>
-            `;
-        }).join('');
+            var activeClass = isActive ? 'active' : '';
+            
+            navItemsHtml += '<a href="#" ' +
+                'class="nav-item ' + activeClass + '" ' +
+                'data-path="' + item.path + '" ' +
+                'onclick="Sidebar.handleNavigation(event, \'' + item.path + '\')">' +
+                '<svg class="icon" viewBox="0 0 24 24">' +
+                '<path d="' + self.getIconPath(item.icon) + '"/>' +
+                '</svg>' +
+                '<span>' + item.title + '</span>' +
+                '</a>';
+        }
+        
+        return navItemsHtml;
     },
 
     getIconPath: function(icon) {
         // Add SVG paths for each icon
-        const icons = {
+        var icons = {
             'home': 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
             'arrow-down': 'M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z',
             'arrow-up': 'M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z',
@@ -106,44 +133,167 @@ var Sidebar = {
     setupEventListeners: function() {
         var self = this;
 
-        // Mobile menu toggle
-        var menuBtn = document.querySelector('.menu-btn');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', function() {
+        // Menu toggle button (works on all screen sizes)
+        var menuBtns = document.querySelectorAll('.menu-btn');
+        for (var i = 0; i < menuBtns.length; i++) {
+            menuBtns[i].onclick = function(e) {
+                e.preventDefault();
                 self.toggleSidebar();
-            });
-        }
-
-        // Close button
-        var closeBtn = document.querySelector('.close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                self.toggleSidebar();
-            });
+            };
         }
 
         // Logout button
         var logoutBtn = document.querySelector('.logout-btn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
+            logoutBtn.onclick = function(e) {
+                e.preventDefault();
                 self.handleLogout();
-            });
+            };
         }
 
         // Handle window resize
-        window.addEventListener('resize', function() {
-            self.handleResize();
-        });
+        if (window.attachEvent) {
+            // For IE8 and earlier
+            window.attachEvent('onresize', function() {
+                self.handleResize();
+            });
+        } else if (window.addEventListener) {
+            // For modern browsers
+            window.addEventListener('resize', function() {
+                self.handleResize();
+            }, false);
+        }
+        
+        // Handle clicks outside sidebar to close it on mobile
+        if (document.addEventListener) {
+            document.addEventListener('click', function(event) {
+                if (self.isMobile && self.isOpen) {
+                    var sidebar = document.querySelector('.sidebar');
+                    var menuBtn = document.querySelector('.menu-btn');
+                    var target = event.target || event.srcElement;
+                    
+                    // Check if click is outside sidebar and not on menu button
+                    var isOutsideSidebar = true;
+                    var isOnMenuBtn = false;
+                    
+                    // Check if click is on sidebar
+                    var element = target;
+                    while (element) {
+                        if (element === sidebar) {
+                            isOutsideSidebar = false;
+                            break;
+                        }
+                        if (element === menuBtn) {
+                            isOnMenuBtn = true;
+                            break;
+                        }
+                        element = element.parentNode;
+                    }
+                    
+                    if (isOutsideSidebar && !isOnMenuBtn) {
+                        self.toggleSidebar();
+                    }
+                }
+            });
+        }
     },
 
     toggleSidebar: function() {
         this.isOpen = !this.isOpen;
-        document.querySelector('.sidebar').classList.toggle('open');
+        this.applySidebarState();
+        
+        // Save state to localStorage
+        try {
+            localStorage.setItem('sidebarState', this.isOpen ? 'open' : 'closed');
+        } catch(e) {
+            console.error('Error saving sidebar state:', e);
+        }
+    },
+    
+    applySidebarState: function() {
+        var sidebar = document.querySelector('.sidebar');
+        var content = document.getElementById('content');
+        var menuBtn = document.querySelector('.menu-btn');
+        
+        if (!sidebar || !content) return;
+        
+        if (this.isOpen) {
+            // Open sidebar
+            this.addClass(sidebar, 'open');
+            
+            // Adjust content area
+            if (!this.isMobile) {
+                content.style.marginLeft = '250px';
+                content.style.width = 'calc(100% - 250px)';
+            }
+            
+            // Update tooltip text
+            if (menuBtn) {
+                var tooltip = menuBtn.querySelector('.menu-tooltip');
+                if (tooltip) {
+                    tooltip.innerHTML = 'Hide Sidebar';
+                }
+            }
+        } else {
+            // Close sidebar
+            this.removeClass(sidebar, 'open');
+            
+            // Adjust content area
+            if (!this.isMobile) {
+                content.style.marginLeft = '0';
+                content.style.width = '100%';
+            }
+            
+            // Update tooltip text
+            if (menuBtn) {
+                var tooltip = menuBtn.querySelector('.menu-tooltip');
+                if (tooltip) {
+                    tooltip.innerHTML = 'Show Sidebar';
+                }
+            }
+        }
+        
+        // Update menu button aria-label
+        var menuBtns = document.querySelectorAll('.menu-btn');
+        for (var i = 0; i < menuBtns.length; i++) {
+            menuBtns[i].setAttribute('aria-label', this.isOpen ? 'Close Menu' : 'Open Menu');
+        }
+    },
+    
+    // Helper functions for cross-browser class manipulation
+    hasClass: function(element, className) {
+        if (element.classList) {
+            return element.classList.contains(className);
+        } else {
+            return new RegExp('(^| )' + className + '( |$)', 'gi').test(element.className);
+        }
+    },
+    
+    addClass: function(element, className) {
+        if (element.classList) {
+            element.classList.add(className);
+        } else {
+            element.className += ' ' + className;
+        }
+    },
+    
+    removeClass: function(element, className) {
+        if (element.classList) {
+            element.classList.remove(className);
+        } else {
+            element.className = element.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+            // Trim whitespace
+            element.className = element.className.replace(/^\s+|\s+$/g, '');
+        }
     },
 
     handleLogout: function() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('currentUser');
+        try {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('currentUser');
+        } catch(e) {
+            console.error('Error during logout:', e);
+        }
         window.location.href = '/login.html';
     },
 
@@ -154,22 +304,36 @@ var Sidebar = {
         if (wasMobile !== this.isMobile) {
             this.render();
             this.setupEventListeners();
+            this.applySidebarState();
         }
     },
 
     handleNavigation: function(event, path) {
-        event.preventDefault();
+        if (event) {
+            event.preventDefault();
+        }
         console.log('Navigating to:', path);
         
         // Update active state
-        document.querySelectorAll('.nav-item').forEach(function(item) {
-            item.classList.remove('active');
-        });
-        event.currentTarget.classList.add('active');
+        var navItems = document.querySelectorAll('.nav-item');
+        for (var i = 0; i < navItems.length; i++) {
+            this.removeClass(navItems[i], 'active');
+        }
+        
+        if (event && event.currentTarget) {
+            this.addClass(event.currentTarget, 'active');
+        }
         
         // Navigate to the new page
-        history.pushState(null, '', path);
-        MainApp.handleNavigation();
+        if (window.history && window.history.pushState) {
+            history.pushState(null, '', path);
+            if (window.MainApp && typeof window.MainApp.handleNavigation === 'function') {
+                window.MainApp.handleNavigation();
+            }
+        } else {
+            // Fallback for older browsers
+            window.location.href = path;
+        }
     }
 };
 

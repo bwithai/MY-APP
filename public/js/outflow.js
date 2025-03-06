@@ -45,73 +45,67 @@ var OutflowApp = {
             return;
         }
 
-        content.innerHTML = `
-            <div class="container-fluid">
-                <div class="search-section">
-                    <div class="search-bar mb-4">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search outflows...">
-                    </div>
-                </div>
+        content.innerHTML = '<div class="container-fluid">' +
+            '<div class="page-header">' +
+                '<div class="header-content">' +
+                    '<h1 class="page-title">' + this.getPageTitle() + '</h1>' +
+                    (this.currentUser.is_superuser ? '' : 
+                        '<button class="btn btn-primary" id="addOutflowBtn">' +
+                            '<i class="fas fa-plus"></i> Add Outflow' +
+                        '</button>'
+                    ) +
+                '</div>' +
+                '<div class="search-bar">' +
+                    '<input type="text" id="searchInput" placeholder="Search outflows..." class="form-control">' +
+                '</div>' +
+            '</div>' +
+            
+            '<div class="table-responsive horizontal-scroll">' +
+                '<table class="table">' +
+                    '<thead>' +
+                        '<tr>' +
+                            '<th>ID</th>' +
+                            '<th>Head</th>' +
+                            '<th>Sub Head</th>' +
+                            '<th>Head Details</th>' +
+                            '<th>Type</th>' +
+                            '<th>Entity</th>' +
+                            '<th>Amount</th>' +
+                            '<th>Payment Type</th>' +
+                            '<th>IBAN</th>' +
+                            '<th>Payment To</th>' +
+                            '<th>Expense Date</th>' +
+                            '<th>User</th>' +
+                            '<th>Actions</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody id="outflowTableBody">' +
+                        '<tr>' +
+                            '<td colspan="13" class="text-center">Loading...</td>' +
+                        '</tr>' +
+                    '</tbody>' +
+                '</table>' +
+            '</div>' +
+            
+            '<div class="pagination-footer">' +
+                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
+                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
+                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
+            '</div>' +
+        '</div>';
 
-                <div class="page-header">
-                    <div class="header-content">
-                        <h1 class="page-title">
-                            ${this.getPageTitle()}
-                        </h1>
-                        <button class="btn btn-outline back-btn" onclick="OutflowApp.goBack()">
-                            Go back
-                        </button>
-                    </div>
-                    ${!this.currentUser.is_superuser ? `
-                        <button class="btn btn-primary add-outflow-btn">Add New Outflow</button>
-                    ` : ''}
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Head</th>
-                                <th>Sub Heads</th>
-                                <th>Fund Details</th>
-                                <th>Type</th>
-                                <th>Entity</th>
-                                <th>Amount</th>
-                                <th>Payment Type</th>
-                                <th>IBAN</th>
-                                <th>Payment To</th>
-                                <th>Outflow Date</th>
-                                <th>User</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="outflowTableBody">
-                            <tr>
-                                <td colspan="11" class="text-center">Loading...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="pagination-footer">
-                    <button class="btn btn-outline-primary" id="prevPage" disabled>Previous</button>
-                    <span class="page-info">Page <span id="currentPage">1</span></span>
-                    <button class="btn btn-outline-primary" id="nextPage">Next</button>
-                </div>
-            </div>
-        `;
-
-        // Setup event listeners after content is rendered
+        // Setup event listeners
         this.setupEventListeners();
+        
+        // Load outflow data
         this.loadOutflowData();
     },
 
     getPageTitle: function() {
         if (this.currentUser.is_superuser) {
-            return this.storedUserName.toLowerCase() === 'admin' ? 'All Outflows' : this.storedUserName + ' Outflows';
+            return this.storedUserName.toLowerCase() === 'admin' ? 'All Users Outflows' : this.storedUserName + '\'s Outflows';
         }
-        return 'Outflow Management';
+        return 'My Outflows';
     },
 
     goBack: function() {
@@ -154,58 +148,84 @@ var OutflowApp = {
         .catch(function(error) {
             console.error('Failed to load outflows:', error);
             var tableBody = document.getElementById('outflowTableBody');
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="11" class="text-center text-danger">
-                        Error loading outflows: ${error.message}
-                    </td>
-                </tr>
-            `;
+            if (tableBody) {
+                tableBody.innerHTML = '<tr>' +
+                    '<td colspan="13" class="text-center text-danger">' +
+                        'Error loading outflows: ' + (error.message || 'Unknown error') +
+                    '</td>' +
+                '</tr>';
+            }
         });
+    },
+
+    formatNumber: function(value) {
+        value = Number(value);
+        if (value == null || isNaN(value)) {
+            return 'Invalid number'; // Handle null, undefined, or NaN
+        }
+    
+        if (value < 1000) {
+            return value.toFixed(2); // Less than 1,000
+        } else if (value < 1000000) {
+            return (value / 1000).toFixed(2) + 'K'; // Thousands
+        } else if (value < 1000000000) {
+            return (value / 1000000).toFixed(2) + 'M'; // Millions
+        } else if (value < 1000000000000) {
+            return (value / 1000000000).toFixed(2) + 'B'; // Billions
+        } else {
+            return (value / 1000000000000).toFixed(2) + 'T'; // Trillions
+        }
     },
 
     renderOutflowTable: function(outflows) {
         var tableBody = document.getElementById('outflowTableBody');
-        if (!outflows.length) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="11" class="text-center">No outflows found.</td>
-                </tr>
-            `;
+        if (!tableBody) {
+            console.error('Table body element not found');
             return;
         }
 
-        tableBody.innerHTML = outflows.map(function(outflow) {
+        if (!outflows || outflows.length === 0) {
+            tableBody.innerHTML = '<tr>' +
+                '<td colspan="13" class="text-center">No outflows found</td>' +
+            '</tr>';
+            return;
+        }
+
+        var self = this;
+        tableBody.innerHTML = '';
+        
+        outflows.forEach(function(outflow) {
             // Add deleted-row class if is_deleted is true
-            const rowClass = outflow.is_deleted ? 'deleted-row' : '';
+            var rowClass = outflow.is_deleted ? 'deleted-row' : '';
+            var row = document.createElement('tr');
+            row.className = rowClass;
+            row.dataset.id = outflow.id;
             
-            return `
-                <tr class="${rowClass}" data-id="${outflow.id}">
-                    <td>${outflow.id}</td>
-                    <td class="truncate" title="${outflow.head}">${outflow.head}</td>
-                    <td class="${outflow.sub_heads ? '' : 'text-muted'}">${outflow.sub_heads || 'N/A'}</td>
-                    <td class="long-text">
-                        <div class="truncate-text" title="${outflow.head_details}">
-                            ${outflow.head_details}
-                        </div>
-                    </td>
-                    <td>${outflow.type}</td>
-                    <td class="${outflow.entity ? '' : 'text-muted'}">${outflow.entity || 'N/A'}</td>
-                    <td title="${outflow.cost}">${Utils.formatNumber(outflow.cost)}</td>
-                    <td>${outflow.payment_type}</td>
-                    <td class="${outflow.iban ? '' : 'text-muted'}">${outflow.iban || 'N/A'}</td>
-                    <td class="${outflow.payment_to ? '' : 'text-muted'}">${outflow.payment_to || 'N/A'}</td>
-                    <td>${this.formatDate(outflow.expense_date, true)}</td>
-                    <td>${outflow.user}</td>
-                    <td>
-                        ${ActionsMenu.init('Outflow', outflow, {
-                            delete: !outflow.is_deleted,
-                            disabled: outflow.is_deleted
-                        })}
-                    </td>
-                </tr>
-            `;
-        }, this).join('');
+            // Create cells in the same order as the headers
+            row.innerHTML = 
+                '<td>' + outflow.id + '</td>' +
+                '<td class="truncate" title="' + (outflow.head || '') + '">' + (outflow.head || 'N/A') + '</td>' +
+                '<td class="' + (outflow.sub_heads ? '' : 'text-muted') + '">' + (outflow.sub_heads || 'N/A') + '</td>' +
+                '<td class="long-text">' +
+                    '<div class="truncate-text" title="' + (outflow.head_details || '') + '">' +
+                        (outflow.head_details || 'N/A') +
+                    '</div>' +
+                '</td>' +
+                '<td>' + (outflow.type || 'N/A') + '</td>' +
+                '<td class="' + (outflow.entity ? '' : 'text-muted') + '">' + (outflow.entity || 'N/A') + '</td>' +
+                '<td title="' + (outflow.cost || 0) + '">' + self.formatNumber(outflow.cost) + '</td>' +
+                '<td>' + (outflow.payment_type || 'N/A') + '</td>' +
+                '<td class="' + (outflow.iban ? '' : 'text-muted') + '">' + (outflow.iban || 'N/A') + '</td>' +
+                '<td class="' + (outflow.payment_to ? '' : 'text-muted') + '">' + (outflow.payment_to || 'N/A') + '</td>' +
+                '<td>' + self.formatDate(outflow.expense_date, true) + '</td>' +
+                '<td>' + (outflow.user || 'N/A') + '</td>' +
+                '<td>' + ActionsMenu.init('Outflow', outflow, {
+                    delete: !outflow.is_deleted,
+                    disabled: outflow.is_deleted
+                }) + '</td>';
+            
+            tableBody.appendChild(row);
+        });
     },
 
     setupEventListeners: function() {
@@ -252,7 +272,7 @@ var OutflowApp = {
         }
 
         // Add new outflow
-        var addButton = document.querySelector('.add-outflow-btn');
+        var addButton = document.getElementById('addOutflowBtn');
         if (addButton) {
             addButton.addEventListener('click', function() {
                 AddOutflow.init(function() {
@@ -276,10 +296,6 @@ var OutflowApp = {
 
         // Store current page in sessionStorage
         sessionStorage.setItem('inflowCurrentPage', this.currentPage);
-    },
-
-    formatNumber: function(number) {
-        return new Intl.NumberFormat().format(number);
     },
 
     formatDate: function(dateString, includeTime = false) {
