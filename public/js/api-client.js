@@ -209,6 +209,80 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
+
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Investments API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
+    getInvestments: function({ skip, limit, search, userId }) {
+        var url = new URL(this.baseUrl + 'investment/');
+        url.searchParams.append('skip', skip);
+        url.searchParams.append('limit', limit);
+        if (search) url.searchParams.append('search', search);
+        if (userId) url.searchParams.append('user_id', userId);
+
+        console.log('Calling Investments API:', url.toString());
+
+        return fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    createInvestment: function(data) {
+        console.log('Creating Investment:', JSON.stringify(data));
+        return fetch(this.baseUrl + 'investment/', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    getInvestment: function(id) {
+        console.log('Getting Investment:', id);
+        return fetch(this.baseUrl + 'investment/' + id, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    updateInvestment: function(id, data) {
+        console.log('Updating Investment:', id, JSON.stringify(data));
+        return fetch(this.baseUrl + 'investment/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    deleteInvestment: function(id) {
+        console.log('Deleting Investment:', id);
+        return fetch(this.baseUrl + 'investment/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
     
 
     /*----------------------------------------------------------------------------------------------------

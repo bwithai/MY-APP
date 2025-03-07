@@ -1,7 +1,140 @@
 /**
- * Polyfills for legacy browsers
- * This file provides essential functionality for older browsers
+ * Enhanced Polyfills for legacy browsers
+ * This file provides essential functionality for older browsers, particularly Firefox 50
  */
+
+// Add window.CustomEvent support for IE
+(function () {
+    if (typeof window.CustomEvent === "function") return false;
+    function CustomEvent(event, params) {
+        params = params || { bubbles: false, cancelable: false, detail: null };
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        return evt;
+    }
+    window.CustomEvent = CustomEvent;
+})();
+
+// Add Array.from polyfill
+if (!Array.from) {
+    Array.from = function(arrayLike) {
+        return [].slice.call(arrayLike);
+    };
+}
+
+// Add Object.assign polyfill for IE
+if (typeof Object.assign !== 'function') {
+    Object.assign = function(target) {
+        if (target === null || target === undefined) {
+            throw new TypeError('Cannot convert undefined or null to object');
+        }
+        var to = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource !== null && nextSource !== undefined) {
+                for (var nextKey in nextSource) {
+                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                        to[nextKey] = nextSource[nextKey];
+                    }
+                }
+            }
+        }
+        return to;
+    };
+}
+
+// Add Element.closest polyfill
+if (!Element.prototype.closest) {
+    Element.prototype.closest = function(selector) {
+        var el = this;
+        while (el && el.nodeType === 1) {
+            if (el.matches(selector)) {
+                return el;
+            }
+            el = el.parentNode;
+        }
+        return null;
+    };
+}
+
+// Add Element.matches polyfill
+if (!Element.prototype.matches) {
+    Element.prototype.matches = 
+        Element.prototype.matchesSelector || 
+        Element.prototype.mozMatchesSelector ||
+        Element.prototype.msMatchesSelector || 
+        Element.prototype.oMatchesSelector || 
+        Element.prototype.webkitMatchesSelector ||
+        function(s) {
+            var matches = (this.document || this.ownerDocument).querySelectorAll(s),
+                i = matches.length;
+            while (--i >= 0 && matches.item(i) !== this) {}
+            return i > -1;            
+        };
+}
+
+// Add String.includes polyfill
+if (!String.prototype.includes) {
+    String.prototype.includes = function(search, start) {
+        if (typeof start !== 'number') {
+            start = 0;
+        }
+        if (start + search.length > this.length) {
+            return false;
+        } else {
+            return this.indexOf(search, start) !== -1;
+        }
+    };
+}
+
+// Add Array.includes polyfill
+if (!Array.prototype.includes) {
+    Array.prototype.includes = function(searchElement, fromIndex) {
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+        var o = Object(this);
+        var len = o.length >>> 0;
+        if (len === 0) {
+            return false;
+        }
+        var n = fromIndex | 0;
+        var k = Math.max(n >= 0 ? n : len + n, 0);
+        while (k < len) {
+            if (o[k] === searchElement) {
+                return true;
+            }
+            k++;
+        }
+        return false;
+    };
+}
+
+// Add Array.find polyfill
+if (!Array.prototype.find) {
+    Array.prototype.find = function(predicate) {
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+        if (typeof predicate !== 'function') {
+            throw new TypeError('predicate must be a function');
+        }
+        var list = Object(this);
+        var length = list.length >>> 0;
+        var thisArg = arguments[1];
+        for (var i = 0; i < length; i++) {
+            if (predicate.call(thisArg, list[i], i, list)) {
+                return list[i];
+            }
+        }
+        return undefined;
+    };
+}
+
+// Add NodeList.forEach polyfill
+if (window.NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = Array.prototype.forEach;
+}
 
 // Element.classList polyfill for IE9
 // Source: https://gist.github.com/k-gun/c2ea7c49edf7b757fe9561ba37cb19ca
@@ -561,28 +694,6 @@ if (!Object.fromEntries) {
     };
   }
 })();
-
-// Array.includes polyfill
-if (!Array.prototype.includes) {
-  Array.prototype.includes = function(searchElement, fromIndex) {
-    if (this == null) {
-      throw new TypeError('"this" is null or not defined');
-    }
-
-    var o = Object(this);
-    var len = o.length >>> 0;
-    if (len === 0) return false;
-
-    var n = fromIndex | 0;
-    var k = Math.max(n >= 0 ? n : len + n, 0);
-
-    while (k < len) {
-      if (o[k] === searchElement) return true;
-      k++;
-    }
-    return false;
-  };
-}
 
 // String.includes polyfill
 if (!String.prototype.includes) {

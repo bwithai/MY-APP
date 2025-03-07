@@ -1,4 +1,6 @@
-/* Firefox 50 compatibility */
+/* Firefox 50 and legacy browser compatibility */
+
+/* Basic flexbox polyfills */
 .flex {
   display: -moz-box;
   display: -webkit-box;
@@ -13,11 +15,32 @@
   flex-direction: column;
 }
 
+.flex-row {
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+}
+
 .align-center {
   -moz-box-align: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
+}
+
+.align-start {
+  -moz-box-align: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: flex-start;
+}
+
+.align-end {
+  -moz-box-align: end;
+  -webkit-box-align: end;
+  -ms-flex-align: end;
+  align-items: flex-end;
 }
 
 .justify-center {
@@ -27,20 +50,119 @@
   justify-content: center;
 }
 
+.justify-start {
+  -moz-box-pack: start;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.justify-end {
+  -moz-box-pack: end;
+  -webkit-box-pack: end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
+}
+
+.justify-between {
+  -moz-box-pack: justify;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.justify-around {
+  -ms-flex-pack: distribute;
+  justify-content: space-around;
+}
+
+.flex-wrap {
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+}
+
+.flex-grow {
+  -moz-box-flex: 1;
+  -webkit-box-flex: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
+}
+
 /* Gap alternatives for Firefox 50 */
-.gap-polyfill-sm {
+.gap-polyfill-sm > * {
   margin-right: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-.gap-polyfill-md {
+.gap-polyfill-sm > *:last-child {
+  margin-right: 0;
+}
+
+.gap-polyfill-md > * {
   margin-right: 1rem;
   margin-bottom: 1rem;
 }
 
-.gap-polyfill-lg {
+.gap-polyfill-md > *:last-child {
+  margin-right: 0;
+}
+
+.gap-polyfill-lg > * {
   margin-right: 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+.gap-polyfill-lg > *:last-child {
+  margin-right: 0;
+}
+
+/* Row gap only */
+.row-gap-sm {
+  margin-bottom: -0.5rem;
+}
+.row-gap-sm > * {
+  margin-bottom: 0.5rem;
+}
+
+.row-gap-md {
+  margin-bottom: -1rem;
+}
+.row-gap-md > * {
+  margin-bottom: 1rem;
+}
+
+.row-gap-lg {
+  margin-bottom: -1.5rem;
+}
+.row-gap-lg > * {
+  margin-bottom: 1.5rem;
+}
+
+/* Column gap only */
+.col-gap-sm {
+  margin-right: -0.5rem;
+}
+.col-gap-sm > * {
+  margin-right: 0.5rem;
+}
+
+.col-gap-md {
+  margin-right: -1rem;
+}
+.col-gap-md > * {
+  margin-right: 1rem;
+}
+
+.col-gap-lg {
+  margin-right: -1.5rem;
+}
+.col-gap-lg > * {
+  margin-right: 1.5rem;
 }
 
 /* Scrollbar fixes - provide alternate styling for Firefox */
@@ -52,6 +174,7 @@
 /* Font smoothing alternative */
 .font-smooth {
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Fix for display properties */
@@ -85,6 +208,83 @@
 /* Media query for responsive layout */
 @media (max-width: 768px) {
   .modal-form-grid .form-group {
+    -ms-flex: 0 0 calc(100% - 1.5rem);
+    flex: 0 0 calc(100% - 1.5rem);
+  }
+}
+
+/* Table fixes for Firefox */
+.ff-table-fix {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Transition fixes */
+.ff-transition {
+  -moz-transition: all 0.3s ease;
+  -webkit-transition: all 0.3s ease;
+  -ms-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+/* Animation fallbacks */
+.ff-animate-spin {
+  -moz-animation: ffSpin 0.8s linear infinite;
+  -webkit-animation: ffSpin 0.8s linear infinite;
+  animation: ffSpin 0.8s linear infinite;
+}
+
+@-moz-keyframes ffSpin {
+  from { -moz-transform: rotate(0deg); }
+  to { -moz-transform: rotate(360deg); }
+}
+
+@-webkit-keyframes ffSpin {
+  from { -webkit-transform: rotate(0deg); }
+  to { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes ffSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Form element specific fixes for Firefox */
+.ff-form-fix input,
+.ff-form-fix select,
+.ff-form-fix textarea {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Card layout fallback for Firefox 50 */
+.card-grid {
+  display: -moz-box;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin: -0.75rem;
+}
+
+.card-grid-item {
+  -ms-flex: 0 0 calc(33.333% - 1.5rem);
+  flex: 0 0 calc(33.333% - 1.5rem);
+  margin: 0.75rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 992px) {
+  .card-grid-item {
+    -ms-flex: 0 0 calc(50% - 1.5rem);
+    flex: 0 0 calc(50% - 1.5rem);
+  }
+}
+
+@media (max-width: 576px) {
+  .card-grid-item {
     -ms-flex: 0 0 calc(100% - 1.5rem);
     flex: 0 0 calc(100% - 1.5rem);
   }

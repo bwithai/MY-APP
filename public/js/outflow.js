@@ -308,23 +308,30 @@ var OutflowApp = {
     }
 };
 
-// Initialize when DOM is ready and handle route changes
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.location.pathname === '/inflow.html') {
-        InflowApp.init();
-    }
-});
-
-window.addEventListener('popstate', function() {
-    MainApp.handleNavigation();
-});
-
-// Clean up when leaving inflow page
-window.addEventListener('beforeunload', function() {
-    if (window.location.pathname !== '/outflow.html') {
-        sessionStorage.removeItem('isOutflow');
-    }
-});
+// Clean up when leaving outflow page
+// Using a more compatible approach for legacy browsers
+if (typeof window.attachEvent !== 'undefined') {
+    // For older IE browsers
+    window.attachEvent('onunload', function() {
+        if (window.location.pathname !== '/outflow') {
+            sessionStorage.removeItem('isOutflow');
+        }
+    });
+} else if (typeof window.addEventListener !== 'undefined') {
+    // For modern browsers
+    window.addEventListener('beforeunload', function() {
+        if (window.location.pathname !== '/outflow') {
+            sessionStorage.removeItem('isOutflow');
+        }
+    });
+} else {
+    // Fallback for very old browsers
+    window.onunload = function() {
+        if (window.location.pathname !== '/outflow') {
+            sessionStorage.removeItem('isOutflow');
+        }
+    };
+}
 
 // Make it globally available
-window.OutflowApp = OutflowApp; 
+window.OutflowApp = OutflowApp;

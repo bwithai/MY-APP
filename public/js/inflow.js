@@ -305,23 +305,30 @@ var InflowApp = {
     }
 };
 
-// Initialize when DOM is ready and handle route changes
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.location.pathname === '/inflow.html') {
-        InflowApp.init();
-    }
-});
-
-window.addEventListener('popstate', function() {
-    MainApp.handleNavigation();
-});
-
 // Clean up when leaving inflow page
-window.addEventListener('beforeunload', function() {
-    if (window.location.pathname !== '/inflow') {
-        sessionStorage.removeItem('isInflow');
-    }
-});
+// Using a more compatible approach for legacy browsers
+if (typeof window.attachEvent !== 'undefined') {
+    // For older IE browsers
+    window.attachEvent('onunload', function() {
+        if (window.location.pathname !== '/inflow') {
+            sessionStorage.removeItem('isInflow');
+        }
+    });
+} else if (typeof window.addEventListener !== 'undefined') {
+    // For modern browsers
+    window.addEventListener('beforeunload', function() {
+        if (window.location.pathname !== '/inflow') {
+            sessionStorage.removeItem('isInflow');
+        }
+    });
+} else {
+    // Fallback for very old browsers
+    window.onunload = function() {
+        if (window.location.pathname !== '/inflow') {
+            sessionStorage.removeItem('isInflow');
+        }
+    };
+}
 
 // Make it globally available
 window.InflowApp = InflowApp; 

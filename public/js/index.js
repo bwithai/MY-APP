@@ -22,6 +22,7 @@ var MainApp = {
             '/': this.showDashboard,
             '/inflow': this.showInflows,
             '/outflow': this.showOutflows,
+            '/investment': this.showInvestments,
             '/heads': this.showHeads,
             '/profile': this.showProfile
         };
@@ -32,6 +33,9 @@ var MainApp = {
     },
     showOutflows: function() {
         OutflowApp.init();
+    },
+    showInvestments: function() {
+        InvestmentApp.init();
     },
 
     handleNavigation: function() {
@@ -46,6 +50,8 @@ var MainApp = {
         OutflowApp.init();
     } else if (path === '/' || path === '/index.html') {
         this.showDashboard();
+    } else if (path === '/investment') {
+        InvestmentApp.init();
     } else {
         content.innerHTML = `
             <div class="content-wrapper text-center">
