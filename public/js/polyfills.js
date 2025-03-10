@@ -680,7 +680,7 @@ if (!Object.fromEntries) {
             };
         };
     }
-})();
+})(); 
 
 // Polyfills for old browsers like Firefox 50
 

@@ -12,9 +12,11 @@ var InvestmentApp = {
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
+        this.storageKey = 'investment'; // For use with common pagination functions
         
         // Mark that we're in investment page
         sessionStorage.setItem('isInvestment', 'true');
+        Utils.storeLastVisited('investment');
         
         // Show investment page
         this.showInvestmentPage();
@@ -97,10 +99,7 @@ var InvestmentApp = {
     },
 
     getPageTitle: function() {
-        if (this.currentUser.is_superuser) {
-            return this.storedUserName.toLowerCase() === 'admin' ? 'All Users Investments' : this.storedUserName + '\'s Investments';
-        }
-        return 'My Investments';
+        return Utils.getPageTitle('Investments', this.currentUser, this.storedUserName);
     },
 
     goBack: function() {
@@ -121,9 +120,18 @@ var InvestmentApp = {
         history.pushState(null, '', '?' + searchParams.toString());
     },
 
-    loadInvestmentData: function(query = '') {
+    loadInvestmentData: function(query) {
+        // Default parameter value for older browser compatibility
+        query = query || '';
+        
         var self = this;
         var skip = (this.currentPage - 1) * this.perPage;
+        var tableBody = document.getElementById('investmentTableBody');
+        
+        // Show loading state
+        if (tableBody) {
+            Utils.showLoading('investmentTableBody', 'Loading investments...');
+        }
 
         ApiClient.getInvestments({ 
             skip: skip, 
@@ -141,89 +149,36 @@ var InvestmentApp = {
             }
         })
         .catch(function(error) {
-            console.error('Failed to load investments:', error);
-            var tableBody = document.getElementById('investmentTableBody');
-            if (tableBody) {
-                tableBody.innerHTML = '<tr>' +
-                    '<td colspan="9" class="text-center text-danger">' +
-                        'Error loading investments: ' + (error.message || 'Unknown error') +
-                    '</td>' +
-                '</tr>';
-            }
+            Utils.handleApiError(error, 'investmentTableBody', 'Failed to load investments');
         });
     },
 
     formatNumber: function(value) {
-        value = Number(value);
-        if (value == null || isNaN(value)) {
-            return 'Invalid number'; // Handle null, undefined, or NaN
-        }
-    
-        if (value < 1000) {
-            return value.toFixed(2); // Less than 1,000
-        } else if (value < 1000000) {
-            return (value / 1000).toFixed(2) + 'K'; // Thousands
-        } else if (value < 1000000000) {
-            return (value / 1000000).toFixed(2) + 'M'; // Millions
-        } else if (value < 1000000000000) {
-            return (value / 1000000000).toFixed(2) + 'B'; // Billions
-        } else {
-            return (value / 1000000000000).toFixed(2) + 'T'; // Trillions
-        }
+        return Utils.formatNumber(value);
     },
 
     formatDate: function(dateString, includeTime = false) {
-        if (!dateString) return 'N/A';
-        
-        try {
-            var date = new Date(dateString);
-            if (isNaN(date.getTime())) {
-                return 'Invalid date';
-            }
-            
-            var options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric'
-            };
-            
-            if (includeTime) {
-                options.hour = '2-digit';
-                options.minute = '2-digit';
-            }
-            
-            return date.toLocaleDateString('en-US', options);
-        } catch (e) {
-            console.error('Error formatting date:', e);
-            return 'Error';
-        }
+        return Utils.formatDate(dateString, includeTime);
     },
 
     renderInvestmentTable: function(investments) {
         var tableBody = document.getElementById('investmentTableBody');
-        if (!tableBody) {
-            console.error('Table body element not found');
-            return;
-        }
-
-        if (!investments || investments.length === 0) {
-            tableBody.innerHTML = '<tr>' +
-                '<td colspan="9" class="text-center">No investments found</td>' +
-            '</tr>';
-            return;
-        }
-
-        var self = this;
+        if (!tableBody) return;
+        
         tableBody.innerHTML = '';
         
+        if (!investments || investments.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No investments found</td></tr>';
+            return;
+        }
+        
+        var self = this;
         investments.forEach(function(investment) {
-            // Add deleted-row class if is_deleted is true
-            var rowClass = investment.is_deleted ? 'deleted-row' : '';
             var row = document.createElement('tr');
-            row.className = rowClass;
-            row.dataset.id = investment.id;
+            if (investment.is_deleted) {
+                row.classList.add('deleted-row');
+            }
             
-            // Create cells in the same order as the headers
             row.innerHTML = 
                 '<td class="truncate-text" title="' + (investment.name || '') + '">' + (investment.name || 'N/A') + '</td>' +
                 '<td class="long-text ' + (investment.asset_details ? '' : 'text-muted') + '">' +
@@ -237,123 +192,17 @@ var InvestmentApp = {
                 '<td class="' + (investment.iban ? '' : 'text-muted') + '">' + (investment.iban || 'N/A') + '</td>' +
                 '<td>' + self.formatDate(investment.date, true) + '</td>' +
                 '<td>' + (investment.user || 'N/A') + '</td>' +
-                '<td>' +
-                    '<div class="action-menu-container">' +
-                        '<button class="btn-icon action-menu-trigger" aria-label="Actions">' +
-                            '<i class="fas fa-ellipsis-v"></i>' +
-                        '</button>' +
-                        '<div class="action-menu-dropdown">' +
-                            '<div class="action-menu-item edit-investment" data-id="' + investment.id + '">' +
-                                '<i class="fas fa-edit"></i> Edit' +
-                            '</div>' +
-                            '<div class="action-menu-item delete-investment" data-id="' + investment.id + '">' +
-                                '<i class="fas fa-trash"></i> Delete' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
-                '</td>';
+                '<td>' + ActionsMenu.init('Investment', investment, {
+                    delete: !investment.is_deleted,
+                    disabled: investment.is_deleted
+                }) + '</td>';
             
             tableBody.appendChild(row);
         });
-
-        // Setup action menu event listeners
-        this.setupActionMenus();
-    },
-
-    setupActionMenus: function() {
-        var self = this;
-        var triggers = document.querySelectorAll('.action-menu-trigger');
-        var editButtons = document.querySelectorAll('.edit-investment');
-        var deleteButtons = document.querySelectorAll('.delete-investment');
-        
-        // Close all dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.action-menu-container')) {
-                document.querySelectorAll('.action-menu-dropdown').forEach(function(dropdown) {
-                    dropdown.classList.remove('show');
-                });
-            }
-        });
-        
-        // Toggle dropdown on trigger click
-        triggers.forEach(function(trigger) {
-            trigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                var dropdown = this.nextElementSibling;
-                
-                // Close all other dropdowns
-                document.querySelectorAll('.action-menu-dropdown').forEach(function(otherDropdown) {
-                    if (otherDropdown !== dropdown) {
-                        otherDropdown.classList.remove('show');
-                    }
-                });
-                
-                // Toggle this dropdown
-                dropdown.classList.toggle('show');
-            });
-        });
-        
-        // Edit button click
-        editButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                var id = this.dataset.id;
-                self.editInvestment(id);
-            });
-        });
-        
-        // Delete button click
-        deleteButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                var id = this.dataset.id;
-                self.deleteInvestment(id);
-            });
-        });
-    },
-
-    editInvestment: function(id) {
-        // Close any open dropdowns
-        document.querySelectorAll('.action-menu-dropdown').forEach(function(dropdown) {
-            dropdown.classList.remove('show');
-        });
-        
-        // Initialize the edit investment component
-        if (typeof EditInvestment !== 'undefined') {
-            EditInvestment.init('Investment', id, this.loadInvestmentData.bind(this));
-        } else {
-            console.error('EditInvestment component not found');
-        }
-    },
-
-    deleteInvestment: function(id) {
-        // Close any open dropdowns
-        document.querySelectorAll('.action-menu-dropdown').forEach(function(dropdown) {
-            dropdown.classList.remove('show');
-        });
-        
-        // Initialize the delete alert component
-        if (typeof DeleteAlert !== 'undefined') {
-            DeleteAlert.init('Investment', id, this.loadInvestmentData.bind(this));
-        } else {
-            console.error('DeleteAlert component not found');
-        }
     },
 
     updatePagination: function(hasMore) {
-        var prevPageBtn = document.getElementById('prevPage');
-        var nextPageBtn = document.getElementById('nextPage');
-        var currentPageSpan = document.getElementById('currentPage');
-        
-        if (currentPageSpan) {
-            currentPageSpan.textContent = this.currentPage;
-        }
-        
-        if (prevPageBtn) {
-            prevPageBtn.disabled = this.currentPage <= 1;
-        }
-        
-        if (nextPageBtn) {
-            nextPageBtn.disabled = !hasMore;
-        }
+        Utils.updatePagination(this, hasMore);
     },
 
     setupEventListeners: function() {
@@ -362,53 +211,20 @@ var InvestmentApp = {
         // Add Investment button
         var addInvestmentBtn = document.getElementById('addInvestmentBtn');
         if (addInvestmentBtn) {
-            addInvestmentBtn.addEventListener('click', function() {
+            addInvestmentBtn.onclick = function() {
                 if (typeof AddInvestment !== 'undefined') {
                     AddInvestment.init(self.loadInvestmentData.bind(self));
                 } else {
                     console.error('AddInvestment component not found');
                 }
-            });
+            };
         }
         
-        // Pagination buttons
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
-        
-        this.prevPageHandler = function() {
-            if (self.currentPage > 1) {
-                self.currentPage--;
-                sessionStorage.setItem('investmentCurrentPage', self.currentPage);
-                self.loadInvestmentData(document.getElementById('searchInput').value);
-            }
-        };
-        
-        this.nextPageHandler = function() {
-            self.currentPage++;
-            sessionStorage.setItem('investmentCurrentPage', self.currentPage);
-            self.loadInvestmentData(document.getElementById('searchInput').value);
-        };
-        
-        if (prevPage) {
-            prevPage.addEventListener('click', this.prevPageHandler);
-        }
-        
-        if (nextPage) {
-            nextPage.addEventListener('click', this.nextPageHandler);
-        }
-        
-        // Search input
-        var searchInput = document.getElementById('searchInput');
-        
-        this.searchHandler = function() {
-            self.currentPage = 1;
-            sessionStorage.setItem('investmentCurrentPage', '1');
-            self.loadInvestmentData(this.value);
-        };
-        
-        if (searchInput) {
-            searchInput.addEventListener('input', this.searchDebounced());
-        }
+        // Use common pagination initialization with compatibility fixes
+        Utils.initPagination(this, function(searchTerm) {
+            var searchInput = document.getElementById('searchInput');
+            self.loadInvestmentData(searchTerm || (searchInput ? searchInput.value : ''));
+        });
     },
 
     searchDebounced: function() {

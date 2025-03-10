@@ -120,6 +120,15 @@ var EditInflow = {
     },
 
     render: function () {
+        // Helper function to create labels (fallback if Utils is not available)
+        var createLabel = function(forId, text, isRequired) {
+            if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
+                return Utils.createLabel(forId, text, isRequired);
+            }
+            var requiredAttr = isRequired ? ' data-required="*"' : '';
+            return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
+        };
+        
         var modalHtml = '<div class="modal" id="editInflowModal">' +
             '<div class="modal-content">' +
                 '<div class="modal-header">' +
@@ -129,19 +138,19 @@ var EditInflow = {
                 '<div class="modal-body">' +
                     '<form id="editInflowForm" class="modal-form-grid">' +
                         '<div class="form-group">' +
-                            '<label for="head">Head*</label>' +
+                            createLabel('head', 'Head', true) +
                             '<select id="head" name="head_id" required></select>' +
                         '</div>' +
 
                         '<div class="form-group" id="subHeadContainer" style="display: none;">' +
-                            '<label for="subhead">Sub Head</label>' +
+                            createLabel('subhead', 'Sub Head', false) +
                             '<select id="subhead" name="subhead_id">' +
                                 '<option value="">Select a sub-head</option>' +
                             '</select>' +
                         '</div>' +
 
                         '<div class="form-group full-width">' +
-                            '<label for="fund_details">Fund Details*</label>' +
+                            createLabel('fund_details', 'Fund Details', true) +
                             '<textarea ' +
                                 'id="fund_details" ' +
                                 'name="fund_details" ' +
@@ -152,7 +161,7 @@ var EditInflow = {
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="amount">Amount*</label>' +
+                            createLabel('amount', 'Amount', true) +
                             '<input ' +
                                 'type="number" ' +
                                 'id="amount" ' +
@@ -165,12 +174,12 @@ var EditInflow = {
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="received_from">Received From*</label>' +
+                            createLabel('received_from', 'Received From', true) +
                             '<input type="text" id="received_from" name="received_from" required>' +
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="payment_method">Payment Method*</label>' +
+                            createLabel('payment_method', 'Payment Method', true) +
                             '<select id="payment_method" name="payment_method" required>' +
                                 '<option value="">Select payment method</option>' +
                                 '<option value="Bank Transfer">Bank Transfer</option>' +
@@ -179,14 +188,14 @@ var EditInflow = {
                         '</div>' +
 
                         '<div class="form-group" id="ibanContainer" style="display: none;">' +
-                            '<label for="iban">IBAN*</label>' +
+                            createLabel('iban', 'IBAN', true) +
                             '<select id="iban" name="iban_id">' +
                                 '<option value="">Select IBAN</option>' +
                             '</select>' +
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="date">Date of Entry*</label>' +
+                            createLabel('date', 'Date of Entry', true) +
                             '<input type="text" id="date" name="date" required placeholder="YYYY-MM-DD" readonly>' +
                         '</div>' +
                     '</form>' +

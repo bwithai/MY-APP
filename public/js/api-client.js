@@ -283,7 +283,78 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
-    
+
+    /*----------------------------------------------------------------------------------------------------  
+        [ All the Liabilities API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
+    getLiabilities: function({ skip, limit, search, userId }) {
+        var url = new URL(this.baseUrl + 'liability/');
+        url.searchParams.append('skip', skip);
+        url.searchParams.append('limit', limit);
+        if (search) url.searchParams.append('search', search);
+        if (userId) url.searchParams.append('user_id', userId);
+
+        console.log('Calling Investments API:', url.toString());
+
+        return fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    createLiability: function(data) {
+        console.log('Creating Liability:', JSON.stringify(data));
+        return fetch(this.baseUrl + 'liability/', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    getLiability: function(id) {
+        console.log('Getting Liability:', id);
+        return fetch(this.baseUrl + 'liability/' + id, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    updateLiability: function(id, data) {
+        return fetch(this.baseUrl + 'liability/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            }, 
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    deleteLiability: function(id) {
+        return fetch(this.baseUrl + 'liability/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
 
     /*----------------------------------------------------------------------------------------------------
         [ All the Common API calls which will be used in multiple pages will be handled bellow this line ]

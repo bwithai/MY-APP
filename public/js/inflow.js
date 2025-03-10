@@ -261,47 +261,15 @@ var InflowApp = {
     },
 
     updatePagination: function(hasNextPage) {
-        var currentPageSpan = document.getElementById('currentPage');
-        var prevPageBtn = document.getElementById('prevPage');
-        var nextPageBtn = document.getElementById('nextPage');
-
-        // Update current page display
-        currentPageSpan.textContent = this.currentPage;
-
-        // Update button states
-        prevPageBtn.disabled = this.currentPage === 1;
-        nextPageBtn.disabled = !hasNextPage;
-
-        // Store current page in sessionStorage
-        sessionStorage.setItem('inflowCurrentPage', this.currentPage);
+        Utils.updatePagination(this, hasNextPage);
     },
 
     formatNumber: function(value) {
-        value = Number(value);
-        if (value == null || isNaN(value)) {
-            return 'Invalid number'; // Handle null, undefined, or NaN
-        }
-    
-        if (value < 1000) {
-            return value.toFixed(2); // Less than 1,000
-        } else if (value < 1000000) {
-            return (value / 1000).toFixed(2) + 'K'; // Thousands
-        } else if (value < 1000000000) {
-            return (value / 1000000).toFixed(2) + 'M'; // Millions
-        } else if (value < 1000000000000) {
-            return (value / 1000000000).toFixed(2) + 'B'; // Billions
-        } else {
-            return (value / 1000000000000).toFixed(2) + 'T'; // Trillions
-        }
+        return Utils.formatNumber(value);
     },
 
     formatDate: function(dateString, includeTime = false) {
-        if (!dateString) return 'N/A';
-        var date = new Date(dateString);
-        var options = includeTime 
-            ? { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-            : { year: 'numeric', month: 'short', day: 'numeric' };
-        return date.toLocaleDateString('en-US', options);
+        return Utils.formatDate(dateString, includeTime);
     }
 };
 

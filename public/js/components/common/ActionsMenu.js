@@ -19,9 +19,9 @@ var ActionsMenu = {
             "<i class='fas fa-ellipsis-v'></i></button>" +
             "<div id='" + menuId + "' class='action-menu-dropdown'>" +
             "<div class='action-menu-item' onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
-            "<i class='fas fa-edit'></i> Edit</div>" +
+            "<i class='fas fa-edit' style='color: darkgreen;'></i> Edit " + this.type + "</div>" +
             (this.options.canDelete ? "<div class='action-menu-item' onclick=\"ActionsMenu.handleDelete(" + this.value.id + ")\">" +
-            "<i class='fas fa-trash'></i> Delete</div>" : "") + "</div>" : "") + "</div>";
+            "<i class='fas fa-trash' style='color: red;'></i> Delete " + this.type + "</div>" : "") + "</div>" : "") + "</div>";
         return menuHtml;
     },
 
@@ -59,7 +59,7 @@ var ActionsMenu = {
         menu.style.position = 'absolute';
         menu.style.top = top + 'px';
         menu.style.left = left + 'px';
-        menu.style.width = '120px';
+        menu.style.width = '200px';
         menu.style.zIndex = '10000';
         menu.classList.toggle('show');
 
@@ -91,9 +91,18 @@ var ActionsMenu = {
                     OutflowApp.loadOutflowData();
                 });
                 break;
-            // Add more cases for future types here
+            case 'Investment':
+                EditInvestment.init('Investment', id, function() {
+                    InvestmentApp.loadInvestmentData();
+                });
+                break;
+            case 'Liability':
+                EditLiability.init('Liability', id, function() {
+                    LiabilityApp.loadLiabilityData();
+                });
+                break;
             default:
-                console.error('Unknown type:', type);
+                console.error('Unknown type:', this.type);
         }
     },
 
@@ -109,7 +118,11 @@ var ActionsMenu = {
                     OutflowApp.loadOutflowData();
                 });
                 break;
-            // Add more cases for future types here
+            case 'Investment':
+                DeleteAlert.init('Investment', id, function() {
+                    InvestmentApp.loadInvestmentData();
+                });
+                break;
             default:
                 console.error('Unknown type:', type);
         }

@@ -23,8 +23,7 @@ var MainApp = {
             '/inflow': this.showInflows,
             '/outflow': this.showOutflows,
             '/investment': this.showInvestments,
-            '/heads': this.showHeads,
-            '/profile': this.showProfile
+            '/liability': this.showLiabilities,
         };
     },
 
@@ -36,6 +35,9 @@ var MainApp = {
     },
     showInvestments: function() {
         InvestmentApp.init();
+    },
+    showLiabilities: function() {
+        LiabilityApp.init();
     },
 
     handleNavigation: function() {
@@ -52,6 +54,8 @@ var MainApp = {
         this.showDashboard();
     } else if (path === '/investment') {
         InvestmentApp.init();
+    } else if (path === '/liability') {
+        LiabilityApp.init();
     } else {
         content.innerHTML = `
             <div class="content-wrapper text-center">

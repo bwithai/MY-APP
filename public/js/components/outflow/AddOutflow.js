@@ -106,6 +106,15 @@ var AddOutflow = {
     },
 
     render: function() {
+        // Helper function to create labels (fallback if Utils is not available)
+        var createLabel = function(forId, text, isRequired) {
+            if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
+                return Utils.createLabel(forId, text, isRequired);
+            }
+            var requiredAttr = isRequired ? ' data-required="*"' : '';
+            return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
+        };
+        
         var modalHtml = '<div class="modal" id="addOutflowModal">' +
             '<div class="modal-content">' +
                 '<div class="modal-header">' +
@@ -115,21 +124,21 @@ var AddOutflow = {
                 '<div class="modal-body">' +
                     '<form id="addOutflowForm" class="modal-form-grid">' +
                         '<div class="form-group">' +
-                            '<label for="head">Head*</label>' +
+                            createLabel('head', 'Head', true) +
                             '<select id="head" name="head_id" required>' +
                                 '<option value="">Select a head</option>' +
                             '</select>' +
                         '</div>' +
 
                         '<div class="form-group" id="subHeadContainer" style="display: none;">' +
-                            '<label for="subhead">Sub Head</label>' +
+                            createLabel('subhead', 'Sub Head', false) +
                             '<select id="subhead" name="subhead_id">' +
                                 '<option value="">Select a sub-head</option>' +
                             '</select>' +
                         '</div>' +
 
                         '<div class="form-group full-width">' +
-                            '<label for="head_details">Head Details*</label>' +
+                            createLabel('head_details', 'Head Details', true) +
                             '<textarea ' +
                                 'id="head_details" ' +
                                 'name="head_details" ' +
@@ -140,7 +149,7 @@ var AddOutflow = {
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="type">Type*</label>' +
+                            createLabel('type', 'Type', true) +
                             '<select id="type" name="type" required>' +
                                 '<option value="">Select type</option>' +
                                 '<option value="Expandable">Expandable</option>' +
@@ -149,7 +158,7 @@ var AddOutflow = {
                         '</div>' +
 
                         '<div class="form-group" id="entityContainer" style="display: none;">' +
-                            '<label for="place_type">Entity</label>' +
+                            createLabel('place_type', 'Entity', false) +
                             '<select id="place_type" name="place_type">' +
                                 '<option value="">Select an entity</option>' +
                                 '<option value="Command House">Command House</option>' +
@@ -159,7 +168,7 @@ var AddOutflow = {
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="amount">Amount*</label>' +
+                            createLabel('amount', 'Amount', true) +
                             '<input ' +
                                 'type="number" ' +
                                 'id="amount" ' +
@@ -172,7 +181,7 @@ var AddOutflow = {
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="payment_type">Payment Type*</label>' +
+                            createLabel('payment_type', 'Payment Type', true) +
                             '<select id="payment_type" name="payment_type" required>' +
                                 '<option value="">Select payment type</option>' +
                                 '<option value="Bank Transfer">Bank Transfer</option>' +
@@ -181,19 +190,19 @@ var AddOutflow = {
                         '</div>' +
 
                         '<div class="form-group" id="ibanContainer" style="display: none;">' +
-                            '<label for="iban">IBAN*</label>' +
+                            createLabel('iban', 'IBAN', true) +
                             '<select id="iban" name="iban_id">' +
                                 '<option value="">Select IBAN</option>' +
                             '</select>' +
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="payment_to">Payment To</label>' +
+                            createLabel('payment_to', 'Payment To', false) +
                             '<input type="text" id="payment_to" name="payment_to">' +
                         '</div>' +
 
                         '<div class="form-group">' +
-                            '<label for="date">Date of Entry*</label>' +
+                            createLabel('date', 'Date of Entry', true) +
                             '<input type="text" id="date" name="date" required placeholder="YYYY-MM-DD" readonly>' +
                         '</div>' +
                     '</form>' +

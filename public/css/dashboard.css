@@ -806,6 +806,13 @@
     color: #333;
 }
 
+/* Style for required field asterisks */
+.form-group label[data-required]::after {
+    content: attr(data-required);
+    color: #e74c3c; /* Red color for the asterisk */
+    margin-left: 2px;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -913,12 +920,21 @@ td.long-text {
 
 /* Add this to your existing CSS */
 .deleted-row {
-    background-color: rgba(255, 0, 0, 0.356) !important; /* Light red background */
-    /* color: #666; Dimmed text */
+    background-color: rgba(255, 0, 0, 0.1) !important;
+    color: #666;
+    text-decoration: line-through;
+}
+.deleted-row:hover {
+    background-color: rgba(255, 0, 0, 0.15) !important;
 }
 
-.deleted-row:hover {
-    background-color: rgba(255, 0, 0, 0.356) !important; /* Slightly darker on hover */
+/* Style for paid liabilities */
+.paid-row {
+    background-color: rgba(0, 255, 0, 0.1) !important;
+}
+
+.paid-row:hover {
+    background-color: rgba(0, 255, 0, 0.15) !important;
 }
 
 /* Action Menu Styles */
@@ -945,16 +961,19 @@ td.long-text {
     position: absolute;
     right: 0;
     top: 100%;
-    background: white;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    background-color: var(--off-white);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     min-width: 120px;
     display: none;
     z-index: 1000;
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 4px 0;
 }
 
 .action-menu-dropdown.show {
     display: block;
+    animation: fadeIn 0.4s ease-in-out;
 }
 
 .action-menu-item {
@@ -962,13 +981,17 @@ td.long-text {
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     color: #333;
     transition: background-color 0.2s;
 }
 
+.action-menu-item i {
+    margin-right: 0.5rem;
+}
+
 .action-menu-item:hover {
-    background: #f5f5f5;
+    background: rgb(109, 134, 109);
+    color: white;
 }
 
 .action-menu-item i {
