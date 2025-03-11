@@ -84,6 +84,9 @@ var DeleteAlert = {
             case 'Investment':
                 deletePromise = ApiClient.deleteInvestment(this.id);
                 break;
+            case 'Liability':
+                deletePromise = ApiClient.deleteLiability(this.id);
+                break;
             // Add other cases as needed
             default:
                 console.error('Unexpected type:', this.type);

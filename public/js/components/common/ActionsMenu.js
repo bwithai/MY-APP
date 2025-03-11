@@ -123,6 +123,11 @@ var ActionsMenu = {
                     InvestmentApp.loadInvestmentData();
                 });
                 break;
+            case 'Liability':
+                DeleteAlert.init('Liability', id, function() {
+                    LiabilityApp.loadLiabilityData();
+                });
+                break;
             default:
                 console.error('Unknown type:', type);
         }

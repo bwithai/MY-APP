@@ -15,14 +15,7 @@ var EditLiability = {
     },
   
     cleanup: function() {
-        if (typeof Utils !== 'undefined' && typeof Utils.cleanup === 'function') {
-            Utils.cleanup('editLiabilityModal');
-        } else {
-            var existingModal = document.getElementById('editLiabilityModal');
-            if (existingModal && existingModal.parentNode) {
-                existingModal.parentNode.removeChild(existingModal);
-            }
-        }
+        Utils.cleanup('editLiabilityModal');
     },
   
     loadLiabilityData: function() {
@@ -32,107 +25,18 @@ var EditLiability = {
                 self.liability = liability; // Store liability data
                 self.render(); // Render with data
                 self.setupEventListeners();
-                
-                // Set head value and trigger change to load subheads
-                var headSelect = document.getElementById('head');
-                if (headSelect && self.liability.head_id) {
-                    // Wait for heads to be loaded
-                    var checkHeadsLoaded = setInterval(function() {
-                        if (headSelect.options.length > 1) {
-                            clearInterval(checkHeadsLoaded);
-                            headSelect.value = self.liability.head_id;
-                            
-                            // Trigger change event to load subheads
-                            if (typeof Utils !== 'undefined' && typeof Utils.loadSubHeads === 'function') {
-                                Utils.loadSubHeads(self.liability.head_id);
-                            } else {
-                                self.loadSubHeads(self.liability.head_id);
-                            }
-                            
-                            // Set subhead after a delay
-                            setTimeout(function() {
-                                var subheadSelect = document.getElementById('subhead');
-                                if (subheadSelect && self.liability.subhead_id) {
-                                    subheadSelect.value = self.liability.subhead_id;
-                                }
-                            }, 500);
-                        }
-                    }, 100);
-                }
             })
             .catch(function(error) {
                 console.error('Failed to load liability:', error);
                 alert('Failed to load liability: ' + (error.message || 'Unknown error'));
             });
     },
-    
-    // Fallback method if Utils is not available
-    loadHeadsData: function(type) {
-        if (typeof ApiClient !== 'undefined') {
-            ApiClient.getHeads(type)
-                .then(function(response) {
-                    var headSelect = document.getElementById('head');
-                    if (headSelect) {
-                        headSelect.innerHTML = '<option value="">Select a head</option>';
-                        response.data.forEach(function(head) {
-                            var option = document.createElement('option');
-                            option.value = head.id;
-                            option.textContent = head.heads;
-                            option.dataset.subheads = JSON.stringify(head.sub_heads || []);
-                            headSelect.appendChild(option);
-                        });
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Failed to load heads:', error);
-                });
-        }
-    },
-    
-    // Fallback method if Utils is not available
-    loadSubHeads: function(headId) {
-        var subHeadContainer = document.getElementById('subHeadContainer');
-        var subHeadSelect = document.getElementById('subhead');
-        var selectedHead = document.querySelector('#head option[value="' + headId + '"]');
-        
-        if (subHeadSelect) {
-            subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-            var subHeads = selectedHead && selectedHead.dataset.subheads ? JSON.parse(selectedHead.dataset.subheads) : [];
-            
-            if (subHeads.length > 0) {
-                subHeads.forEach(function(subHead) {
-                    var option = document.createElement('option');
-                    option.value = subHead.id;
-                    option.textContent = subHead.subheads;
-                    subHeadSelect.appendChild(option);
-                });
-                if (subHeadContainer) {
-                    subHeadContainer.style.display = 'block';
-                }
-            } else if (subHeadContainer) {
-                subHeadContainer.style.display = 'none';
-            }
-        }
-    },
   
     render: function() {
-        // Helper function to create labels (fallback if Utils is not available)
-        var createLabel = function(forId, text, isRequired) {
-            if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
-                return Utils.createLabel(forId, text, isRequired);
-            }
-            var requiredAttr = isRequired ? ' data-required="*"' : '';
-            return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
-        };
-        
         // Format date for input if we have liability data
         var formattedDate = '';
         if (this.liability && this.liability.date) {
-            if (typeof Utils !== 'undefined' && typeof Utils.formatDateForInput === 'function') {
-                formattedDate = Utils.formatDateForInput(this.liability.date);
-            } else {
-                formattedDate = this.liability.date.split('T')[0];
-            }
+            formattedDate = Utils.formatDateForInput(this.liability.date);
         }
         
         var modalHtml = '<div class="modal" id="editLiabilityModal">' +
@@ -145,14 +49,14 @@ var EditLiability = {
                     '<form id="editLiabilityForm" class="modal-form-grid">' +
                         // Head field
                         '<div class="form-group">' +
-                            createLabel('head', 'Head', true) +
+                            Utils.createLabel('head', 'Head', true) +
                             '<select id="head" name="head_id" required></select>' +
                         '</div>' +
                         
                         // Sub Head field (conditionally shown)
                         '<div class="form-group" id="subHeadContainer" style="display: ' + 
                             (this.liability && this.liability.subhead_id ? 'block' : 'none') + ';">' +
-                            createLabel('subhead', 'Sub Head', false) +
+                            Utils.createLabel('subhead', 'Sub Head', false) +
                             '<select id="subhead" name="subhead_id">' +
                                 '<option value="">Select a sub-head</option>' +
                             '</select>' +
@@ -160,68 +64,69 @@ var EditLiability = {
                         
                         // Fund Details field
                         '<div class="form-group full-width">' +
-                            createLabel('fund_details', 'Fund Details', true) +
+                            Utils.createLabel('fund_details', 'Fund Details', true) +
                             '<textarea ' +
                                 'id="fund_details" ' +
                                 'name="fund_details" ' +
                                 'required ' +
-                                'placeholder="Enter fund details..." ' +
+                                'placeholder="Enter details..." ' +
                                 'rows="3"' +
                             '>' + (this.liability ? (this.liability.fund_details || '') : '') + '</textarea>' +
                         '</div>' +
                         
                         // Amount field
                         '<div class="form-group">' +
-                            createLabel('amount', 'Amount', true) +
+                            Utils.createLabel('amount', 'Amount', false) +
                             '<input ' +
                                 'type="number" ' +
                                 'id="amount" ' +
                                 'name="amount" ' +
                                 'step="0.01" ' +
-                                'min="0.01" ' +
                                 'value="' + (this.liability ? (this.liability.amount || '') : '') + '" ' +
-                                'required' +
+                                'readonly' +
                             '>' +
                         '</div>' +
                         
                         // Remaining Balance field
                         '<div class="form-group">' +
-                            createLabel('remaining_balance', 'Remaining Balance', true) +
+                            Utils.createLabel('remaining_balance', 'Remaining Balance', false) +
                             '<input ' +
                                 'type="number" ' +
                                 'id="remaining_balance" ' +
                                 'name="remaining_balance" ' +
                                 'step="0.01" ' +
-                                'min="0" ' +
                                 'value="' + (this.liability ? (this.liability.remaining_balance || '') : '') + '" ' +
-                                'required' +
+                                'readonly' +
                             '>' +
                         '</div>' +
                         
                         // Type field
                         '<div class="form-group">' +
-                            createLabel('type', 'Type', true) +
+                            Utils.createLabel('type', 'Type', true) +
                             '<select id="type" name="type" required>' +
                                 '<option value="">Select type</option>' +
-                                '<option value="Short Term"' +
-                                    (this.liability && this.liability.type === 'Short Term' ? ' selected' : '') +
-                                    '>Short Term</option>' +
-                                '<option value="Long Term"' +
-                                    (this.liability && this.liability.type === 'Long Term' ? ' selected' : '') +
-                                    '>Long Term</option>' +
+                                '<option value="Miscellaneous"' + 
+                                    (this.liability && this.liability.type === 'Miscellaneous' ? ' selected' : '') +
+                                    '>Miscellaneous</option>' +
+                                '<option value="Security"' +
+                                    (this.liability && this.liability.type === 'Security' ? ' selected' : '') +
+                                    '>Security</option>' +
+                                '<option value="Other"' +
+                                    (this.liability && this.liability.type === 'Other' ? ' selected' : '') +
+                                    '>Other</option>' +
                             '</select>' +
                         '</div>' +
                         
                         // Payment To field
                         '<div class="form-group">' +
-                            createLabel('payment_to', 'Payment To', true) +
+                            Utils.createLabel('payment_to', 'Payment To', true) +
                             '<input type="text" id="payment_to" name="payment_to" value="' + 
                                 (this.liability ? (this.liability.payment_to || '') : '') + '" required>' +
                         '</div>' +
                         
                         // Payment Method field
                         '<div class="form-group">' +
-                            createLabel('payment_method', 'Payment Method', true) +
+                            Utils.createLabel('payment_method', 'Payment Method', true) +
                             '<select id="payment_method" name="payment_method" required>' +
                                 '<option value="">Select payment method</option>' +
                                 '<option value="Bank Transfer"' +
@@ -235,7 +140,7 @@ var EditLiability = {
                         
                         // Date field
                         '<div class="form-group">' +
-                            createLabel('date', 'Date of Entry', true) +
+                            Utils.createLabel('date', 'Date of Entry', true) +
                             '<input type="text" id="date" name="date" value="' + formattedDate + 
                                 '" required placeholder="YYYY-MM-DD" readonly>' +
                         '</div>' +
@@ -261,108 +166,76 @@ var EditLiability = {
   
     setupEventListeners: function() {
         var self = this;
+        var modal = document.getElementById('editLiabilityModal');
+        var form = document.getElementById('editLiabilityForm');
+        var headSelect = document.getElementById('head');
+        var dateInput = document.getElementById('date');
         
-        // Use the common form modal setup function if available
-        if (typeof Utils !== 'undefined' && typeof Utils.setupFormModal === 'function') {
-            Utils.setupFormModal({
-                component: this,
-                modalId: 'editLiabilityModal',
-                formId: 'editLiabilityForm',
-                dateInputId: 'date',
-                loadHeads: true,
-                headType: 3, // Assuming 3 is the type code for liability heads
-                isEditMode: true,
-                additionalListeners: function() {
-                    // Set up listeners specific to EditLiability
-                    var headSelect = document.getElementById('head');
-                    
-                    // Head select change handler
-                    if (headSelect) {
-                        headSelect.onchange = function() {
-                            if (typeof Utils !== 'undefined' && typeof Utils.loadSubHeads === 'function') {
-                                Utils.loadSubHeads(this.value);
-                            } else if (typeof self.loadSubHeads === 'function') {
-                                self.loadSubHeads(this.value);
-                            }
-                        };
-                    }
+        // Close button event handlers
+        var closeButtons = modal.querySelectorAll('.close-btn');
+        closeButtons.forEach(function(button) {
+            button.onclick = function(e) {
+                e.preventDefault();
+                self.close();
+            };
+        });
+        
+        // Form submit handler
+        if (form) {
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                var formData = new FormData(form);
+                self.handleSubmit(formData);
+            };
+        }
+        
+        // Head select change handler
+        if (headSelect) {
+            headSelect.addEventListener('change', function() {
+                try{
+                    Utils.loadSubHeads(this.value);
+                } catch (error) {
+                    console.error('Error loading sub-heads:', error);
                 }
             });
-        } else {
-            // Fallback to manual event listeners setup
-            var modal = document.getElementById('editLiabilityModal');
-            var form = document.getElementById('editLiabilityForm');
-            var headSelect = document.getElementById('head');
-            var closeBtn = modal.querySelector('.close-btn');
-            var cancelBtn = modal.querySelector('[data-dismiss="modal"]');
-      
-            if (closeBtn) {
-                closeBtn.onclick = function() {
-                    self.close();
-                };
-            }
-      
-            if (cancelBtn) {
-                cancelBtn.onclick = function() {
-                    self.close();
-                };
-            }
-      
-            if (headSelect) {
-                headSelect.onchange = function() {
-                    if (typeof Utils !== 'undefined' && typeof Utils.loadSubHeads === 'function') {
-                        Utils.loadSubHeads(this.value);
-                    } else if (typeof self.loadSubHeads === 'function') {
-                        self.loadSubHeads(this.value);
+        }
+        
+        // Initialize datepicker on date input
+        if (dateInput) {
+            Utils.initDatePicker(dateInput);
+        }
+        
+        // Load heads data for liability (type 3)
+        Utils.loadHeadsData(1);
+        
+        // If we have liability data, set head and subhead values after heads are loaded
+        if (this.liability && this.liability.head_id && headSelect) {
+            var checkHeadsLoaded = setInterval(function() {
+                if (headSelect.options.length > 1) {
+                    clearInterval(checkHeadsLoaded);
+                    
+                    // Set head value
+                    headSelect.value = self.liability.head_id;
+                    
+                    // Load subheads based on selected head
+                    Utils.loadSubHeads(self.liability.head_id);
+                    
+                    // Set subhead value after a delay to allow subheads to load
+                    if (self.liability.subhead_id) {
+                        setTimeout(function() {
+                            var subheadSelect = document.getElementById('subhead');
+                            if (subheadSelect) {
+                                subheadSelect.value = self.liability.subhead_id;
+                            }
+                        }, 60);
                     }
-                };
-            }
-      
-            if (form) {
-                form.onsubmit = function(e) {
-                    e.preventDefault();
-                    var formData = new FormData(form);
-                    self.handleSubmit(formData);
-                };
-            }
-            
-            // Initialize the restricted datepicker component on the date input
-            var dateInput = document.getElementById('date');
-            if (dateInput) {
-                if (typeof Utils !== 'undefined' && typeof Utils.initDatePicker === 'function') {
-                    Utils.initDatePicker(dateInput);
-                } else if (typeof RestrictedDatePicker === 'function') {
-                    RestrictedDatePicker(dateInput);
-                } else {
-                    // Fallback: use the native date input if supported
-                    dateInput.type = 'date';
-                    dateInput.readOnly = false;
                 }
-            }
-            
-            // Load heads data
-            if (typeof Utils !== 'undefined' && typeof Utils.loadHeadsData === 'function') {
-                Utils.loadHeadsData(3); // Assuming 3 is the type code for liability heads
-            } else if (typeof self.loadHeadsData === 'function') {
-                self.loadHeadsData(3);
-            }
+            }, 50);
         }
     },
   
     close: function() {
-        var modal = document.getElementById('editLiabilityModal');
-        if (modal) {
-            modal.classList.remove('show');
-            setTimeout(function() {
-                if (modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-            }, 300);
-        }
-        
-        if (typeof this.onClose === 'function') {
-            this.onClose();
-        }
+        Utils.cleanup('editLiabilityModal');
     },
   
     handleSubmit: function(formData) {
@@ -377,29 +250,19 @@ var EditLiability = {
             submitButton.disabled = true;
         }
 
-        var data;
-        // Use the processFormData utility if available
-        if (typeof Utils !== 'undefined' && typeof Utils.processFormData === 'function') {
-            data = Utils.processFormData(formData, {
-                numericFields: ['amount', 'remaining_balance'],
-                integerFields: ['head_id', 'subhead_id']
-            });
-        } else {
-            // Build an object from formData
-            data = {};
-            formData.forEach(function(value, key) { data[key] = value; });
-    
-            // Format amount values
-            data.amount = Number(parseFloat(data.amount).toFixed(2));
-            data.remaining_balance = Number(parseFloat(data.remaining_balance).toFixed(2));
-            
-            // Convert IDs to integers
-            if (data.head_id) {
-                data.head_id = parseInt(data.head_id, 10);
-            }
-            if (data.subhead_id) {
-                data.subhead_id = parseInt(data.subhead_id, 10);
-            }
+        var data = {};
+        formData.forEach(function(value, key) { data[key] = value; });
+
+        // Format amount values
+        data.amount = Number(parseFloat(data.amount).toFixed(2));
+        data.remaining_balance = Number(parseFloat(data.remaining_balance).toFixed(2));
+        
+        // Convert IDs to integers
+        if (data.head_id) {
+            data.head_id = parseInt(data.head_id, 10);
+        }
+        if (data.subhead_id) {
+            data.subhead_id = parseInt(data.subhead_id, 10);
         }
         
         // Validate amount fields
@@ -422,13 +285,7 @@ var EditLiability = {
         ApiClient.updateLiability(this.liabilityId, data)
             .then(function() {
                 self.close();
-                
-                // Use Utils.onSuccess if available
-                if (typeof Utils !== 'undefined' && typeof Utils.onSuccess === 'function') {
-                    Utils.onSuccess('edit', 'Liability');
-                } else {
-                    self.showSuccessMessage('edit', 'Liability');
-                }
+                Utils.onSuccess('edit', 'Liability');
             })
             .catch(function(error) {
                 console.error('Failed to update liability:', error);
@@ -439,45 +296,6 @@ var EditLiability = {
                     submitButton.disabled = false;
                 }
             });
-    },
-  
-    showSuccessMessage: function(action, type) {
-        // Use Utils.onSuccess if available
-        if (typeof Utils !== 'undefined' && typeof Utils.onSuccess === 'function') {
-            Utils.onSuccess(action, type);
-            return;
-        }
-        
-        // Fallback implementation
-        var message = '';
-        switch (action) {
-            case 'add':
-                message = 'Added ' + type + ' successfully!';
-                break;
-            case 'edit':
-                message = 'Updated ' + type + ' successfully!';
-                break; 
-            case 'delete':
-                message = 'Deleted ' + type + ' successfully!';
-                break;
-        }
-    
-        var successDiv = document.createElement('div');
-        successDiv.className = 'success-message';
-        
-        if (action === 'delete') {
-            successDiv.style.backgroundColor = '#d63031';
-        }
-        
-        successDiv.innerText = message;
-    
-        document.body.appendChild(successDiv);
-    
-        setTimeout(function() {
-            if (successDiv.parentNode) {
-                successDiv.parentNode.removeChild(successDiv);
-            }
-        }, 3000);
     }
 };
 

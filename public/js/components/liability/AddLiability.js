@@ -115,7 +115,7 @@ var AddLiability = {
                             // Fund Details field
                             '<div class="form-group full-width">' +
                                 createLabel('fund_details', 'Fund Details', true) +
-                                '<textarea id="fund_details" name="fund_details" required placeholder="Enter fund details..." rows="3"></textarea>' +
+                                '<textarea id="fund_details" name="fund_details" required placeholder="Enter details..." rows="3"></textarea>' +
                             '</div>' +
                             
                             // Amount field
@@ -175,16 +175,10 @@ var AddLiability = {
             }, 10);
         }
   
-        // Set default date to today in YYYY-MM-DD format
+        // Set default date to today using utility function
         var dateInput = document.getElementById('date');
         if (dateInput) {
-            var today = new Date();
-            var year = today.getFullYear();
-            var month = today.getMonth() + 1;
-            if (month < 10) { month = '0' + month; }
-            var day = today.getDate();
-            if (day < 10) { day = '0' + day; }
-            dateInput.value = year + '-' + month + '-' + day;
+            Utils.setCurrentDate(dateInput);
         }
     },
   
@@ -235,16 +229,10 @@ var AddLiability = {
             };
         }
   
-        // Initialize the restricted datepicker component on the date input
+        // Initialize the datepicker component on the date input using Utils
         var dateInput = document.getElementById('date');
         if (dateInput) {
-            if (typeof RestrictedDatePicker === 'function') {
-                RestrictedDatePicker(dateInput);
-            } else {
-                // Fallback: use the native date input if supported
-                dateInput.type = 'date';
-                dateInput.readOnly = false;
-            }
+            Utils.initDatePicker(dateInput);
         }
     },
   

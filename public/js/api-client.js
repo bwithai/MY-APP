@@ -1,5 +1,5 @@
 var ApiClient = {
-    baseUrl: 'http://localhost:8001/api/v1/',
+    baseUrl: 'http://localhost:8000/api/v1/',
     token: null,
 
     /*----------------------------------------------------------------------------------------------------
