@@ -142,9 +142,25 @@ var LiabilityApp = {
         // Show loading state
         if (tableBody) {
             if (typeof Utils !== 'undefined' && typeof Utils.showLoading === 'function') {
-                Utils.showLoading('liabilityTableBody', 'Loading liabilities...');
+                // Create a row with a cell that spans all columns
+                tableBody.innerHTML = '<tr><td colspan="11" class="text-center" id="loadingLiabilityCell"></td></tr>';
+                // Apply loading to the single cell instead of the whole tbody
+                Utils.showLoading('loadingLiabilityCell', 'Loading liabilities...');
             } else {
-                tableBody.innerHTML = '<tr><td colspan="11" class="text-center">Loading...</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="11" class="text-center">' +
+                    '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">' +
+                    '<div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite;"></div>' +
+                    '<p style="margin-top: 10px;">Loading liabilities...</p>' +
+                    '</div>' +
+                    '</td></tr>';
+                
+                // Add spin animation if not already present
+                if (!document.getElementById('spin-animation')) {
+                    var style = document.createElement('style');
+                    style.id = 'spin-animation';
+                    style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                    document.head.appendChild(style);
+                }
             }
         }
 
@@ -255,7 +271,7 @@ var LiabilityApp = {
             
             row.innerHTML = 
                 '<td class="truncate-text" title="' + (liability.head || '') + '">' + (liability.head || 'N/A') + '</td>' +
-                '<td class="truncate-text" title="' + (liability.sub_heads || '') + '">' + (liability.sub_heads || 'N/A') + '</td>' +
+                '<td class="truncate-text ' + (liability.sub_heads ? '' : 'text-muted') + '" title="' + (liability.sub_heads || '') + '">' + (liability.sub_heads || 'N/A') + '</td>' +
                 '<td class="long-text ' + (liability.fund_details ? '' : 'text-muted') + '">' +
                     '<div class="truncate-text" title="' + (liability.fund_details || '') + '">' +
                         (liability.fund_details || 'N/A') +
@@ -269,8 +285,8 @@ var LiabilityApp = {
                 '<td>' + self.formatDate(liability.date, true) + '</td>' +
                 '<td>' + (liability.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Liability', liability, {
-                    delete: !liability.is_deleted,
-                    paid: !liability.is_paid && !liability.is_deleted,
+                    isDelete: liability.is_deleted,
+                    isPaid: liability.is_paid,
                     disabled: liability.is_deleted,
                     onAction: function(action, item) {
                         self.handleAction(action, item);

@@ -126,9 +126,38 @@ var OutflowApp = {
         history.pushState(null, '', '?' + searchParams.toString());
     },
 
-    loadOutflowData: function(query = '') {
+    loadOutflowData: function(query) {
+        // Default parameter value for older browser compatibility
+        query = query || this.searchQuery || '';
+        
         var self = this;
         var skip = (this.currentPage - 1) * this.perPage;
+        var tableBody = document.getElementById('outflowTableBody');
+        
+        // Show loading state
+        if (tableBody) {
+            if (typeof Utils !== 'undefined' && typeof Utils.showLoading === 'function') {
+                // Create a row with a cell that spans all columns
+                tableBody.innerHTML = '<tr><td colspan="13" class="text-center" id="loadingOutflowCell"></td></tr>';
+                // Apply loading to the single cell instead of the whole tbody
+                Utils.showLoading('loadingOutflowCell', 'Loading outflows...');
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="13" class="text-center">' +
+                    '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">' +
+                    '<div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite;"></div>' +
+                    '<p style="margin-top: 10px;">Loading outflows...</p>' +
+                    '</div>' +
+                    '</td></tr>';
+                
+                // Add spin animation if not already present
+                if (!document.getElementById('spin-animation')) {
+                    var style = document.createElement('style');
+                    style.id = 'spin-animation';
+                    style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                    document.head.appendChild(style);
+                }
+            }
+        }
 
         ApiClient.getOutflows({ 
             skip: skip, 

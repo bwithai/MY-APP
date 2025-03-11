@@ -215,8 +215,8 @@ var Utils = {
     showLoading: function(elementId, message) {
         var element = document.getElementById(elementId);
         if (element) {
-            element.innerHTML = '<div class="text-center">' +
-                '<div class="spinner" style="display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite;"></div>' +
+            element.innerHTML = '<div class="text-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">' +
+                '<div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite;"></div>' +
                 (message ? '<p style="margin-top: 10px;">' + message + '</p>' : '') +
                 '</div>';
             

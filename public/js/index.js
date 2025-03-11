@@ -24,6 +24,7 @@ var MainApp = {
             '/outflow': this.showOutflows,
             '/investment': this.showInvestments,
             '/liability': this.showLiabilities,
+            '/assets': this.showAssets,
         };
     },
 
@@ -39,7 +40,9 @@ var MainApp = {
     showLiabilities: function() {
         LiabilityApp.init();
     },
-
+    showAssets: function() {
+        AssetsApp.init();
+    },
     handleNavigation: function() {
     var path = window.location.pathname;
     console.log('Handling navigation for path:', path);
@@ -56,6 +59,8 @@ var MainApp = {
         InvestmentApp.init();
     } else if (path === '/liability') {
         LiabilityApp.init();
+    } else if (path === '/assets') {
+        AssetsApp.init();
     } else {
         content.innerHTML = `
             <div class="content-wrapper text-center">

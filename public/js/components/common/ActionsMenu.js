@@ -14,14 +14,55 @@ var ActionsMenu = {
 
     render: function() {
         var menuId = "action-menu-" + this.value.id;
-        var menuHtml = "<div class='action-menu-container'>" +
-            (!this.value.is_deleted ? "<button class='btn btn-sm btn-icon' onclick=\"ActionsMenu.toggleMenu('" + menuId + "', event)\" title='Actions'>" +
-            "<i class='fas fa-ellipsis-v'></i></button>" +
-            "<div id='" + menuId + "' class='action-menu-dropdown'>" +
-            "<div class='action-menu-item' onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
-            "<i class='fas fa-edit' style='color: darkgreen;'></i> Edit " + this.type + "</div>" +
-            (this.options.canDelete ? "<div class='action-menu-item' onclick=\"ActionsMenu.handleDelete(" + this.value.id + ")\">" +
-            "<i class='fas fa-trash' style='color: red;'></i> Delete " + this.type + "</div>" : "") + "</div>" : "") + "</div>";
+        var menuHtml = "<div class='action-menu-container'>";
+        
+        if (!this.value.is_deleted) {
+            menuHtml += "<button class='btn btn-sm btn-icon' " + 
+                       "onclick=\"ActionsMenu.toggleMenu('" + menuId + "', event)\" " +
+                       "title='Actions'>" +
+                       "<i class='fas fa-ellipsis-v'></i>" +
+                       "</button>";
+
+            menuHtml += "<div id='" + menuId + "' class='action-menu-dropdown'>";
+            
+            // Edit option
+            menuHtml += "<div class='action-menu-item' " +
+                       "onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
+                       "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                       "Edit " + this.type +
+                       "</div>";
+
+            // Pay Liability option (if applicable)
+            if (this.type === 'Liability' && !this.options.isPaid && !this.options.isDelete) {
+                menuHtml += "<div class='action-menu-item' " +
+                           "onclick=\"ActionsMenu.handlePayLiability(" + this.value.id + ")\">" +
+                           "<i class='fas fa-credit-card' style='color: lightblue;'></i> " +
+                           "Pay Liability" +
+                           "</div>";
+            }
+            
+            // History option (for Liability and Investment)
+            if (this.type === 'Liability' || this.type === 'Investment') {
+                menuHtml += "<div class='action-menu-item' " +
+                           "onclick=\"ActionsMenu.handleViewHistory(" + this.value.id + ")\">" +
+                           "<i class='fas fa-history' style='color: darkgray;'></i> " +
+                           this.type + " History" +
+                           "</div>";
+            }
+
+            // Delete option (if enabled)
+            if (this.options.canDelete) {
+                menuHtml += "<div class='action-menu-item' " +
+                           "onclick=\"ActionsMenu.handleDelete(" + this.value.id + ")\">" +
+                           "<i class='fas fa-trash' style='color: red;'></i> " +
+                           "Delete " + this.type +
+                           "</div>";
+            }
+
+            menuHtml += "</div>";
+        }
+
+        menuHtml += "</div>";
         return menuHtml;
     },
 
@@ -130,6 +171,47 @@ var ActionsMenu = {
                 break;
             default:
                 console.error('Unknown type:', type);
+        }
+    },
+
+    handlePayLiability: function(id) {
+        // Get the liability data first to initialize the PayLiability modal
+        ApiClient.getLiability(id)
+            .then(function(liability) {
+                PayLiability.init(liability, function() {
+                    LiabilityApp.loadLiabilityData();
+                });
+            })
+            .catch(function(error) {
+                console.error('Failed to load liability for payment:', error);
+                alert('Failed to load liability details: ' + (error.message || 'Unknown error'));
+            });
+    },
+
+    handleViewHistory: function(id) {
+        // Get the data first to initialize the appropriate History modal
+        if (this.type === 'Liability') {
+            ApiClient.getLiability(id)
+                .then(function(liability) {
+                    LiabilityHistory.init(liability, function() {
+                        // Optional callback when history modal is closed
+                    });
+                })
+                .catch(function(error) {
+                    console.error('Failed to load liability for history view:', error);
+                    alert('Failed to load liability details: ' + (error.message || 'Unknown error'));
+                });
+        } else if (this.type === 'Investment') {
+            ApiClient.getInvestment(id)
+                .then(function(investment) {
+                    InvestHistory.init(investment, function() {
+                        // Optional callback when history modal is closed
+                    });
+                })
+                .catch(function(error) {
+                    console.error('Failed to load investment for history view:', error);
+                    alert('Failed to load investment details: ' + (error.message || 'Unknown error'));
+                });
         }
     }
 };

@@ -272,6 +272,16 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
+    getInvestmentHistory: function(id) {
+        return fetch(this.baseUrl + 'investment/history/' + id, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
     deleteInvestment: function(id) {
         console.log('Deleting Investment:', id);
         return fetch(this.baseUrl + 'investment/' + id, {
@@ -345,11 +355,57 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
+    payLiability: function(id, data) {
+        return fetch(this.baseUrl + 'liability/pay/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    getLiabilityHistory: function(id) {
+        return fetch(this.baseUrl + 'liability/history/' + id, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
     deleteLiability: function(id) {
         return fetch(this.baseUrl + 'liability/' + id, {
             method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Assets API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
+    getAssets: function({ skip, limit, search, userId }) {
+        var url = new URL(this.baseUrl + 'assets/');
+        url.searchParams.append('skip', skip);
+        url.searchParams.append('limit', limit);
+        if (search) url.searchParams.append('search', search);
+        if (userId) url.searchParams.append('user_id', userId);
+
+        console.log('Calling Assets API:', url.toString()); 
+
+        return fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
             }
         })
         .then(this.handleResponse)
