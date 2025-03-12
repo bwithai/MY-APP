@@ -50,6 +50,15 @@ var ActionsMenu = {
                            "</div>";
             }
 
+            // View option (for Asset)
+            if (this.type === 'Asset') {
+                menuHtml += "<div class='action-menu-item' " +
+                           "onclick=\"ActionsMenu.handleViewAsset(" + this.value.id + ")\">" +
+                           "<i class='fas fa-eye' style='color: darkgray;'></i> " +
+                           "View Asset" +
+                           "</div>";
+            }
+
             // Delete option (if enabled)
             if (this.options.canDelete) {
                 menuHtml += "<div class='action-menu-item' " +
@@ -142,6 +151,11 @@ var ActionsMenu = {
                     LiabilityApp.loadLiabilityData();
                 });
                 break;
+            case 'Asset':
+                EditAsset.init('Asset', this.value, function() {
+                    AssetsApp.loadAssetsData();
+                });
+                break;
             default:
                 console.error('Unknown type:', this.type);
         }
@@ -213,6 +227,20 @@ var ActionsMenu = {
                     alert('Failed to load investment details: ' + (error.message || 'Unknown error'));
                 });
         }
+    },
+
+    handleViewAsset: function(id) {
+        // Get the asset data first to initialize the ViewAsset modal
+        ApiClient.getAsset(id)
+            .then(function(asset) {
+                ViewAsset.init('Asset', asset, function() {
+                    AssetsApp.loadAssetsData();
+                });
+            })
+            .catch(function(error) {
+                console.error('Failed to load asset details:', error);
+                alert('Failed to load asset details: ' + (error.message || 'Unknown error'));
+            });
     }
 };
 

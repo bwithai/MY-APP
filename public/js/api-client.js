@@ -399,7 +399,7 @@ var ApiClient = {
         if (search) url.searchParams.append('search', search);
         if (userId) url.searchParams.append('user_id', userId);
 
-        console.log('Calling Assets API:', url.toString()); 
+        console.log('Calling Assets API:', url.toString());
 
         return fetch(url, {
             method: 'GET',
@@ -407,6 +407,20 @@ var ApiClient = {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
                 'Accept': 'application/json'
             }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    updateAsset: function(id, data) {
+        console.log('Updating Asset:', id, JSON.stringify(data));
+        return fetch(this.baseUrl + 'assets/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         })
         .then(this.handleResponse)
         .catch(this.handleError);
