@@ -11,25 +11,10 @@ var AddInvestment = {
     },
   
     cleanup: function() {
-      if (typeof Utils !== 'undefined' && typeof Utils.cleanup === 'function') {
-        Utils.cleanup('addInvestmentModal');
-      } else {
-        var existingModal = document.getElementById('addInvestmentModal');
-        if (existingModal && existingModal.parentNode) {
-          existingModal.parentNode.removeChild(existingModal);
-        }
-      }
+      Utils.cleanup('addInvestmentModal');
     },
   
     render: function() {
-      // Helper function to create labels (fallback if Utils is not available)
-      var createLabel = function(forId, text, isRequired) {
-          if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
-              return Utils.createLabel(forId, text, isRequired);
-          }
-          var requiredAttr = isRequired ? ' data-required="*"' : '';
-          return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
-      };
       
       var modalHtml =
         '<div class="modal" id="addInvestmentModal">' +
@@ -42,17 +27,17 @@ var AddInvestment = {
               '<form id="addInvestmentForm" class="modal-form-grid">' +
                 // Name field
                 '<div class="form-group">' +
-                  createLabel('name', 'Name', true) +
+                  Utils.createLabel('name', 'Name', true) +
                   '<input type="text" id="name" name="name" required>' +
                 '</div>' +
                 // Amount field
                 '<div class="form-group">' +
-                  createLabel('amount', 'Amount', true) +
+                  Utils.createLabel('amount', 'Amount', true) +
                   '<input type="number" id="amount" name="amount" step="0.01" min="0.01" required>' +
                 '</div>' +
                 // Type field
                 '<div class="form-group">' +
-                  createLabel('type', 'Type', false) +
+                  Utils.createLabel('type', 'Type', false) +
                   '<select id="type" name="type" required>' +
                     '<option value="">Select Type</option>' +
                     '<option value="DLS">DLS</option>' +
@@ -62,7 +47,7 @@ var AddInvestment = {
                 '</div>' +
                 // Payment Method field
                 '<div class="form-group">' +
-                  createLabel('payment_method', 'Payment Method', true) +
+                  Utils.createLabel('payment_method', 'Payment Method', true) +
                   '<select id="payment_method" name="payment_method" required>' +
                     '<option value="">Select payment method</option>' +
                     '<option value="Bank Transfer">Bank Transfer</option>' +
@@ -71,19 +56,19 @@ var AddInvestment = {
                 '</div>' +
                 // IBAN field (conditionally shown)
                 '<div class="form-group" id="ibanContainer" style="display: none;">' +
-                  createLabel('iban', 'IBAN', true) +
+                  Utils.createLabel('iban', 'IBAN', true) +
                   '<select id="iban" name="iban_id">' +
                     '<option value="">Select IBAN</option>' +
                   '</select>' +
                 '</div>' +
                 // Date field
                 '<div class="form-group">' +
-                  createLabel('date', 'Date of Entry', true) +
+                  Utils.createLabel('date', 'Date of Entry', true) +
                   '<input type="text" id="date" name="date" required placeholder="YYYY-MM-DD" readonly>' +
                 '</div>' +
                 // Asset Details field (full width)
                 '<div class="form-group full-width">' +
-                  createLabel('asset_details', 'Asset Details', true) +
+                  Utils.createLabel('asset_details', 'Asset Details', true) +
                   '<textarea id="fund_details" name="fund_details" required placeholder="Enter details..." rows="3"></textarea>' +
                 '</div>' +
               '</form>' +
@@ -108,52 +93,10 @@ var AddInvestment = {
       // Set default date to today in YYYY-MM-DD format
       var dateInput = document.getElementById('date');
       if (dateInput) {
-        var today = new Date();
-        var year = today.getFullYear();
-        var month = today.getMonth() + 1;
-        if (month < 10) { month = '0' + month; }
-        var day = today.getDate();
-        if (day < 10) { day = '0' + day; }
-        dateInput.value = year + '-' + month + '-' + day;
+        Utils.setCurrentDate(dateInput);
       }
   
       // Don't load IBANs here - we'll load them only when Bank Transfer is selected
-    },
-  
-    loadIBANs: function() {
-      // Use Utils.loadIBANs if available
-      if (typeof Utils !== 'undefined' && typeof Utils.loadIBANs === 'function') {
-        Utils.loadIBANs();
-        return;
-      }
-      
-      // Fallback implementation if Utils is not available
-      var self = this;
-      var userId = sessionStorage.getItem('selectedUserId');
-      if (!userId || typeof ApiClient === 'undefined') {
-        console.error('User ID not found or ApiClient not available');
-        return;
-      }
-      
-      ApiClient.getIBANs(userId)
-        .then(function(response) {
-          var ibanSelect = document.getElementById('iban');
-          if (ibanSelect) {
-            // Clear existing options except the first one
-            ibanSelect.innerHTML = '<option value="">Select IBAN</option>';
-            
-            // Add new options
-            response.forEach(function(iban) {
-              var option = document.createElement('option');
-              option.value = iban.id;
-              option.textContent = iban.iban;
-              ibanSelect.appendChild(option);
-            });
-          }
-        })
-        .catch(function(error) {
-          console.error('Failed to load IBANs:', error);
-        });
     },
   
     setupEventListeners: function() {
@@ -200,11 +143,7 @@ var AddInvestment = {
             }
             
             // Load IBANs when Bank Transfer is selected
-            if (typeof Utils !== 'undefined' && typeof Utils.loadIBANs === 'function') {
-              Utils.loadIBANs();
-            } else {
-              self.loadIBANs();
-            }
+            Utils.loadIBANs();
           } else {
             if (ibanContainer) { 
               ibanContainer.style.display = 'none'; 
@@ -228,13 +167,7 @@ var AddInvestment = {
       // Initialize the restricted datepicker component on the date input, if available.
       var dateInput = document.getElementById('date');
       if (dateInput) {
-        if (typeof RestrictedDatePicker === 'function') {
-          RestrictedDatePicker(dateInput);
-        } else {
-          // Fallback: use the native date input if supported.
-          dateInput.type = 'date';
-          dateInput.readOnly = false;
-        }
+        Utils.initDatePicker(dateInput);
       }
     },
   
@@ -296,7 +229,7 @@ var AddInvestment = {
       ApiClient.createInvestment(formattedData)
         .then(function(response) {
           self.close();
-          self.showSuccessMessage('add', 'Investment');
+          Utils.onSuccess('add', 'Investment');
           if (typeof self.onSuccess === 'function') {
             self.onSuccess();
           }
@@ -310,22 +243,6 @@ var AddInvestment = {
             submitButton.disabled = false;
           }
         });
-    },
-  
-    showSuccessMessage: function(action, type) {
-      var message = (action === 'add') ? type + ' added successfully!' : 'Error adding ' + type;
-      var messageClass = (action === 'add') ? 'success-message' : 'error-message';
-      
-      var messageElement = document.createElement('div');
-      messageElement.className = messageClass;
-      messageElement.textContent = message;
-      document.body.appendChild(messageElement);
-      
-      setTimeout(function() {
-        if (messageElement.parentNode) {
-          messageElement.parentNode.removeChild(messageElement);
-        }
-      }, 3000);
     }
   };
   

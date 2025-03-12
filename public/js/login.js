@@ -17,8 +17,8 @@ var LoginApp = {
         content.innerHTML = `
             <div class="login-container">
                 <div class="text-center">
-                    <img src="/assets/images/fastapi-logo.svg" alt="Logo" class="login-logo">
-                    <h2 class="login-title">Command Fund Management</h2>
+                    <img src="/assets/images/logo.png" alt="Logo" class="login-logo">
+                    <h2 class="login-title"></h2>
                 </div>
                 <form id="loginForm" class="login-form">
                     <div class="form-group">

@@ -82,11 +82,12 @@ var MainApp = {
                     <h1 class="page-title">Dashboard</h1>
                     <p class="text-muted">Welcome to Command Fund Management System</p>
                 </div>
-                <div class="dashboard-stats">
+                <div class="dashboard-stats" id="dashboard-loading">
                     Loading...
                 </div>
             </div>
         `;
+        Utils.showLoading('dashboard-loading', 'Loading dashboard data...');
         
         // Load dashboard data
         this.loadDashboardData();

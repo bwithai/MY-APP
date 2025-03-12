@@ -8,16 +8,7 @@ var PayLiability = {
     },
   
     cleanup: function() {
-        // Check if Utils exists before calling its method
-        if (typeof Utils !== 'undefined') {
-            Utils.cleanup('payLiabilityModal');
-        } else {
-            // Fallback cleanup if Utils is not available
-            var existingModal = document.getElementById('payLiabilityModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-        }
+        Utils.cleanup('payLiabilityModal');
     },
   
     render: function() {
@@ -192,7 +183,7 @@ var PayLiability = {
         }
         
         // Initialize datepicker on date input
-        if (dateInput && typeof Utils !== 'undefined') {
+        if (dateInput) {
             Utils.initDatePicker(dateInput);
         }
     },
@@ -294,11 +285,7 @@ var PayLiability = {
         ApiClient.payLiability(this.liability.id, data)
             .then(function() {
                 self.close();
-                if (typeof Utils !== 'undefined') {
-                    Utils.onSuccess('edit', 'Liability');
-                } else {
-                    self.showSuccessMessage('Payment recorded successfully!');
-                }
+                Utils.onSuccess('edit', 'Liability');
                 if (typeof self.onClose === 'function') {
                     self.onClose();
                 }
@@ -313,18 +300,6 @@ var PayLiability = {
                     submitButton.textContent = 'Save';
                 }
             });
-    },
-    
-    showSuccessMessage: function(message) {
-        var successDiv = document.createElement('div');
-        successDiv.className = 'success-message';
-        successDiv.innerText = message || 'Payment recorded successfully!';
-        document.body.appendChild(successDiv);
-        
-        // Remove the message after 3 seconds
-        setTimeout(function() {
-            successDiv.remove();
-        }, 3000);
     },
     
     showErrorMessage: function(message) {

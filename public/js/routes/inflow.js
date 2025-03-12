@@ -1,12 +1,13 @@
-var OutflowApp = {
-    init: function() {
+var InflowApp = {
 
+    init: function() {
+        
         // Reset page to 1 only if coming from another route
-        if (!sessionStorage.getItem('isOutflow')) {
+        if (!sessionStorage.getItem('isInflow')) {
             this.currentPage = 1;
-            sessionStorage.setItem('outflowCurrentPage', '1');
+            sessionStorage.setItem('inflowCurrentPage', '1');
         } else {
-            this.currentPage = parseInt(sessionStorage.getItem('outflowCurrentPage')) || 1;
+            this.currentPage = parseInt(sessionStorage.getItem('inflowCurrentPage')) || 1;
         }
         
         this.perPage = 10;
@@ -14,11 +15,11 @@ var OutflowApp = {
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         
-        // Mark that we're in outflow page
-        sessionStorage.setItem('isOutflow', 'true');
+        // Mark that we're in inflow page
+        sessionStorage.setItem('isInflow', 'true');
         
-        // Show outflow page
-        this.showOutflowPage();
+        // Show inflow page
+        this.showInflowPage();
     },
 
     cleanup: function() {
@@ -38,7 +39,7 @@ var OutflowApp = {
         }
     },
 
-    showOutflowPage: function() {
+    showInflowPage: function() {
         var content = document.getElementById('content');
         if (!content) {
             console.error('Content element not found');
@@ -50,13 +51,13 @@ var OutflowApp = {
                 '<div class="header-content">' +
                     '<h1 class="page-title">' + this.getPageTitle() + '</h1>' +
                     (this.currentUser.is_superuser ? '' : 
-                        '<button class="btn btn-primary" id="addOutflowBtn">' +
-                            '<i class="fas fa-plus"></i> Add Outflow' +
+                        '<button class="btn btn-primary" id="addInflowBtn">' +
+                            '<i class="fas fa-plus"></i> Add Inflow' +
                         '</button>'
                     ) +
                 '</div>' +
                 '<div class="search-bar">' +
-                    '<input type="text" id="searchInput" placeholder="Search outflows..." class="form-control">' +
+                    '<input type="text" id="searchInput" placeholder="Search inflows..." class="form-control">' +
                 '</div>' +
             '</div>' +
             
@@ -67,21 +68,19 @@ var OutflowApp = {
                             '<th>ID</th>' +
                             '<th>Head</th>' +
                             '<th>Sub Head</th>' +
-                            '<th>Head Details</th>' +
-                            '<th>Type</th>' +
-                            '<th>Entity</th>' +
+                            '<th>Fund Details</th>' +
                             '<th>Amount</th>' +
-                            '<th>Payment Type</th>' +
+                            '<th>Payment Method</th>' +
                             '<th>IBAN</th>' +
-                            '<th>Payment To</th>' +
-                            '<th>Expense Date</th>' +
+                            '<th>Date of Entry</th>' +
+                            '<th>Created At</th>' +
                             '<th>User</th>' +
                             '<th>Actions</th>' +
                         '</tr>' +
                     '</thead>' +
-                    '<tbody id="outflowTableBody">' +
+                    '<tbody id="inflowTableBody">' +
                         '<tr>' +
-                            '<td colspan="13" class="text-center">Loading...</td>' +
+                            '<td colspan="11" class="text-center">Loading...</td>' +
                         '</tr>' +
                     '</tbody>' +
                 '</table>' +
@@ -97,15 +96,15 @@ var OutflowApp = {
         // Setup event listeners
         this.setupEventListeners();
         
-        // Load outflow data
-        this.loadOutflowData();
+        // Load inflow data
+        this.loadInflowData();
     },
 
     getPageTitle: function() {
         if (this.currentUser.is_superuser) {
-            return this.storedUserName.toLowerCase() === 'admin' ? 'All Users Outflows' : this.storedUserName + '\'s Outflows';
+            return this.storedUserName.toLowerCase() === 'admin' ? 'All Users Inflows' : this.storedUserName + '\'s Inflows';
         }
-        return 'My Outflows';
+        return 'My Inflows';
     },
 
     goBack: function() {
@@ -126,40 +125,23 @@ var OutflowApp = {
         history.pushState(null, '', '?' + searchParams.toString());
     },
 
-    loadOutflowData: function(query) {
+    loadInflowData: function(query) {
         // Default parameter value for older browser compatibility
         query = query || this.searchQuery || '';
         
         var self = this;
         var skip = (this.currentPage - 1) * this.perPage;
-        var tableBody = document.getElementById('outflowTableBody');
+        var tableBody = document.getElementById('inflowTableBody');
         
         // Show loading state
         if (tableBody) {
-            if (typeof Utils !== 'undefined' && typeof Utils.showLoading === 'function') {
-                // Create a row with a cell that spans all columns
-                tableBody.innerHTML = '<tr><td colspan="13" class="text-center" id="loadingOutflowCell"></td></tr>';
-                // Apply loading to the single cell instead of the whole tbody
-                Utils.showLoading('loadingOutflowCell', 'Loading outflows...');
-            } else {
-                tableBody.innerHTML = '<tr><td colspan="13" class="text-center">' +
-                    '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">' +
-                    '<div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite;"></div>' +
-                    '<p style="margin-top: 10px;">Loading outflows...</p>' +
-                    '</div>' +
-                    '</td></tr>';
-                
-                // Add spin animation if not already present
-                if (!document.getElementById('spin-animation')) {
-                    var style = document.createElement('style');
-                    style.id = 'spin-animation';
-                    style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
-                    document.head.appendChild(style);
-                }
-            }
+            // Create a row with a cell that spans all columns
+            tableBody.innerHTML = '<tr><td colspan="11" class="text-center" id="loadingCell"></td></tr>';
+            // Apply loading to the single cell instead of the whole tbody
+            Utils.showLoading('loadingCell', 'Loading inflows...');
         }
 
-        ApiClient.getOutflows({ 
+        ApiClient.getInflows({ 
             skip: skip, 
             limit: this.perPage, 
             search: query,
@@ -167,7 +149,7 @@ var OutflowApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderOutflowTable(response.data);
+                self.renderInflowTable(response.data);
                 self.updatePagination(response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
@@ -175,32 +157,28 @@ var OutflowApp = {
             }
         })
         .catch(function(error) {
-            console.error('Failed to load outflows:', error);
-            var tableBody = document.getElementById('outflowTableBody');
+            console.error('Failed to load inflows:', error);
+            var tableBody = document.getElementById('inflowTableBody');
             if (tableBody) {
                 tableBody.innerHTML = '<tr>' +
-                    '<td colspan="13" class="text-center text-danger">' +
-                        'Error loading outflows: ' + (error.message || 'Unknown error') +
+                    '<td colspan="11" class="text-center text-danger">' +
+                        'Error loading inflows: ' + (error.message || 'Unknown error') +
                     '</td>' +
                 '</tr>';
             }
         });
     },
 
-    formatNumber: function(value) {
-        return Utils.formatNumber(value);
-    },
-
-    renderOutflowTable: function(outflows) {
-        var tableBody = document.getElementById('outflowTableBody');
+    renderInflowTable: function(inflows) {
+        var tableBody = document.getElementById('inflowTableBody');
         if (!tableBody) {
             console.error('Table body element not found');
             return;
         }
 
-        if (!outflows || outflows.length === 0) {
+        if (!inflows || inflows.length === 0) {
             tableBody.innerHTML = '<tr>' +
-                '<td colspan="13" class="text-center">No outflows found</td>' +
+                '<td colspan="11" class="text-center">No inflows found</td>' +
             '</tr>';
             return;
         }
@@ -208,34 +186,32 @@ var OutflowApp = {
         var self = this;
         tableBody.innerHTML = '';
         
-        outflows.forEach(function(outflow) {
+        inflows.forEach(function(inflow) {
             // Add deleted-row class if is_deleted is true
-            var rowClass = outflow.is_deleted ? 'deleted-row' : '';
+            var rowClass = inflow.is_deleted ? 'deleted-row' : '';
             var row = document.createElement('tr');
             row.className = rowClass;
-            row.dataset.id = outflow.id;
+            row.dataset.id = inflow.id;
             
             // Create cells in the same order as the headers
             row.innerHTML = 
-                '<td>' + outflow.id + '</td>' +
-                '<td class="truncate" title="' + (outflow.head || '') + '">' + (outflow.head || 'N/A') + '</td>' +
-                '<td class="' + (outflow.sub_heads ? '' : 'text-muted') + '">' + (outflow.sub_heads || 'N/A') + '</td>' +
+                '<td>' + inflow.id + '</td>' +
+                '<td class="truncate" title="' + (inflow.head || '') + '">' + (inflow.head || 'N/A') + '</td>' +
+                '<td class="' + (inflow.sub_heads ? '' : 'text-muted') + '">' + (inflow.sub_heads || 'N/A') + '</td>' +
                 '<td class="long-text">' +
-                    '<div class="truncate-text" title="' + (outflow.head_details || '') + '">' +
-                        (outflow.head_details || 'N/A') +
+                    '<div class="truncate-text" title="' + (inflow.fund_details || '') + '">' +
+                        (inflow.fund_details || 'N/A') +
                     '</div>' +
                 '</td>' +
-                '<td>' + (outflow.type || 'N/A') + '</td>' +
-                '<td class="' + (outflow.entity ? '' : 'text-muted') + '">' + (outflow.entity || 'N/A') + '</td>' +
-                '<td title="' + (outflow.cost || 0) + '">' + self.formatNumber(outflow.cost) + '</td>' +
-                '<td>' + (outflow.payment_type || 'N/A') + '</td>' +
-                '<td class="' + (outflow.iban ? '' : 'text-muted') + '">' + (outflow.iban || 'N/A') + '</td>' +
-                '<td class="' + (outflow.payment_to ? '' : 'text-muted') + '">' + (outflow.payment_to || 'N/A') + '</td>' +
-                '<td>' + self.formatDate(outflow.expense_date, true) + '</td>' +
-                '<td>' + (outflow.user || 'N/A') + '</td>' +
-                '<td>' + ActionsMenu.init('Outflow', outflow, {
-                    delete: !outflow.is_deleted,
-                    disabled: outflow.is_deleted
+                '<td title="' + (inflow.amount || 0) + '">' + self.formatNumber(inflow.amount) + '</td>' +
+                '<td>' + (inflow.payment_method || 'N/A') + '</td>' +
+                '<td class="' + (inflow.iban ? '' : 'text-muted') + '">' + (inflow.iban || 'N/A') + '</td>' +
+                '<td>' + self.formatDate(inflow.date, true) + '</td>' +
+                '<td>' + self.formatDate(inflow.created_at) + '</td>' +
+                '<td>' + (inflow.user || 'N/A') + '</td>' +
+                '<td>' + ActionsMenu.init('Inflow', inflow, {
+                    delete: !inflow.is_deleted,
+                    disabled: inflow.is_deleted
                 }) + '</td>';
             
             tableBody.appendChild(row);
@@ -253,7 +229,7 @@ var OutflowApp = {
                 self.searchTimeout = setTimeout(function() {
                     self.currentPage = 1;
                     sessionStorage.setItem('inflowCurrentPage', '1');
-                    self.loadOutflowData(searchInput.value);
+                    self.loadInflowData(searchInput.value);
                 }, 300);
             };
             searchInput.addEventListener('input', this.searchHandler);
@@ -268,8 +244,8 @@ var OutflowApp = {
                 e.preventDefault();
                 if (self.currentPage > 1) {
                     self.currentPage--;
-                    sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
-                    self.loadOutflowData(searchInput ? searchInput.value : '');
+                    sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
+                    self.loadInflowData(searchInput ? searchInput.value : '');
                 }
             };
             prevPage.addEventListener('click', this.prevPageHandler);
@@ -279,18 +255,18 @@ var OutflowApp = {
             this.nextPageHandler = function(e) {
                 e.preventDefault();
                 self.currentPage++;
-                sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
-                self.loadOutflowData(searchInput ? searchInput.value : '');
+                sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
+                self.loadInflowData(searchInput ? searchInput.value : '');
             };
             nextPage.addEventListener('click', this.nextPageHandler);
         }
 
-        // Add new outflow
-        var addButton = document.getElementById('addOutflowBtn');
+        // Add new inflow
+        var addButton = document.getElementById('addInflowBtn');
         if (addButton) {
             addButton.addEventListener('click', function() {
-                AddOutflow.init(function() {
-                    self.loadOutflowData();
+                AddInflow.init(function() {
+                    self.loadInflowData();
                 });
             });
         }
@@ -300,35 +276,39 @@ var OutflowApp = {
         Utils.updatePagination(this, hasNextPage);
     },
 
+    formatNumber: function(value) {
+        return Utils.formatNumber(value);
+    },
+
     formatDate: function(dateString, includeTime = false) {
         return Utils.formatDate(dateString, includeTime);
     }
 };
 
-// Clean up when leaving outflow page
+// Clean up when leaving inflow page
 // Using a more compatible approach for legacy browsers
 if (typeof window.attachEvent !== 'undefined') {
     // For older IE browsers
     window.attachEvent('onunload', function() {
-        if (window.location.pathname !== '/outflow') {
-            sessionStorage.removeItem('isOutflow');
+        if (window.location.pathname !== '/inflow') {
+            sessionStorage.removeItem('isInflow');
         }
     });
 } else if (typeof window.addEventListener !== 'undefined') {
     // For modern browsers
     window.addEventListener('beforeunload', function() {
-        if (window.location.pathname !== '/outflow') {
-            sessionStorage.removeItem('isOutflow');
+        if (window.location.pathname !== '/inflow') {
+            sessionStorage.removeItem('isInflow');
         }
     });
 } else {
     // Fallback for very old browsers
     window.onunload = function() {
-        if (window.location.pathname !== '/outflow') {
-            sessionStorage.removeItem('isOutflow');
+        if (window.location.pathname !== '/inflow') {
+            sessionStorage.removeItem('isInflow');
         }
     };
 }
 
 // Make it globally available
-window.OutflowApp = OutflowApp;
+window.InflowApp = InflowApp; 

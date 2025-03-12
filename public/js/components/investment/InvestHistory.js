@@ -13,16 +13,7 @@ var InvestHistory = {
     },
     
     cleanup: function() {
-        // Check if Utils exists before calling its method
-        if (typeof Utils !== 'undefined') {
-            Utils.cleanup('investHistoryModal');
-        } else {
-            // Fallback cleanup if Utils is not available
-            var existingModal = document.getElementById('investHistoryModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-        }
+        Utils.cleanup('investHistoryModal');
     },
     
     loadHistoryData: function() {
@@ -66,7 +57,7 @@ var InvestHistory = {
         // Apply additional styles to make modal wider
         var modal = document.getElementById('investHistoryModal');
         if (modal) {
-            modal.style.maxWidth = '90%';
+            modal.style.maxWidth = '100%';
             var modalContent = modal.querySelector('.modal-content');
             if (modalContent) {
                 modalContent.style.width = '100%';
@@ -148,9 +139,9 @@ var InvestHistory = {
                         (item.description || 'N/A') +
                     '</div>' +
                 '</td>' +
-                '<td title="' + (item.first_balance || 0) + '">' + self.formatNumber(item.first_balance) + '</td>' +
-                '<td title="' + (item.last_balance || 0) + '">' + self.formatNumber(item.last_balance) + '</td>' +
-                '<td>' + self.formatDate(item.date, true) + '</td>' +
+                '<td title="' + (item.first_balance || 0) + '">' + Utils.formatNumber(item.first_balance) + '</td>' +
+                '<td title="' + (item.last_balance || 0) + '">' + Utils.formatNumber(item.last_balance) + '</td>' +
+                '<td>' + Utils.formatDate(item.date, true) + '</td>' +
                 '<td>' + (item.user || 'N/A') + '</td>' +
                 '<td class="long-text">' +
                     '<div class="truncate-text" title="' + (item.investment || '') + '">' +
@@ -167,53 +158,6 @@ var InvestHistory = {
         
         // Update pagination
         this.renderPagination(hasPreviousPage, hasNextPage);
-    },
-    
-    formatNumber: function(value) {
-        if (typeof Utils !== 'undefined' && typeof Utils.formatNumber === 'function') {
-            return Utils.formatNumber(value);
-        }
-        
-        value = Number(value);
-        if (value == null || isNaN(value)) {
-            return '0.00';
-        }
-        
-        return value.toLocaleString('en-US', { 
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2 
-        });
-    },
-
-    formatDate: function(dateString, includeTime) {
-        if (typeof Utils !== 'undefined' && typeof Utils.formatDate === 'function') {
-            return Utils.formatDate(dateString, includeTime);
-        }
-        
-        if (!dateString) return 'N/A';
-        
-        try {
-            var date = new Date(dateString);
-            if (isNaN(date.getTime())) {
-                return 'Invalid date';
-            }
-            
-            var options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric'
-            };
-            
-            if (includeTime) {
-                options.hour = '2-digit';
-                options.minute = '2-digit';
-            }
-            
-            return date.toLocaleDateString('en-US', options);
-        } catch (e) {
-            console.error('Error formatting date:', e);
-            return 'Error';
-        }
     },
     
     renderPagination: function(hasPreviousPage, hasNextPage) {
@@ -271,13 +215,6 @@ var InvestHistory = {
                 self.close();
             };
         });
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                self.close();
-            }
-        };
     },
     
     close: function() {

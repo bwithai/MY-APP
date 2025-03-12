@@ -7,91 +7,13 @@ var EditOutflow = {
         this.render();
         this.setupEventListeners();
         
-        // Check if Utils exists before calling its method
-        if (typeof Utils !== 'undefined') {
-            try {
-                Utils.loadHeadsData(2);
-            } catch (error) {
-                console.error('Error loading heads data:', error);
-                this.loadHeadsData(2);
-            }
-        } else {
-            console.error('Utils object is not defined');
-            this.loadHeadsData(2);
-        }
+        Utils.loadHeadsData(2);
         
         if (id) this.loadOutflowData();
     },
 
     cleanup: function () {
-        // Check if Utils exists before calling its method
-        if (typeof Utils !== 'undefined') {
-            Utils.cleanup('editOutflowModal');
-        } else {
-            // Fallback cleanup if Utils is not available
-            var existingModal = document.getElementById('editOutflowModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-        }
-    },
-
-    loadHeadsData: function (type) {
-        ApiClient.getHeads(type)
-            .then(function (response) {
-                var headSelect = document.getElementById('head');
-                headSelect.innerHTML = '<option value="">Select a head</option>';
-                response.data.forEach(function (head) {
-                    var option = document.createElement('option');
-                    option.value = head.id;
-                    option.textContent = head.heads;
-                    option.dataset.subheads = JSON.stringify(head.sub_heads || []);
-                    headSelect.appendChild(option);
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load heads data:', error);
-            });
-    },
-
-    loadSubHeads: function (headId) {
-        var subHeadContainer = document.getElementById('subHeadContainer');
-        var subHeadSelect = document.getElementById('subhead');
-        var selectedHead = document.querySelector('#head option[value="' + headId + '"]');
-        subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-        var subHeads = selectedHead && selectedHead.dataset.subheads ? JSON.parse(selectedHead.dataset.subheads) : [];
-        if (subHeads.length > 0) {
-            subHeads.forEach(function (subHead) {
-                var option = document.createElement('option');
-                option.value = subHead.id;
-                option.textContent = subHead.subheads;
-                subHeadSelect.appendChild(option);
-            });
-            subHeadContainer.style.display = 'block';
-        } else {
-            subHeadContainer.style.display = 'none';
-        }
-    },
-
-    loadIBANs: function() {
-        var self = this;
-        var userId = sessionStorage.getItem('selectedUserId');
-        if (!userId) return;
-
-        ApiClient.getIBANs(userId)
-            .then(function(response) {
-                var ibanSelect = document.getElementById('iban');
-                ibanSelect.innerHTML = '<option value="">Select IBAN</option>';
-                response.forEach(function(iban) {
-                    var option = document.createElement('option');
-                    option.value = iban.id;
-                    option.textContent = iban.iban;
-                    ibanSelect.appendChild(option);
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load IBANs:', error);
-            });
+        Utils.cleanup('editOutflowModal');
     },
 
     loadOutflowData: function () {
@@ -106,15 +28,6 @@ var EditOutflow = {
     },
 
     render: function () {
-        // Helper function to create labels (fallback if Utils is not available)
-        var createLabel = function(forId, text, isRequired) {
-            if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
-                return Utils.createLabel(forId, text, isRequired);
-            }
-            var requiredAttr = isRequired ? ' data-required="*"' : '';
-            return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
-        };
-        
         var modalHtml = '<div class="modal" id="editOutflowModal">' +
             '<div class="modal-content">' +
                 '<div class="modal-header">' +
@@ -124,17 +37,17 @@ var EditOutflow = {
                 '<div class="modal-body">' +
                     '<form id="editOutflowForm" class="modal-form-grid">' +
                         '<div class="form-group">' +
-                            createLabel('head', 'Head', true) +
+                            Utils.createLabel('head', 'Head', true) +
                             '<select id="head" name="head_id" required></select>' +
                         '</div>' +
                         '<div class="form-group" id="subHeadContainer" style="display: none;">' +
-                            createLabel('subhead', 'Sub Head', false) +
+                            Utils.createLabel('subhead', 'Sub Head', false) +
                             '<select id="subhead" name="subhead_id">' +
                                 '<option value="">Select a sub-head</option>' +
                             '</select>' +
                         '</div>' +
                         '<div class="form-group full-width">' +
-                            createLabel('head_details', 'Head Details', true) +
+                            Utils.createLabel('head_details', 'Head Details', true) +
                             '<textarea ' +
                                 'id="head_details" ' +
                                 'name="head_details" ' +
@@ -144,7 +57,7 @@ var EditOutflow = {
                             '></textarea>' +
                         '</div>' +
                         '<div class="form-group">' +
-                            createLabel('type', 'Type', true) +
+                            Utils.createLabel('type', 'Type', true) +
                             '<select id="type" name="type" required>' +
                                 '<option value="">Select type</option>' +
                                 '<option value="Expandable">Expandable</option>' +
@@ -152,7 +65,7 @@ var EditOutflow = {
                             '</select>' +
                         '</div>' +
                         '<div class="form-group" id="entityContainer" style="display: none;">' +
-                            createLabel('place_type', 'Entity', false) +
+                            Utils.createLabel('place_type', 'Entity', false) +
                             '<select id="place_type" name="place_type">' +
                                 '<option value="">Select an entity</option>' +
                                 '<option value="Command House">Command House</option>' +
@@ -161,7 +74,7 @@ var EditOutflow = {
                             '</select>' +
                         '</div>' +
                         '<div class="form-group">' +
-                            createLabel('amount', 'Amount', true) +
+                            Utils.createLabel('amount', 'Amount', true) +
                             '<input ' +
                                 'type="number" ' +
                                 'id="amount" ' +
@@ -173,7 +86,7 @@ var EditOutflow = {
                             '>' +
                         '</div>' +
                         '<div class="form-group">' +
-                            createLabel('payment_type', 'Payment Type', true) +
+                            Utils.createLabel('payment_type', 'Payment Type', true) +
                             '<select id="payment_type" name="payment_type" required>' +
                                 '<option value="">Select payment type</option>' +
                                 '<option value="Bank Transfer">Bank Transfer</option>' +
@@ -181,17 +94,17 @@ var EditOutflow = {
                             '</select>' +
                         '</div>' +
                         '<div class="form-group" id="ibanContainer" style="display: none;">' +
-                            createLabel('iban', 'IBAN', true) +
+                            Utils.createLabel('iban', 'IBAN', true) +
                             '<select id="iban" name="iban_id">' +
                                 '<option value="">Select IBAN</option>' +
                             '</select>' +
                         '</div>' +
                         '<div class="form-group">' +
-                            createLabel('payment_to', 'Payment To', false) +
+                            Utils.createLabel('payment_to', 'Payment To', false) +
                             '<input type="text" id="payment_to" name="payment_to">' +
                         '</div>' +
                         '<div class="form-group">' +
-                            createLabel('expense_date', 'Expense Date', true) +
+                            Utils.createLabel('expense_date', 'Expense Date', true) +
                             '<input type="text" id="expense_date" name="expense_date" required placeholder="YYYY-MM-DD" readonly>' +
                         '</div>' +
                     '</form>' +
@@ -255,12 +168,7 @@ var EditOutflow = {
 
         if (headSelect) {
             headSelect.addEventListener('change', function() {
-                // Check if Utils exists before calling its method
-                if (typeof Utils !== 'undefined') {
-                    Utils.loadSubHeads(this.value);
-                } else {
-                    self.loadSubHeads(this.value);
-                }
+                Utils.loadSubHeads(this.value);
             });
         }
 
@@ -269,12 +177,7 @@ var EditOutflow = {
                 var ibanContainer = document.getElementById('ibanContainer');
                 if (this.value === 'Bank Transfer') {
                     ibanContainer.style.display = 'block';
-                    // Check if Utils exists before calling its method
-                    if (typeof Utils !== 'undefined') {
-                        Utils.loadIBANs();
-                    } else {
-                        self.loadIBANs();
-                    }
+                    Utils.loadIBANs();
                 } else {
                     ibanContainer.style.display = 'none';
                 }
@@ -294,13 +197,7 @@ var EditOutflow = {
         // Initialize the restricted datepicker component on the date input
         var dateInput = document.getElementById('date');
         if (dateInput) {
-            if (typeof RestrictedDatePicker === 'function') {
-                RestrictedDatePicker(dateInput);
-            } else {
-                // Simple fallback for date input if RestrictedDatePicker is not available
-                dateInput.type = 'date';
-                dateInput.readOnly = false;
-            }
+            Utils.initDatePicker(dateInput);
         }
     },
 
@@ -346,11 +243,7 @@ var EditOutflow = {
                     // Load IBANs and set selected IBAN
                     var self = this;
                     setTimeout(function() {
-                        if (typeof Utils !== 'undefined') {
-                            Utils.loadIBANs();
-                        } else {
-                            self.loadIBANs();
-                        }
+                        Utils.loadIBANs();
                         
                         // Set IBAN after a delay to ensure options are loaded
                         setTimeout(function() {
@@ -375,11 +268,7 @@ var EditOutflow = {
                     headSelect.value = outflow.head_id;
                     
                     // Trigger change event to load subheads
-                    if (typeof Utils !== 'undefined') {
-                        Utils.loadSubHeads(outflow.head_id);
-                    } else {
-                        self.loadSubHeads(outflow.head_id);
-                    }
+                    Utils.loadSubHeads(outflow.head_id);
                     
                     // Set subhead after a delay
                     setTimeout(function() {
@@ -442,7 +331,7 @@ var EditOutflow = {
             .then(function(response) {
                 self.close();
                 // Show success message
-                self.showSuccessMessage('edit', 'Outflow');
+                Utils.onSuccess('edit', 'Outflow');
                 if (self.onClose && typeof self.onClose === 'function') {
                     self.onClose();
                 }
@@ -459,49 +348,6 @@ var EditOutflow = {
 
     close: function() {
         this.cleanup();
-    },
-
-    showSuccessMessage: function(action, type) {
-        if (typeof Utils !== 'undefined' && typeof Utils.onSuccess === 'function') {
-            try {
-                Utils.onSuccess(action, type);
-                return;
-            } catch (error) {
-                console.error('Error calling Utils.onSuccess:', error);
-                // Continue to fallback
-            }
-        }
-
-        var message = '';
-        switch (action) {
-            case 'add':
-                message = 'Added ' + type + ' successfully!';
-                break;
-            case 'edit':
-                message = 'Updated ' + type + ' successfully!';
-                break; 
-            case 'delete':
-                message = 'Deleted ' + type + ' successfully!';
-                break;
-        }
-    
-        // Display success message
-        var successDiv = document.createElement('div');
-        successDiv.className = 'success-message';
-        
-        // Change background color to red if action is delete
-        if (action === 'delete') {
-            successDiv.style.backgroundColor = '#d63031';
-        }
-        
-        successDiv.innerText = message;
-    
-        document.body.appendChild(successDiv);
-    
-        // Remove the message after 3 seconds
-        setTimeout(function () {
-            successDiv.remove();
-        }, 3000);
     }
 };
 

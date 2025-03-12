@@ -8,85 +8,16 @@ var AddLiability = {
         setTimeout(function() {
             self.setupEventListeners();
             
-            // Load heads data if Utils is available
-            if (typeof Utils !== 'undefined' && typeof Utils.loadHeadsData === 'function') {
-                Utils.loadHeadsData(1);
-            } else {
-                self.loadHeadsData(1);
-            }
+            // Load heads data
+            Utils.loadHeadsData(1);
         }, 0);
     },
   
     cleanup: function() {
-        if (typeof Utils !== 'undefined' && typeof Utils.cleanup === 'function') {
-            Utils.cleanup('addLiabilityModal');
-        } else {
-            var existingModal = document.getElementById('addLiabilityModal');
-            if (existingModal && existingModal.parentNode) {
-                existingModal.parentNode.removeChild(existingModal);
-            }
-        }
-    },
-    
-    // Fallback method if Utils is not available
-    loadHeadsData: function(type) {
-        if (typeof ApiClient !== 'undefined') {
-            ApiClient.getHeads(type)
-                .then(function(response) {
-                    var headSelect = document.getElementById('head');
-                    if (headSelect) {
-                        headSelect.innerHTML = '<option value="">Select a head</option>';
-                        response.data.forEach(function(head) {
-                            var option = document.createElement('option');
-                            option.value = head.id;
-                            option.textContent = head.heads;
-                            option.dataset.subheads = JSON.stringify(head.sub_heads || []);
-                            headSelect.appendChild(option);
-                        });
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Failed to load heads:', error);
-                });
-        }
-    },
-    
-    // Fallback method if Utils is not available
-    loadSubHeads: function(headId) {
-        var subHeadContainer = document.getElementById('subHeadContainer');
-        var subHeadSelect = document.getElementById('subhead');
-        var selectedHead = document.querySelector('#head option[value="' + headId + '"]');
-        
-        if (subHeadSelect) {
-            subHeadSelect.innerHTML = '<option value="">Select a sub-head</option>';
-            var subHeads = selectedHead && selectedHead.dataset.subheads ? JSON.parse(selectedHead.dataset.subheads) : [];
-            
-            if (subHeads.length > 0) {
-                subHeads.forEach(function(subHead) {
-                    var option = document.createElement('option');
-                    option.value = subHead.id;
-                    option.textContent = subHead.subheads;
-                    subHeadSelect.appendChild(option);
-                });
-                if (subHeadContainer) {
-                    subHeadContainer.style.display = 'block';
-                }
-            } else if (subHeadContainer) {
-                subHeadContainer.style.display = 'none';
-            }
-        }
+        Utils.cleanup('addLiabilityModal');
     },
     
     render: function() {
-        // Helper function to create labels (fallback if Utils is not available)
-        var createLabel = function(forId, text, isRequired) {
-            if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
-                return Utils.createLabel(forId, text, isRequired);
-            }
-            var requiredAttr = isRequired ? ' data-required="*"' : '';
-            return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
-        };
-        
         var modalHtml =
             '<div class="modal" id="addLiabilityModal">' +
                 '<div class="modal-content">' +
@@ -98,7 +29,7 @@ var AddLiability = {
                         '<form id="addLiabilityForm" class="modal-form-grid">' +
                             // Head field
                             '<div class="form-group">' +
-                                createLabel('head', 'Head', true) +
+                                Utils.createLabel('head', 'Head', true) +
                                 '<select id="head" name="head_id" required>' +
                                     '<option value="">Select a head</option>' +
                                 '</select>' +
@@ -106,7 +37,7 @@ var AddLiability = {
                             
                             // Sub Head field (conditionally shown)
                             '<div class="form-group" id="subHeadContainer" style="display: none;">' +
-                                createLabel('subhead', 'Sub Head', false) +
+                                Utils.createLabel('subhead', 'Sub Head', false) +
                                 '<select id="subhead" name="subhead_id">' +
                                     '<option value="">Select a sub-head</option>' +
                                 '</select>' +
@@ -114,19 +45,19 @@ var AddLiability = {
                             
                             // Fund Details field
                             '<div class="form-group full-width">' +
-                                createLabel('fund_details', 'Fund Details', true) +
+                                Utils.createLabel('fund_details', 'Fund Details', true) +
                                 '<textarea id="fund_details" name="fund_details" required placeholder="Enter details..." rows="3"></textarea>' +
                             '</div>' +
                             
                             // Amount field
                             '<div class="form-group">' +
-                                createLabel('amount', 'Amount', true) +
+                                Utils.createLabel('amount', 'Amount', true) +
                                 '<input type="number" id="amount" name="amount" step="0.01" min="0.01" required>' +
                             '</div>' +
                             
                             // Type field
                             '<div class="form-group">' +
-                                createLabel('type', 'Type', true) +
+                                Utils.createLabel('type', 'Type', true) +
                                 '<select id="type" name="type" required>' +
                                     '<option value="">Select type</option>' +
                                     '<option value="Miscellaneous">Miscellaneous</option>' +
@@ -137,13 +68,13 @@ var AddLiability = {
                             
                             // Payment To field
                             '<div class="form-group">' +
-                                createLabel('payment_to', 'Payment To', true) +
+                                Utils.createLabel('payment_to', 'Payment To', true) +
                                 '<input type="text" id="payment_to" name="payment_to" required>' +
                             '</div>' +
                             
                             // Payment Method field
                             '<div class="form-group">' +
-                                createLabel('payment_method', 'Payment Method', true) +
+                                Utils.createLabel('payment_method', 'Payment Method', true) +
                                 '<select id="payment_method" name="payment_method" required>' +
                                     '<option value="">Select payment method</option>' +
                                     '<option value="Bank Transfer">Bank Transfer</option>' +
@@ -153,7 +84,7 @@ var AddLiability = {
                             
                             // Date of Entry field
                             '<div class="form-group">' +
-                                createLabel('date', 'Date of Entry', true) +
+                                Utils.createLabel('date', 'Date of Entry', true) +
                                 '<input type="text" id="date" name="date" required placeholder="YYYY-MM-DD" readonly>' +
                             '</div>' +
                         '</form>' +
@@ -213,11 +144,7 @@ var AddLiability = {
         
         if (headSelect) {
             headSelect.onchange = function() {
-                if (typeof Utils !== 'undefined' && typeof Utils.loadSubHeads === 'function') {
-                    Utils.loadSubHeads(this.value);
-                } else {
-                    self.loadSubHeads(this.value);
-                }
+                Utils.loadSubHeads(this.value);
             };
         }
         
@@ -292,7 +219,7 @@ var AddLiability = {
         ApiClient.createLiability(formattedData)
             .then(function(response) {
                 self.close();
-                self.showSuccessMessage('add', 'Liability');
+                Utils.onSuccess('add', 'Liability');
                 if (typeof self.onSuccess === 'function') {
                     self.onSuccess();
                 }
@@ -306,29 +233,6 @@ var AddLiability = {
                     submitButton.disabled = false;
                 }
             });
-    },
-  
-    showSuccessMessage: function(action, type) {
-        // Use Utils.onSuccess if available
-        if (typeof Utils !== 'undefined' && typeof Utils.onSuccess === 'function') {
-            Utils.onSuccess(action, type);
-            return;
-        }
-        
-        // Fallback implementation
-        var message = (action === 'add') ? type + ' added successfully!' : 'Error adding ' + type;
-        var messageClass = (action === 'add') ? 'success-message' : 'error-message';
-        
-        var messageElement = document.createElement('div');
-        messageElement.className = messageClass;
-        messageElement.textContent = message;
-        document.body.appendChild(messageElement);
-        
-        setTimeout(function() {
-            if (messageElement.parentNode) {
-                messageElement.parentNode.removeChild(messageElement);
-            }
-        }, 3000);
     }
 };
 

@@ -13,14 +13,7 @@ var EditInvestment = {
     },
   
     cleanup: function() {
-      if (typeof Utils !== 'undefined' && typeof Utils.cleanup === 'function') {
-        Utils.cleanup('editInvestmentModal');
-      } else {
-        var existingModal = document.getElementById('editInvestmentModal');
-        if (existingModal) {
-          existingModal.parentNode.removeChild(existingModal);
-        }
-      }
+      Utils.cleanup('editInvestmentModal');
     },
   
     loadInvestmentData: function() {
@@ -48,15 +41,6 @@ var EditInvestment = {
         return;
       }
       
-      // Helper function to create labels (fallback if Utils is not available)
-      var createLabel = function(forId, text, isRequired) {
-          if (typeof Utils !== 'undefined' && typeof Utils.createLabel === 'function') {
-              return Utils.createLabel(forId, text, isRequired);
-          }
-          var requiredAttr = isRequired ? ' data-required="*"' : '';
-          return '<label for="' + forId + '"' + requiredAttr + '>' + text + '</label>';
-      };
-      
       var modalHtml = '<div class="modal" id="editInvestmentModal">' +
         '<div class="modal-content">' +
           '<div class="modal-header">' +
@@ -67,17 +51,17 @@ var EditInvestment = {
             '<form id="editInvestmentForm" class="modal-form-grid">' +
               // Name field
               '<div class="form-group">' +
-                createLabel('name', 'Name', true) +
+                Utils.createLabel('name', 'Name', true) +
                 '<input type="text" id="name" name="name" value="' + (this.investment.name || '') + '" required>' +
               '</div>' +
               // Amount field
               '<div class="form-group">' +
-                createLabel('amount', 'Amount', true) +
+                Utils.createLabel('amount', 'Amount', true) +
                 '<input type="number" id="amount" name="amount" step="0.01" min="0.01" value="' + (this.investment.amount || 0) + '" required>' +
               '</div>' +
               // Type field
               '<div class="form-group">' +
-                createLabel('type', 'Type', false) +
+                Utils.createLabel('type', 'Type', false) +
                 '<select id="type" name="type" required>' +
                   '<option value="">Select Type</option>' +
                   '<option value="DLS"' + (this.investment.type === 'DLS' ? ' selected' : '') + '>DLS</option>' +
@@ -87,7 +71,7 @@ var EditInvestment = {
               '</div>' +
               // Payment Method field
               '<div class="form-group">' +
-                createLabel('payment_method', 'Payment Method', true) +
+                Utils.createLabel('payment_method', 'Payment Method', true) +
                 '<select id="payment_method" name="payment_method" required>' +
                   '<option value="">Select payment method</option>' +
                   '<option value="Bank Transfer"' + (this.investment.payment_method === 'Bank Transfer' ? ' selected' : '') + '>Bank Transfer</option>' +
@@ -96,19 +80,19 @@ var EditInvestment = {
               '</div>' +
               // IBAN field (conditionally shown)
               '<div class="form-group" id="ibanContainer" style="display: ' + (this.investment.payment_method === 'Bank Transfer' ? 'block' : 'none') + ';">' +
-                createLabel('iban', 'IBAN', true) +
+                Utils.createLabel('iban', 'IBAN', true) +
                 '<select id="iban" name="iban_id"' + (this.investment.payment_method === 'Bank Transfer' ? ' required' : '') + '>' +
                   '<option value="">Select IBAN</option>' +
                 '</select>' +
               '</div>' +
               // Date field
               '<div class="form-group">' +
-                createLabel('date', 'Date of Entry', true) +
+                Utils.createLabel('date', 'Date of Entry', true) +
                 '<input type="text" id="date" name="date" value="' + (Utils.formatDateForInput(this.investment.date) || '') + '" required placeholder="YYYY-MM-DD" readonly>' +
               '</div>' +
               // Asset Details field (full width)
               '<div class="form-group full-width">' +
-                createLabel('asset_details', 'Asset Details', true) +
+                Utils.createLabel('asset_details', 'Asset Details', true) +
                 '<textarea id="fund_details" name="fund_details" required placeholder="Enter details..." rows="3">' + (this.investment.asset_details || '') + '</textarea>' +
               '</div>' +
             '</form>' +
@@ -129,60 +113,15 @@ var EditInvestment = {
         }, 10);
       }
 
-      // Initialize the restricted datepicker component on the date input, if available.
+      // Initialize the restricted datepicker component on the date input
       var dateInput = document.getElementById('date');
       if (dateInput) {
-        if (typeof RestrictedDatePicker === 'function') {
-          RestrictedDatePicker(dateInput);
-        } else {
-          // Fallback: use the native date input if supported.
-          dateInput.type = 'date';
-          dateInput.readOnly = false;
-        }
+        Utils.initDatePicker(dateInput);
       }
     },
   
     loadIBANs: function() {
-      // Use the Utils.loadIBANs function if available
-      if (typeof Utils !== 'undefined' && typeof Utils.loadIBANs === 'function') {
-        Utils.loadIBANs();
-        return;
-      }
-      
-      // Fallback implementation if Utils is not available
-      var self = this;
-      var userId = sessionStorage.getItem('selectedUserId');
-      
-      if (!userId) {
-        console.error('No user ID found in session storage');
-        return;
-      }
-      
-      ApiClient.getIBANs(userId)
-        .then(function(response) {
-          if (response && response.data) {
-            var ibanSelect = document.getElementById('iban');
-            if (ibanSelect) {
-              // Remove existing options except the first one
-              while (ibanSelect.options.length > 1) {
-                ibanSelect.remove(1);
-              }
-              
-              response.data.forEach(function(iban) {
-                var option = document.createElement('option');
-                option.value = iban.id;
-                option.textContent = iban.iban;
-                if (self.investment && self.investment.iban_id && self.investment.iban_id === iban.id) {
-                  option.selected = true;
-                }
-                ibanSelect.appendChild(option);
-              });
-            }
-          }
-        })
-        .catch(function(error) {
-          console.error('Failed to load IBANs:', error);
-        });
+      Utils.loadIBANs();
     },
   
     setupEventListeners: function() {
@@ -233,15 +172,7 @@ var EditInvestment = {
     },
   
     close: function() {
-      var modal = document.getElementById('editInvestmentModal');
-      if (modal) {
-        modal.classList.remove('show');
-        
-        // Remove modal after animation
-        setTimeout(function() {
-          modal.remove();
-        }, 300);
-      }
+      Utils.cleanup('editInvestmentModal');
     },
   
     handleSubmit: function(formData) {
@@ -287,7 +218,7 @@ var EditInvestment = {
       ApiClient.updateInvestment(this.investmentId, formattedData)
         .then(function(response) {
           self.close();
-          self.showSuccessMessage('edit', 'Investment');
+          Utils.onSuccess('edit', 'Investment');
           if (self.onClose && typeof self.onClose === 'function') {
             self.onClose();
           }
@@ -301,29 +232,6 @@ var EditInvestment = {
             submitButton.disabled = false;
           }
         });
-    },
-  
-    showSuccessMessage: function(action, type) {
-      // Use Utils.onSuccess if available
-      if (typeof Utils !== 'undefined' && typeof Utils.onSuccess === 'function') {
-        Utils.onSuccess(action, type);
-        return;
-      }
-      
-      // Fallback implementation if Utils is not available
-      var message = action === 'edit' ? type + ' updated successfully!' : 'Error updating ' + type;
-      var messageClass = action === 'edit' ? 'success-message' : 'error-message';
-      
-      var messageElement = document.createElement('div');
-      messageElement.className = messageClass;
-      messageElement.textContent = message;
-      
-      document.body.appendChild(messageElement);
-      
-      // Remove message after 3 seconds
-      setTimeout(function() {
-        messageElement.remove();
-      }, 3000);
     }
   };
   

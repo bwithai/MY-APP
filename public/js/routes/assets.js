@@ -17,9 +17,7 @@ var AssetsApp = {
         
         // Mark that we're in assets page
         sessionStorage.setItem('isAssets', 'true');
-        if (typeof Utils !== 'undefined' && typeof Utils.storeLastVisited === 'function') {
-            Utils.storeLastVisited('assets');
-        }
+        Utils.storeLastVisited('assets');
         
         // Show assets page
         this.showAssetsPage();
@@ -52,7 +50,7 @@ var AssetsApp = {
         content.innerHTML = '<div class="container-fluid">' +
             '<div class="page-header">' +
                 '<div class="header-content">' +
-                    '<h1 class="page-title">' + this.getPageTitle() + '</h1>' +
+                    '<h1 class="page-title">' + Utils.getPageTitle('Assets', this.currentUser, this.storedUserName) + '</h1>' +
                     '<button class="btn btn-secondary" id="goBackBtn">' +
                         '<i class="fas fa-arrow-left"></i> Go back' +
                     '</button>' +
@@ -100,17 +98,6 @@ var AssetsApp = {
         this.loadAssetsData();
     },
 
-    getPageTitle: function() {
-        if (typeof Utils !== 'undefined' && typeof Utils.getPageTitle === 'function') {
-            return Utils.getPageTitle('Assets', this.currentUser, this.storedUserName);
-        }
-        
-        if (this.currentUser.is_superuser) {
-            return this.storedUserName.toLowerCase() === 'admin' ? 'All Assets' : this.storedUserName + '\'s Assets';
-        }
-        return 'Assets Management';
-    },
-
     goBack: function() {
         history.pushState(null, '', '/');
         // Update sidebar visual selection
@@ -144,27 +131,10 @@ var AssetsApp = {
         
         // Show loading state
         if (tableBody) {
-            if (typeof Utils !== 'undefined' && typeof Utils.showLoading === 'function') {
-                // Create a row with a cell that spans all columns
-                tableBody.innerHTML = '<tr><td colspan="10" class="text-center" id="loadingCell"></td></tr>';
-                // Apply loading to the single cell instead of the whole tbody
-                Utils.showLoading('loadingCell', 'Loading assets...');
-            } else {
-                tableBody.innerHTML = '<tr><td colspan="10" class="text-center">' +
-                    '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">' +
-                    '<div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite;"></div>' +
-                    '<p style="margin-top: 10px;">Loading assets...</p>' +
-                    '</div>' +
-                    '</td></tr>';
-                
-                // Add spin animation if not already present
-                if (!document.getElementById('spin-animation')) {
-                    var style = document.createElement('style');
-                    style.id = 'spin-animation';
-                    style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
-                    document.head.appendChild(style);
-                }
-            }
+            // Create a row with a cell that spans all columns
+            tableBody.innerHTML = '<tr><td colspan="10" class="text-center" id="loadingCell"></td></tr>';
+            // Apply loading to the single cell instead of the whole tbody
+            Utils.showLoading('loadingCell', 'Loading assets...');
         }
 
         ApiClient.getAssets({ 
@@ -183,64 +153,8 @@ var AssetsApp = {
             }
         })
         .catch(function(error) {
-            if (typeof Utils !== 'undefined' && typeof Utils.handleApiError === 'function') {
-                Utils.handleApiError(error, 'assetsTableBody', 'Failed to load assets');
-            } else {
-                console.error('Failed to load assets:', error);
-                var tableBody = document.getElementById('assetsTableBody');
-                if (tableBody) {
-                    tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Error loading assets: ' + 
-                        (error.message || 'Unknown error') + '</td></tr>';
-                }
-            }
+            Utils.handleApiError(error, 'assetsTableBody', 'Failed to load assets');
         });
-    },
-
-    formatNumber: function(value) {
-        if (typeof Utils !== 'undefined' && typeof Utils.formatNumber === 'function') {
-            return Utils.formatNumber(value);
-        }
-        
-        value = Number(value);
-        if (value == null || isNaN(value)) {
-            return 'Invalid number';
-        }
-    
-        return value.toLocaleString('en-US', { 
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2 
-        });
-    },
-
-    formatDate: function(dateString, includeTime) {
-        if (typeof Utils !== 'undefined' && typeof Utils.formatDate === 'function') {
-            return Utils.formatDate(dateString, includeTime);
-        }
-        
-        if (!dateString) return 'N/A';
-        
-        try {
-            var date = new Date(dateString);
-            if (isNaN(date.getTime())) {
-                return 'Invalid date';
-            }
-            
-            var options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric'
-            };
-            
-            if (includeTime) {
-                options.hour = '2-digit';
-                options.minute = '2-digit';
-            }
-            
-            return date.toLocaleDateString('en-US', options);
-        } catch (e) {
-            console.error('Error formatting date:', e);
-            return 'Error';
-        }
     },
 
     getAssetStatusClass: function(asset) {
@@ -279,10 +193,10 @@ var AssetsApp = {
                 '<td class="truncate-text" title="' + (asset.status || '') + '">' + (asset.asset_id || 'N/A') + '</td>' +
                 '<td>' + (asset.name || 'N/A') + '</td>' +
                 '<td>' + (asset.type || 'N/A') + '</td>' +
-                '<td title="' + (asset.purchase_date || '') + '">' + (asset.purchase_date ? self.formatDate(asset.purchase_date, true) : 'N/A') + '</td>' +
+                '<td title="' + (asset.purchase_date || '') + '">' + (asset.purchase_date ? Utils.formatDate(asset.purchase_date, true) : 'N/A') + '</td>' +
                 '<td>' + (asset.purchased_from || 'N/A') + '</td>' +
-                '<td class="truncate-text" title="' + (asset.cost || 0) + '">' + self.formatNumber(Number(asset.cost)) + '</td>' +
-                '<td title="' + (asset.salvage_value || 0) + '">' + self.formatNumber(Number(asset.salvage_value)) + '</td>' +
+                '<td class="truncate-text" title="' + (asset.cost || 0) + '">' + Utils.formatNumber(Number(asset.cost)) + '</td>' +
+                '<td title="' + (asset.salvage_value || 0) + '">' + Utils.formatNumber(Number(asset.salvage_value)) + '</td>' +
                 '<td>' + (asset.head_detaills || 'N/A') + '</td>' +
                 '<td>' + (asset.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Asset', asset, {
@@ -294,26 +208,7 @@ var AssetsApp = {
     },
 
     updatePagination: function(hasMore) {
-        if (typeof Utils !== 'undefined' && typeof Utils.updatePagination === 'function') {
-            Utils.updatePagination(this, hasMore);
-            return;
-        }
-        
-        var prevPageBtn = document.getElementById('prevPage');
-        var nextPageBtn = document.getElementById('nextPage');
-        var currentPageSpan = document.getElementById('currentPage');
-        
-        if (currentPageSpan) {
-            currentPageSpan.textContent = this.currentPage;
-        }
-        
-        if (prevPageBtn) {
-            prevPageBtn.disabled = this.currentPage <= 1;
-        }
-        
-        if (nextPageBtn) {
-            nextPageBtn.disabled = !hasMore;
-        }
+        Utils.updatePagination(this, hasMore);
     },
 
     setupEventListeners: function() {

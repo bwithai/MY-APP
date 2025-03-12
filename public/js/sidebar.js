@@ -62,7 +62,7 @@ var Sidebar = {
         
         var sidebarContent = '<div class="sidebar-content">' +
             '<div class="sidebar-header">' +
-            '<img src="/assets/images/fastapi-logo.svg" alt="Logo" class="sidebar-logo">' +
+            '<img src="/assets/images/logo.png" alt="Logo" class="sidebar-logo">' +
             '</div>' +
             '<nav class="sidebar-nav">' +
             this.renderNavItems() +

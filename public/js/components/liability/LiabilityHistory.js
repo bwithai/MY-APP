@@ -13,16 +13,7 @@ var LiabilityHistory = {
     },
     
     cleanup: function() {
-        // Check if Utils exists before calling its method
-        if (typeof Utils !== 'undefined') {
-            Utils.cleanup('liabilityHistoryModal');
-        } else {
-            // Fallback cleanup if Utils is not available
-            var existingModal = document.getElementById('liabilityHistoryModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-        }
+        Utils.cleanup('liabilityHistoryModal');
     },
     
     loadHistoryData: function() {
@@ -48,8 +39,8 @@ var LiabilityHistory = {
     },
     
     render: function() {
-        var modalHtml = '<div class="modal extra-large-modal" id="liabilityHistoryModal">' +
-            '<div class="modal-content wide-modal-content">' +
+        var modalHtml = '<div class="modal" id="liabilityHistoryModal">' +
+            '<div class="modal-content">' +
                 '<div class="modal-header">' +
                     '<h2>Pay Liability' + '</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -66,7 +57,7 @@ var LiabilityHistory = {
         // Apply additional styles to make modal wider
         var modal = document.getElementById('liabilityHistoryModal');
         if (modal) {
-            modal.style.maxWidth = '90%';
+            modal.style.maxWidth = '100%';
             var modalContent = modal.querySelector('.modal-content');
             if (modalContent) {
                 modalContent.style.width = '100%';
@@ -147,11 +138,11 @@ var LiabilityHistory = {
                         (item.description || 'N/A') +
                     '</div>' +
                 '</td>' +
-                '<td title="' + (item.first_balance || 0) + '">' + self.formatNumber(item.first_balance) + '</td>' +
-                '<td title="' + (item.last_balance || 0) + '">' + self.formatNumber(item.last_balance) + '</td>' +
-                '<td>' + self.formatDate(item.date, true) + '</td>' +
+                '<td title="' + (item.first_balance || 0) + '">' + Utils.formatNumber(item.first_balance) + '</td>' +
+                '<td title="' + (item.last_balance || 0) + '">' + Utils.formatNumber(item.last_balance) + '</td>' +
+                '<td>' + Utils.formatDate(item.date, true) + '</td>' +
                 '<td class="truncate-text" title="' + (item.payment_to || '') + '">' + (item.payment_to || 'N/A') + '</td>' +
-                '<td title="' + (item.current_amount || 0) + '">' + self.formatNumber(item.current_amount) + '</td>' +
+                '<td title="' + (item.current_amount || 0) + '">' + Utils.formatNumber(item.current_amount) + '</td>' +
                 '<td>' + (item.user || 'N/A') + '</td>' +
                 '<td class="long-text">' +
                     '<div class="truncate-text" title="' + (item.fund_detail || '') + '">' +
@@ -168,60 +159,6 @@ var LiabilityHistory = {
         
         // Update pagination
         this.renderPagination(hasPreviousPage, hasNextPage);
-    },
-    
-    formatNumber: function(value) {
-        if (typeof Utils !== 'undefined' && typeof Utils.formatNumber === 'function') {
-            return Utils.formatNumber(value);
-        }
-        
-        value = Number(value);
-        if (value == null || isNaN(value)) {
-            return 'Invalid number';
-        }
-    
-        if (value < 1000) {
-            return value.toFixed(2);
-        } else if (value < 1000000) {
-            return (value / 1000).toFixed(2) + 'K';
-        } else if (value < 1000000000) {
-            return (value / 1000000).toFixed(2) + 'M';
-        } else if (value < 1000000000000) {
-            return (value / 1000000000).toFixed(2) + 'B';
-        } else {
-            return (value / 1000000000000).toFixed(2) + 'T';
-        }
-    },
-
-    formatDate: function(dateString, includeTime) {
-        if (typeof Utils !== 'undefined' && typeof Utils.formatDate === 'function') {
-            return Utils.formatDate(dateString, includeTime);
-        }
-        
-        if (!dateString) return 'N/A';
-        
-        try {
-            var date = new Date(dateString);
-            if (isNaN(date.getTime())) {
-                return 'Invalid date';
-            }
-            
-            var options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric'
-            };
-            
-            if (includeTime) {
-                options.hour = '2-digit';
-                options.minute = '2-digit';
-            }
-            
-            return date.toLocaleDateString('en-US', options);
-        } catch (e) {
-            console.error('Error formatting date:', e);
-            return 'Error';
-        }
     },
     
     renderPagination: function(hasPreviousPage, hasNextPage) {
@@ -279,29 +216,10 @@ var LiabilityHistory = {
                 self.close();
             };
         });
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                self.close();
-            }
-        };
     },
     
     close: function() {
-        var modal = document.getElementById('liabilityHistoryModal');
-        if (modal) {
-            modal.classList.remove('show');
-            setTimeout(function() {
-                if (modal.parentNode) {
-                    modal.parentNode.removeChild(modal);
-                }
-            }, 300);
-        }
-        
-        if (typeof this.onClose === 'function') {
-            this.onClose();
-        }
+        Utils.cleanup('liabilityHistoryModal');
     }
 };
 
