@@ -1,5 +1,5 @@
 var ApiClient = {
-    baseUrl: 'http://localhost:8000/api/v1/',
+    baseUrl: (window.ENV && window.ENV.API_URL) + "/api/v1/",
     token: null,
 
     /*----------------------------------------------------------------------------------------------------

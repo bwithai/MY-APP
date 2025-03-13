@@ -42,5 +42,8 @@ export default defineConfig({
   base: '/',
   optimizeDeps: {
     include: ['es6-promise/auto']
+  },
+  define: {
+    '%VITE_API_URL%': JSON.stringify(process.env.VITE_API_URL)
   }
 });

@@ -29,6 +29,12 @@
     </div>
     <!-- Polyfills for older browsers - load first -->
     <script src="/js/polyfills.js"></script>
+    <!-- Environment variables -->
+    <script>
+        window.ENV = {
+            API_URL: '%VITE_API_URL%'
+        };
+    </script>
     <!-- Main application scripts -->
     <script src="/js/api-client.js"></script>
     <script src="/js/Utils.js"></script>
@@ -50,6 +56,7 @@
     <script src="/js/components/liability/LiabilityHistory.js"></script>
     <!-- Load Assets Components -->
     <script src="/js/components/assets/EditAsset.js"></script>
+    <script src="/js/components/assets/ViewAsset.js"></script>
     <!-- Load Common Components -->
     <script src="/js/components/common/ActionsMenu.js"></script>
     <script src="/js/components/common/DateOfEntry.js"></script>
