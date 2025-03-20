@@ -2,10 +2,11 @@ var ViewAsset = {
     asset: null,
     isOpen: false,
     onClose: null,
+    type: null,
     
-    init: function(type, asset, onClose) {
-        this.type = type;
+    init: function(asset, onClose) {
         this.asset = asset;
+        console.log("Viewing asset:", this.asset); // For debugging
         this.onClose = onClose || function() {};
         this.render();
         this.setupEventListeners();
@@ -306,9 +307,12 @@ var ViewAsset = {
         }
     },
     
-    open: function(asset) {
+    open: function(asset, onClose) {
         if (asset) {
             this.asset = asset;
+        }
+        if (onClose) {
+            this.onClose = onClose;
         }
         this.render();
         this.setupEventListeners();

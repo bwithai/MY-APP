@@ -25,6 +25,7 @@ var MainApp = {
             '/investment': this.showInvestments,
             '/liability': this.showLiabilities,
             '/assets': this.showAssets,
+            '/settings': this.showSettings,
         };
     },
 
@@ -42,6 +43,9 @@ var MainApp = {
     },
     showAssets: function() {
         AssetsApp.init();
+    },
+    showSettings: function() {
+        SettingsApp.init();
     },
     handleNavigation: function() {
     var path = window.location.pathname;
@@ -61,6 +65,8 @@ var MainApp = {
         LiabilityApp.init();
     } else if (path === '/assets') {
         AssetsApp.init();
+    } else if (path === '/settings') {
+        SettingsApp.init();
     } else {
         content.innerHTML = `
             <div class="content-wrapper text-center">

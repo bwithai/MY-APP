@@ -26,11 +26,21 @@ var ActionsMenu = {
             menuHtml += "<div id='" + menuId + "' class='action-menu-dropdown'>";
             
             // Edit option
-            menuHtml += "<div class='action-menu-item' " +
-                       "onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
-                       "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
-                       "Edit " + this.type +
-                       "</div>";
+            if (this.type === 'Asset') {
+                // Store this exact asset in a dataset attribute for retrieval later
+                var assetDataAttr = "data-asset='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "'";
+                menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
+                           "onclick=\"ActionsMenu.handleEdit(this)\">" +
+                           "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                           "Edit " + this.type +
+                           "</div>";
+            } else {
+                menuHtml += "<div class='action-menu-item' " +
+                           "onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
+                           "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                           "Edit " + this.type +
+                           "</div>";
+            }
 
             // Pay Liability option (if applicable)
             if (this.type === 'Liability' && !this.options.isPaid && !this.options.isDelete) {
@@ -52,11 +62,22 @@ var ActionsMenu = {
 
             // View option (for Asset)
             if (this.type === 'Asset') {
-                menuHtml += "<div class='action-menu-item' " +
-                           "onclick=\"ActionsMenu.handleViewAsset(" + this.value.id + ")\">" +
+                // Store this exact asset in a dataset attribute for retrieval later
+                var assetDataAttr = "data-asset='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "'";
+                menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
+                           "onclick=\"ActionsMenu.handleViewAsset(this)\">" +
                            "<i class='fas fa-eye' style='color: darkgray;'></i> " +
                            "View Asset" +
                            "</div>";
+                           
+                // Add Dispose Asset option if not already disposed
+                if (!this.value.dispose_status) {
+                    menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
+                               "onclick=\"ActionsMenu.handleDisposeAsset(this)\">" +
+                               "<i class='fas fa-archive' style='color: orange;'></i> " +
+                               "Dispose Asset" +
+                               "</div>";
+                }
             }
 
             // Delete option (if enabled)
@@ -129,7 +150,33 @@ var ActionsMenu = {
         });
     },
 
-    handleEdit: function(id) {
+    handleEdit: function(idOrElement) {
+        // Check if we're dealing with an Asset and have an element with data
+        if (typeof idOrElement === 'object' && idOrElement.dataset && idOrElement.dataset.asset) {
+            try {
+                // For Asset type, get the asset data directly from the element
+                var assetData = JSON.parse(idOrElement.dataset.asset);
+                
+                console.log('Editing specific asset:', assetData);
+                
+                // Pass the specific asset data to EditAsset
+                EditAsset.init(assetData, function() {
+                    // Refresh the assets list after edit
+                    if (typeof AssetsApp !== 'undefined' && typeof AssetsApp.loadAssetsData === 'function') {
+                        AssetsApp.loadAssetsData();
+                    }
+                });
+                return;
+            } catch (error) {
+                console.error('Error parsing asset data:', error);
+                alert('Failed to edit asset: ' + error.message);
+                return;
+            }
+        }
+        
+        // For non-Asset types or fallback, use the original ID-based approach
+        var id = typeof idOrElement === 'object' ? idOrElement.id : idOrElement;
+        
         switch (this.type) {
             case 'Inflow':
                 EditInflow.init('Inflow', id, function() {
@@ -149,11 +196,6 @@ var ActionsMenu = {
             case 'Liability':
                 EditLiability.init('Liability', id, function() {
                     LiabilityApp.loadLiabilityData();
-                });
-                break;
-            case 'Asset':
-                EditAsset.init('Asset', this.value, function() {
-                    AssetsApp.loadAssetsData();
                 });
                 break;
             default:
@@ -229,18 +271,55 @@ var ActionsMenu = {
         }
     },
 
-    handleViewAsset: function(id) {
-        // Get the asset data first to initialize the ViewAsset modal
-        ApiClient.getAsset(id)
-            .then(function(asset) {
-                ViewAsset.init('Asset', asset, function() {
+    handleViewAsset: function(element) {
+        try {
+            // Get the asset data directly from the clicked element's dataset
+            var assetData = element.dataset.asset ? JSON.parse(element.dataset.asset) : null;
+            
+            if (!assetData) {
+                console.error('Asset data not found in element');
+                return;
+            }
+            
+            console.log('Viewing specific asset:', assetData);
+            
+            // Pass the specific asset data to ViewAsset
+            ViewAsset.init(assetData, function() {
+                // Optional callback when view modal is closed
+                if (typeof AssetsApp !== 'undefined' && typeof AssetsApp.loadAssetsData === 'function') {
                     AssetsApp.loadAssetsData();
-                });
-            })
-            .catch(function(error) {
-                console.error('Failed to load asset details:', error);
-                alert('Failed to load asset details: ' + (error.message || 'Unknown error'));
+                }
             });
+        } catch (error) {
+            console.error('Error viewing asset:', error);
+            alert('Failed to view asset details: ' + error.message);
+        }
+    },
+
+    // Add this new method to handle asset disposal
+    handleDisposeAsset: function(element) {
+        try {
+            // Get the asset data directly from the clicked element's dataset
+            var assetData = element.dataset.asset ? JSON.parse(element.dataset.asset) : null;
+            
+            if (!assetData) {
+                console.error('Asset data not found in element');
+                return;
+            }
+            
+            console.log('Disposing asset:', assetData);
+            
+            // Pass the specific asset data to DisposeAsset
+            DisposeAsset.init(assetData, function() {
+                // Refresh the assets list after disposal
+                if (typeof AssetsApp !== 'undefined' && typeof AssetsApp.loadAssetsData === 'function') {
+                    AssetsApp.loadAssetsData();
+                }
+            });
+        } catch (error) {
+            console.error('Error preparing asset disposal:', error);
+            alert('Failed to prepare asset disposal: ' + error.message);
+        }
     }
 };
 

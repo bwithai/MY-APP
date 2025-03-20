@@ -426,6 +426,20 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
+    disposeAsset: function(id, data) {
+        console.log('Disposing Asset:', id, JSON.stringify(data));
+        return fetch(this.baseUrl + 'assets/dispose/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
     /*----------------------------------------------------------------------------------------------------
         [ All the Common API calls which will be used in multiple pages will be handled bellow this line ]
     ----------------------------------------------------------------------------------------------------*/
@@ -438,6 +452,79 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
+
+    getAllHeads: function() {
+        return fetch(this.baseUrl + 'common/all-heads', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    createHead: function(data) {
+        return fetch(this.baseUrl + 'common/heads', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    createSubHead: function(data) {
+        return fetch(this.baseUrl + 'common/sub-heads', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'  
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    deleteSubHead: function(id) {
+        return fetch(this.baseUrl + 'common/sub-heads/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },  
+
+    updateHead: function(id, data) {
+        return fetch(this.baseUrl + 'common/heads/' + id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    deleteHead: function(id) {
+        return fetch(this.baseUrl + 'common/heads/' + id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    /*------------------------------------ End of Heads API calls -------------------------------------*/
 
     getIBANs: function(userId) {
         return fetch(this.baseUrl + 'users/iban/' + userId, {

@@ -10,7 +10,7 @@
   },
   "homepage": "http://localhost:5173",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode legacy",
     "build": "vite build --mode legacy",
     "lint": "biome check --apply-unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
     "preview": "vite preview --mode legacy",

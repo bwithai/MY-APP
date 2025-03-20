@@ -303,11 +303,11 @@ var AssetsApp = {
         }
         
         .pending-row {
-            background-color: rgba(240, 170, 190, 0.2);
+            background-color: rgba(226, 100, 136, 0.2);
         }
         
         .disposed-row {
-            background-color: rgba(250, 230, 140, 0.2);
+            background-color: rgba(218, 194, 89, 0.2);
         }
         
         tr:hover {

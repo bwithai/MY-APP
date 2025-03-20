@@ -3,9 +3,9 @@ var EditAsset = {
     isOpen: false,
     onClose: null,
     
-    init: function(type, asset, onClose) {
+    init: function(asset, onClose) {
         this.asset = asset;
-        this.type = type;
+        console.log("Editing asset:", this.asset); // For debugging
         this.onClose = onClose || function() {};
         this.render();
         this.setupEventListeners();
@@ -271,9 +271,12 @@ var EditAsset = {
             });
     },
     
-    open: function(asset) {
+    open: function(asset, onClose) {
         if (asset) {
             this.asset = asset;
+        }
+        if (onClose) {
+            this.onClose = onClose;
         }
         this.render();
         this.setupEventListeners();
