@@ -57,17 +57,35 @@ var ApiClient = {
     /*----------------------------------------------------------------------------------------------------
         [ All the Dashboard API calls will be handled bellow this line ]
     ----------------------------------------------------------------------------------------------------*/
-    getDashboardData: function() {
-        return fetch(this.baseUrl + 'dashboard', {
+    readFinanceOverview: function(user_id) {
+        return fetch(this.baseUrl + 'dashboard/over-view/' + user_id, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
                 'Accept': 'application/json'
             }
         })
-        .then(function(response) {
-            if (!response.ok) throw new Error('Failed to fetch dashboard data');
-            return response.json();
-        });
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    readCurrentMonthFinanceOverview: function(data) {
+        return fetch(this.baseUrl + 'dashboard/' + data.year + '/' + data.month + '/' + data.userId, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    readRangeFinanceOverview: function(data) {
+        return fetch(this.baseUrl + 'dashboard/range/' + data.start_date + '/' + data.end_date + '/' + data.userId, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
     },
 
     /*----------------------------------------------------------------------------------------------------

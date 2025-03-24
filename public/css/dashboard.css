@@ -1663,3 +1663,223 @@ button:disabled {
     }
 }
 
+/* Dashboard Stats Styles */
+.stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+    gap: 15px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    flex: 1;
+    min-width: 240px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-right: 20px;
+    color: #3182ce;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(49, 130, 206, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card:nth-child(1) .stat-icon {
+    color: #38a169;
+    background: rgba(56, 161, 105, 0.1);
+}
+
+.stat-card:nth-child(2) .stat-icon {
+    color: #e53e3e;
+    background: rgba(229, 62, 62, 0.1);
+}
+
+.stat-card:nth-child(3) .stat-icon {
+    color: #805ad5;
+    background: rgba(128, 90, 213, 0.1);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #4a5568;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    color: #2d3748;
+}
+
+/* Recent Transactions Styles */
+.recent-transactions {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #2d3748;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #edf2f7;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transactions-table th {
+    text-align: left;
+    padding: 12px;
+    background-color: #f7fafc;
+    font-weight: 600;
+    color: #4a5568;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.transactions-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #4a5568;
+}
+
+.transactions-table tr:hover td {
+    background-color: #f7fafc;
+}
+
+.inflow-amount {
+    color: #38a169;
+    font-weight: 600;
+}
+
+.outflow-amount {
+    color: #e53e3e;
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #a0aec0;
+    font-style: italic;
+}
+
+.error-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #e53e3e;
+}
+
+.error-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .stats-row {
+        flex-direction: column;
+    }
+    
+    .stat-card {
+        width: 100%;
+    }
+    
+    .transactions-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+/* Dashboard Grid Styles - Legacy Browser Compatible */
+.dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px; /* Negative margin to offset column padding */
+    margin-bottom: 30px;
+}
+
+.dashboard-column {
+    padding: 0 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.content-card {
+    background: linear-gradient(135deg, rgb(215, 245, 210), rgb(239, 252, 240));
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    height: 100%;
+    overflow: hidden;
+}
+
+.all-time-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: #50C878;
+    border-radius: 4px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.all-time-btn:hover {
+    background: #388e3c;
+    transform: translateY(-2px);
+}
+
+.all-time-btn:active {
+    transform: translateY(0);
+}
+
+/* Desktop layout */
+@media (min-width: 768px) {
+    .dashboard-column {
+        width: 50%;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .content-card {
+        background: #2D3748;
+        color: white;
+    }
+}
+

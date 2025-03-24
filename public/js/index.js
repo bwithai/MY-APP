@@ -29,6 +29,9 @@ var MainApp = {
         };
     },
 
+    showDashboard: function() {
+        DashboardApp.init();
+    },
     showInflows: function() {
         InflowApp.init();
     },
@@ -78,47 +81,6 @@ var MainApp = {
             </div>
         `;
     }
-    },
-
-    showDashboard: function() {
-        var content = document.getElementById('content');
-        content.innerHTML = `
-            <div class="container-fluid">
-                <div class="page-header">
-                    <h1 class="page-title">Dashboard</h1>
-                    <p class="text-muted">Welcome to Command Fund Management System</p>
-                </div>
-                <div class="dashboard-stats" id="dashboard-loading">
-                    Loading...
-                </div>
-            </div>
-        `;
-        Utils.showLoading('dashboard-loading', 'Loading dashboard data...');
-        
-        // Load dashboard data
-        this.loadDashboardData();
-    },
-
-    loadDashboardData: function() {
-        ApiClient.getDashboardData()
-            .then(function(data) {
-                var statsContainer = document.querySelector('.dashboard-stats');
-                // Update dashboard with actual data
-                statsContainer.innerHTML = `
-                    <div class="stat-card">
-                        <h3>Total Inflow</h3>
-                        <p>${data.total_inflow}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Total Outflow</h3>
-                        <p>${data.total_outflow}</p>
-                    </div>
-                    <!-- Add more stats as needed -->
-                `;
-            })
-            .catch(function(error) {
-                console.error('Failed to load dashboard data:', error);
-            });
     },
 
     logout: function() {
