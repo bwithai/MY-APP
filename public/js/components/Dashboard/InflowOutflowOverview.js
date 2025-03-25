@@ -38,7 +38,7 @@ var InflowOutflowOverview = {
                         <div class="stat-label">Inflow Balance</div>
                         <div class="stat-divider"></div>
                         <div class="stat-number tooltip" data-tooltip="₨ ${this.formatExact(this.inflow)}">
-                            ₨ ${this.formatNumber(this.inflow)}
+                            ₨ ${Utils.formatNumber(this.inflow)}
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,7 @@ var InflowOutflowOverview = {
                         <div class="stat-label">Outflow Balance</div>
                         <div class="stat-divider"></div>
                         <div class="stat-number tooltip" data-tooltip="₨ ${this.formatExact(this.outflow)}">
-                            ₨ ${this.formatNumber(this.outflow)}
+                            ₨ ${Utils.formatNumber(this.outflow)}
                         </div>
                     </div>
                 </div>
@@ -216,34 +216,6 @@ var InflowOutflowOverview = {
         
         this.render();
         this.attachEventListeners();
-    },
-    
-    /**
-     * Format a number for display (shortened with K, M, B suffixes)
-     * 
-     * @param {number} value - Number to format
-     * @returns {string} - Formatted number string
-     */
-    formatNumber: function(value) {
-        var num = parseFloat(value);
-        
-        if (isNaN(num)) {
-            return '0';
-        }
-        
-        if (num >= 1000000000) {
-            return (num / 1000000000).toFixed(1) + 'B';
-        }
-        
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
-        }
-        
-        if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
-        }
-        
-        return num.toFixed(0);
     },
     
     /**

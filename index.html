@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/DateRangePicker.css">
+    <link rel="stylesheet" href="/css/yearDate.css">
   </head>
   <body>
     <div id="app">
@@ -36,6 +37,8 @@
             API_URL: '%VITE_API_URL%'
         };
     </script>
+    <!-- External libraries -->
+    <!-- <script src="/js/lib/chart.umd.js"></script> -->
     <!-- Main application scripts -->
     <script src="/js/api-client.js"></script>
     <script src="/js/Utils.js"></script>
@@ -48,6 +51,7 @@
     <script src="/js/routes/liability.js"></script>
     <script src="/js/routes/assets.js"></script>
     <script src="/js/routes/settings.js"></script>
+    <script src="/js/routes/admin.js"></script>
     <!-- Load Flow Components -->
     <script src="/js/components/Flow/AddIban.js"></script>
     <!-- Load Heads Components -->
@@ -60,6 +64,7 @@
     <script src="/js/components/Dashboard/FinancialOverview.js"></script>
     <script src="/js/components/Dashboard/DateRangePicker.js"></script>
     <script src="/js/components/Dashboard/InflowOutflowOverview.js"></script>
+    <script src="/js/components/Dashboard/EarlyChart.js"></script>
     <!-- Load Inflow Components -->
     <script src="/js/components/inflow/AddInflow.js"></script>
     <script src="/js/components/inflow/EditInflow.js"></script>
@@ -79,6 +84,8 @@
     <script src="/js/components/assets/EditAsset.js"></script>
     <script src="/js/components/assets/ViewAsset.js"></script>
     <script src="/js/components/assets/DisposeAsset.js"></script>
+    <!-- Load Admin Components -->
+    <script src="/js/components/Admin/UsersTable.js"></script>
     <!-- Load Common Components -->
     <script src="/js/components/common/ActionsMenu.js"></script>
     <script src="/js/components/common/DateOfEntry.js"></script>

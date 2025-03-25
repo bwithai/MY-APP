@@ -26,6 +26,7 @@ var MainApp = {
             '/liability': this.showLiabilities,
             '/assets': this.showAssets,
             '/settings': this.showSettings,
+            '/admin': this.showAdmin,
         };
     },
 
@@ -50,6 +51,9 @@ var MainApp = {
     showSettings: function() {
         SettingsApp.init();
     },
+    showAdmin: function() {
+        AdminApp.init();
+    },
     handleNavigation: function() {
     var path = window.location.pathname;
     console.log('Handling navigation for path:', path);
@@ -70,6 +74,8 @@ var MainApp = {
         AssetsApp.init();
     } else if (path === '/settings') {
         SettingsApp.init();
+    } else if (path === '/admin') {
+        AdminApp.init();
     } else {
         content.innerHTML = `
             <div class="content-wrapper text-center">

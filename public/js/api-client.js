@@ -36,6 +36,22 @@ var ApiClient = {
         });
     },
 
+    readUsers: function({ skip, limit, search }) {
+        var url = new URL(this.baseUrl + 'users/');
+        url.searchParams.append('skip', skip);
+        url.searchParams.append('limit', limit);
+        if (search) url.searchParams.append('search', search);
+
+        return fetch(url, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
     // Add other API methods from sdk.gen.ts here
     createIBAN: function(iban) {
         return fetch(this.baseUrl + 'iban', {
@@ -79,6 +95,16 @@ var ApiClient = {
     },
     readRangeFinanceOverview: function(data) {
         return fetch(this.baseUrl + 'dashboard/range/' + data.start_date + '/' + data.end_date + '/' + data.userId, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    readYearlyData: function(data) {
+        return fetch(this.baseUrl + 'dashboard/' + data.year + '/' + data.userId, {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
                 'Accept': 'application/json'

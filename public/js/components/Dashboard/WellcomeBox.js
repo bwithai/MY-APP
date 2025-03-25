@@ -20,7 +20,7 @@ var WelcomeBox = {
         var greeting = '';
 
         if (this.is_superuser) {
-            greeting = this.currentUser.toLowerCase() === 'admin' ? 'Hi Admin 👋🏼' : `${this.currentUser} 🧐`;
+            greeting = this.currentUser.toLowerCase() === 'admin' ? 'Hi Admin 👋🏼' : `🤔 ${this.currentUser} 🧐`;
         } else {
             greeting = `Hi ${this.currentUser} 👋🏼`;
         }

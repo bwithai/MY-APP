@@ -30,7 +30,7 @@ var FinancialOverview = {
                         <div class="stat-label">Total Balance</div>
                         <div class="divider"></div>
                         <div class="stat-number tooltip" data-tooltip="₨ ${this.formatDecimal(this.data.totalBalance)}">
-                            ₨ ${this.formatNumber(this.data.totalBalance)}
+                            ₨ ${Utils.formatNumber(this.data.totalBalance)}
                         </div>
                     </div>
                 </div>
@@ -44,7 +44,7 @@ var FinancialOverview = {
                             <div class="stat-label">Cash Balance</div>
                             <div class="divider"></div>
                             <div class="stat-number tooltip" data-tooltip="₨ ${this.formatDecimal(this.data.cashBalance)}">
-                                ₨ ${this.formatNumber(this.data.cashBalance)}
+                                ₨ ${Utils.formatNumber(this.data.cashBalance)}
                             </div>
                         </div>
                     </div>
@@ -56,7 +56,7 @@ var FinancialOverview = {
                             <div class="stat-label">Bank Balance</div>
                             <div class="divider"></div>
                             <div class="stat-number tooltip" data-tooltip="₨ ${this.formatDecimal(this.data.bankBalance)}">
-                                ₨ ${this.formatNumber(this.data.bankBalance)}
+                                ₨ ${Utils.formatNumber(this.data.bankBalance)}
                             </div>
                         </div>
                     </div>
@@ -68,7 +68,7 @@ var FinancialOverview = {
                             <div class="stat-label">Investment Balance</div>
                             <div class="divider"></div>
                             <div class="stat-number tooltip" data-tooltip="₨ ${this.formatDecimal(this.data.investmentBalance)}">
-                                ₨ ${this.formatNumber(this.data.investmentBalance)}
+                                ₨ ${Utils.formatNumber(this.data.investmentBalance)}
                             </div>
                         </div>
                     </div>
@@ -80,7 +80,7 @@ var FinancialOverview = {
                             <div class="stat-label">Liability Balance</div>
                             <div class="divider"></div>
                             <div class="stat-number tooltip" data-tooltip="₨ ${this.formatDecimal(this.data.liabilityBalance)}">
-                                ₨ ${this.formatNumber(this.data.liabilityBalance)}
+                                ₨ ${Utils.formatNumber(this.data.liabilityBalance)}
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ var FinancialOverview = {
             }
             
             .stat-label {
-                font-size: 0.875rem;
+                font-size: 10px;
                 font-weight: bold;
             }
             
@@ -214,7 +214,7 @@ var FinancialOverview = {
             }
             
             .stat-number {
-                font-size: 1rem;
+                font-size: 15px;
                 font-weight: bold;
             }
             
@@ -296,14 +296,6 @@ var FinancialOverview = {
     navigateTo: function(route) {
         // Change the URL and trigger navigation
         window.location.href = route;
-    },
-    
-    formatNumber: function(value) {
-        // Format number with thousands separator and 0 decimals
-        return parseFloat(value).toLocaleString('en-US', {
-            maximumFractionDigits: 0,
-            minimumFractionDigits: 0
-        });
     },
     
     formatDecimal: function(value) {
