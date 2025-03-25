@@ -104,9 +104,12 @@ var Sidebar = {
                 'class="nav-item ' + activeClass + '" ' +
                 'data-path="' + item.path + '" ' +
                 'onclick="Sidebar.handleNavigation(event, \'' + item.path + '\')">' +
-                '<svg class="icon" viewBox="0 0 24 24">' +
-                '<path d="' + self.getIconPath(item.icon) + '"/>' +
-                '</svg>' +
+                (item.path === '/investment' || item.path === '/assets' ? 
+                    '<i class="icon fas fa-' + item.icon + '"></i>' :
+                    '<svg class="icon" viewBox="0 0 24 24">' +
+                    '<path d="' + self.getIconPath(item.icon) + '"/>' +
+                    '</svg>'
+                ) +
                 '<span>' + item.title + '</span>' +
                 '</a>';
         }
