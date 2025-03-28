@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Command Fund Management</title>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="/fonts/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/css/firefox-50.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/DateRangePicker.css">
+    <link rel="stylesheet" href="/css/yearDate.css">
+  </head>
+  <body>
+    <div id="app">
+        <div class="dashboard-layout">
+            <div class="menu-toggle"></div>
+            <aside class="sidebar"></aside>
+            <div id="content"></div>
+            <!-- <div class="dashboard-container">
+                <div id="content"></div>
+            </div> -->
+        </div>
+    </div>
+    <!-- Polyfills for older browsers - load first -->
+    <script src="/js/polyfills.js"></script>
+    <script src="/js/lib/chart.js@2.9.4"></script>
+    <!-- Environment variables -->
+    <script>
+        window.ENV = {
+            API_URL: '%VITE_API_URL%'
+        };
+    </script>
+    <!-- External libraries -->
+    <!-- Main application scripts -->
+    <script src="/js/api-client.js"></script>
+    <script src="/js/Utils.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <!-- Load All Routes -->
+    <script src="/js/routes/dashboard.js"></script>
+    <script src="/js/routes/inflow.js"></script>
+    <script src="/js/routes/outflow.js"></script>
+    <script src="/js/routes/investment.js"></script>
+    <script src="/js/routes/liability.js"></script>
+    <script src="/js/routes/assets.js"></script>
+    <script src="/js/routes/settings.js"></script>
+    <script src="/js/routes/admin.js"></script>
+    <!-- Load Flow Components -->
+    <script src="/js/components/Flow/AddIban.js"></script>
+    <!-- Load Heads Components -->
+    <script src="/js/components/Heads/AddHead.js"></script>
+    <script src="/js/components/Heads/EditHeads.js"></script>
+    <script src="/js/components/Heads/AddSubHead.js"></script>
+    <script src="/js/components/Heads/HeadsManagement.js"></script>
+    <!-- Load Dashboard Components -->
+    <script src="/js/components/Dashboard/WellcomeBox.js"></script>
+    <script src="/js/components/Dashboard/FinancialOverview.js"></script>
+    <script src="/js/components/Dashboard/DateRangePicker.js"></script>
+    <script src="/js/components/Dashboard/InflowOutflowOverview.js"></script>
+    <script src="/js/components/Dashboard/EarlyChart.js"></script>
+    <!-- Load Inflow Components -->
+    <script src="/js/components/inflow/AddInflow.js"></script>
+    <script src="/js/components/inflow/EditInflow.js"></script>
+    <!-- Load Outflow Components -->
+    <script src="/js/components/outflow/AddOutflow.js"></script>
+    <script src="/js/components/outflow/EditOutflow.js"></script>
+    <!-- Load Investment Components -->
+    <script src="/js/components/investment/AddInvestment.js"></script>
+    <script src="/js/components/investment/EditInvestment.js"></script>
+    <script src="/js/components/investment/InvestHistory.js"></script>
+    <!-- Load Liability Components -->
+    <script src="/js/components/liability/AddLiability.js"></script>
+    <script src="/js/components/liability/EditLiability.js"></script>
+    <script src="/js/components/liability/PayLiability.js"></script>
+    <script src="/js/components/liability/LiabilityHistory.js"></script>
+    <!-- Load Assets Components -->
+    <script src="/js/components/assets/EditAsset.js"></script>
+    <script src="/js/components/assets/ViewAsset.js"></script>
+    <script src="/js/components/assets/DisposeAsset.js"></script>
+    <!-- Load Admin Components -->
+    <script src="/js/components/Admin/UsersTable.js"></script>
+    <!-- Load Common Components -->
+    <script src="/js/components/common/ActionsMenu.js"></script>
+    <script src="/js/components/common/DateOfEntry.js"></script>
+    <script src="/js/components/common/DeleteAlert.js"></script>
+    <!-- Load User Settings Components -->
+    <script src="/js/components/UserSettings/UserInformation.js"></script>
+    <script src="/js/components/UserSettings/ChangePassword.js"></script>
+    <!-- Load Index Components -->
+    <script src="/js/index.js"></script>
+    
+  </body>
+</html>
