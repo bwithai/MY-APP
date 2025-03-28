@@ -1,0 +1,395 @@
+/* DateRangePicker Styles - Firefox 50 Compatible */
+
+/* Container styles */
+.date-range-picker-container {
+    width: 100%;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+}
+
+/* Grid layout with fallback for older browsers */
+.date-range-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0 -8px; /* Negative margin to offset child padding */
+}
+
+.date-range-grid > div {
+    padding: 8px;
+}
+
+@media (min-width: 768px) {
+    .date-range-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Date Range Button */
+.date-range-button {
+    background: #50C878; /* Green background */
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-align: center;
+    color: white;
+    border: 1px solid #4CAF50;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s;
+}
+
+.date-range-button:hover {
+    background: #388e3c;
+}
+
+/* Current Month Button */
+.current-month-button {
+    width: 100%;
+    background: #50C878;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-align: center;
+    border: 1px solid #4CAF50;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s;
+}
+
+.current-month-button:hover {
+    background: #388e3c;
+}
+
+/* Popover Styles */
+.date-range-popover {
+    display: none;
+    position: absolute;
+    width: 300px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+/* Popover Header */
+.popover-header {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popover-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.popover-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666;
+}
+
+.popover-close:hover {
+    color: #333;
+}
+
+/* Popover Body */
+.popover-body {
+    padding: 12px;
+}
+
+/* Calendar Container */
+.calendar-container {
+    margin-bottom: 16px;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.month-nav {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.month-nav:hover {
+    background: #f5f5f5;
+}
+
+/* Calendar Grid - FIXED LAYOUT */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    width: 100%;
+    border: 1px solid #eee;
+    border-radius: 4px 4px 0 0;
+    overflow: hidden;
+}
+
+/* Weekday headers - FIXED STYLING */
+.weekday {
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 0;
+    font-size: 12px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+/* Calendar days container - FIXED LAYOUT */
+.calendar-days {
+    border: 1px solid #eee;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    padding-bottom: 8px;
+}
+
+/* Days grid for proper layout */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    width: 100%;
+    background: #fff;
+}
+
+/* Day Cell - IMPROVED STYLING */
+.day {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    font-size: 13px;
+    border-right: 1px solid #f5f5f5;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.day:nth-child(7n) {
+    border-right: none;
+}
+
+.day:hover {
+    background: #f0f0f0;
+}
+
+.day.empty {
+    cursor: default;
+    background: #f9f9f9;
+}
+
+/* Today highlight */
+.day.today {
+    font-weight: bold;
+    color: #388e3c;
+    border: 1px solid #50C878;
+}
+
+/* Date Range Highlighting */
+.day.in-range {
+    background-color: #e6f7ee;
+}
+
+.day.range-start, .day.range-end {
+    background-color: #50C878;
+    color: white;
+    font-weight: bold;
+    z-index: 1;
+}
+
+/* Range start/end with rounded corners */
+.day.range-start {
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
+}
+
+.day.range-end {
+    border-top-right-radius: 50%;
+    border-bottom-right-radius: 50%;
+}
+
+/* Selection helper text */
+.selection-help {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    padding: 8px 0 0;
+    font-style: italic;
+}
+
+/* Action Buttons */
+.date-range-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.date-range-actions button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.date-range-actions button + button {
+    margin-left: 8px;
+}
+
+.apply-btn {
+    background: #50C878;
+    color: white;
+    border: 1px solid #4CAF50;
+}
+
+.apply-btn:hover {
+    background: #388e3c;
+}
+
+.cancel-btn {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+    margin-bottom: 4px;
+}
+
+/* Dark mode overrides - optional */
+@media (prefers-color-scheme: dark) {
+    .date-range-button, 
+    .current-month-button {
+        background: linear-gradient(135deg, #388e3c, rgb(10, 95, 14));
+        border-color: #1b5e20;
+    }
+    
+    .date-range-button:hover,
+    .current-month-button:hover,
+    .apply-btn:hover {
+        background: #1b5e20;
+    }
+    
+    .date-range-popover {
+        background: #333;
+        border-color: #444;
+    }
+    
+    .popover-header {
+        border-bottom-color: #444;
+    }
+    
+    .popover-title {
+        color: #fff;
+    }
+    
+    .popover-close {
+        color: #ccc;
+    }
+    
+    .popover-close:hover {
+        color: #fff;
+    }
+    
+    .month-nav {
+        border-color: #444;
+        color: #fff;
+    }
+    
+    .month-nav:hover {
+        background: #444;
+    }
+    
+    .calendar-grid, .calendar-days {
+        border-color: #444;
+    }
+    
+    .weekday {
+        color: #eee;
+        background-color: #3a3a3a;
+        border-bottom-color: #444;
+    }
+    
+    .days-grid {
+        background-color: #333;
+    }
+    
+    .day {
+        color: #eee;
+        border-color: #444;
+    }
+    
+    .day.today {
+        color: #4CAF50;
+        border-color: #4CAF50;
+    }
+    
+    .day.empty {
+        background-color: #2a2a2a;
+    }
+    
+    .day:hover {
+        background: #444;
+    }
+    
+    .day.in-range {
+        background-color: rgba(80, 200, 120, 0.2);
+    }
+    
+    .selection-help {
+        color: #ccc;
+    }
+    
+    .apply-btn {
+        background: #388e3c;
+        border-color: #1b5e20;
+    }
+    
+    .cancel-btn {
+        background: #444;
+        color: #eee;
+        border-color: #555;
+    }
+    
+    .cancel-btn:hover {
+        background: #555;
+    }
+}

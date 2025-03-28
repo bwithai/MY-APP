@@ -1,0 +1,365 @@
+/* yearDate.css - Styles for EarlyChart component */
+
+/* Main container */
+.early-chart-container {
+    background: #f8fff8;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    padding: 20px;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    min-height: 400px;
+}
+
+/* For browsers that support gradients */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    .early-chart-container {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 255, 240, 0.9));
+    }
+}
+
+.early-chart-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Title styling */
+.early-chart-title {
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2d3748;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Controls container */
+.early-chart-controls {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* For modern browsers */
+@media screen and (min-width: 500px) {
+    .early-chart-controls {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-pack: justify;
+        justify-content: space-between;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+/* Clearfix for float layout in legacy browsers */
+.early-chart-controls:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Select container */
+.early-chart-select-container {
+    display: inline-block;
+    width: 30%;
+    margin: 0 1.5% 10px;
+    vertical-align: top;
+    min-width: 100px;
+}
+
+/* For modern browsers using flexbox */
+@media screen and (min-width: 500px) {
+    .early-chart-select-container {
+        -ms-flex: 1;
+        flex: 1;
+        margin: 0;
+    }
+}
+
+/* Select styling */
+.early-chart-select {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: white;
+    font-size: 14px;
+    color: #444;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    /* For IE and older browsers */
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.early-chart-select:focus {
+    outline: none;
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+.early-chart-select:disabled {
+    background-color: #f7fafc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Canvas container */
+.early-chart-canvas-container {
+    position: relative;
+    height: 320px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background-color: white;
+    padding: 10px;
+}
+
+/* Loading indicator */
+.chart-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    z-index: 10;
+    text-align: center;
+}
+
+/* Fallback for older browsers that don't support flexbox */
+.chart-loading {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    text-align: center;
+    padding: 20px;
+}
+
+.chart-loading:before {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 3px solid #edf2f7;
+    border-top-color: #63b3ed;
+    border-radius: 50%;
+    margin-bottom: 12px;
+    display: inline-block;
+    /* For browsers that support animations */
+    -webkit-animation: spinner 0.8s linear infinite;
+    animation: spinner 0.8s linear infinite;
+}
+
+@-webkit-keyframes spinner {
+    to {-webkit-transform: rotate(360deg);}
+}
+
+@keyframes spinner {
+    to {transform: rotate(360deg);}
+}
+
+.chart-error {
+    background-color: rgba(254, 242, 242, 0.9);
+    color: #e53e3e;
+}
+
+/* Chart legend styles */
+.chart-legend {
+    display: block;
+    margin-top: 15px;
+    padding: 10px;
+    text-align: center;
+}
+
+/* For modern browsers */
+@media screen and (min-width: 500px) {
+    .chart-legend {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-pack: center;
+        justify-content: center;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+    }
+}
+
+.chart-legend-item {
+    display: inline-block;
+    margin: 5px 10px;
+    padding: 6px 12px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* For modern browsers */
+@media screen and (min-width: 500px) {
+    .chart-legend-item {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-align: center;
+        align-items: center;
+    }
+}
+
+.chart-legend-item:hover {
+    -ms-transform: translateY(-2px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-legend-item.inactive {
+    opacity: 0.5;
+}
+
+.chart-legend-color {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    vertical-align: middle;
+}
+
+.chart-legend-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #444;
+    vertical-align: middle;
+}
+
+/* Color classes for legend */
+.legend-inflow { 
+    background-color: rgba(72, 187, 120, 0.8); 
+}
+.legend-outflow { 
+    background-color: rgba(229, 57, 53, 0.8); 
+}
+.legend-investment { 
+    background-color: rgba(224, 183, 36, 0.8); 
+}
+.legend-liability { 
+    background-color: rgba(221, 28, 131, 0.8); 
+}
+
+/* Canvas fallback */
+.canvas-fallback {
+    text-align: center;
+    padding: 20px;
+    color: #e53e3e;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .early-chart-container {
+        background: linear-gradient(135deg, rgba(45, 55, 72, 0.9), rgba(26, 32, 44, 0.9));
+    }
+    
+    .early-chart-title {
+        color: #e2e8f0;
+        border-bottom-color: #4a5568;
+    }
+    
+    .early-chart-select {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+    
+    .early-chart-select:focus {
+        border-color: #90cdf4;
+        box-shadow: 0 0 0 3px rgba(144, 205, 244, 0.2);
+    }
+    
+    .early-chart-select:disabled {
+        background-color: #1a202c;
+        border-color: #2d3748;
+    }
+    
+    .early-chart-canvas-container {
+        background-color: #2d3748;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .chart-loading {
+        background-color: rgba(45, 55, 72, 0.8);
+        color: #e2e8f0;
+    }
+    
+    .chart-loading:before {
+        border-color: #4a5568;
+        border-top-color: #90cdf4;
+    }
+    
+    .chart-error {
+        background-color: rgba(45, 55, 72, 0.9);
+        color: #fc8181;
+    }
+    
+    .chart-legend-item {
+        background-color: rgba(45, 55, 72, 0.8);
+    }
+    
+    .chart-legend-label {
+        color: #e2e8f0;
+    }
+    
+    .chart-legend-color {
+        border-color: #2d3748;
+    }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .early-chart-select-container {
+        width: 100%;
+        margin: 0 0 10px 0;
+    }
+    
+    .early-chart-canvas-container {
+        height: 250px;
+    }
+    
+    .early-chart-title {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+}
+
+/* IE8 and below */
+@media \0screen {
+    .early-chart-container {
+        border: 1px solid #cbd5e0;
+    }
+    
+    .chart-legend-item,
+    .early-chart-select-container,
+    .chart-legend-color {
+        display: inline;
+        zoom: 1;
+    }
+}
