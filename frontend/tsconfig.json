@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es2015", // ✅ Ensure ES5 output for legacy browsers
-    "lib": ["es2015", "DOM", "DOM.Iterable"], // ✅ Remove ES2020
-    "module": "ESNext", // ✅ Vite will handle module transformation
+    "target": "es5",
+    "useDefineForClassFields": true,
+    "lib": [
+      "es5",
+      "dom"
+    ],
+    "module": "es2015",
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "node", // ✅ Avoid modern "bundler" mode
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "noEmit": true,
     "jsx": "react-jsx",
 
@@ -19,8 +21,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "downlevelIteration": true,
+
+    "types": ["vite/client", "node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "playwright.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

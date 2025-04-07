@@ -1,0 +1,48 @@
+/* IE8-specific styles */
+.flex {
+    display: block;
+  }
+  
+  .dashboard-layout {
+    width: 100%;
+  }
+  
+  .sidebar {
+    float: left;
+    width: 250px;
+  }
+  
+  #content {
+    margin-left: 250px;
+  }
+  
+  /* Replace modern CSS with table-based layouts */
+  .modal-form-grid {
+    width: 100%;
+  }
+  
+  .modal-form-grid .form-group {
+    display: inline-block;
+    width: 45%;
+    vertical-align: top;
+    margin: 10px;
+  }
+  
+  .modal-form-grid .form-group.full-width {
+    width: 95%;
+  }
+  
+  /* Simplify animations */
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: #ccc;
+  }
+  
+  /* Fix for transparent backgrounds */
+  .btn-primary {
+    background-color: #01411C;
+  }
+  
+  /* Add more IE8-specific overrides as needed */

@@ -84,7 +84,7 @@ def read_invests(
 
     # Apply user restrictions (Admins see all, regular users see only their own)
     if not current_user.is_superuser:
-        base_query = base_query.where(Investments.user_id == current_user.id)
+        base_query = base_query.where(Investments.user_id == current_user.id, Investments.is_deleted == expression.false())
     if current_user.is_superuser and current_user.id != user_id:
         base_query = base_query.where(Investments.user_id == user_id)
 
@@ -284,7 +284,12 @@ def update_invest(
     }
 
     # Record the history of the update
-    pay_status = "Decrease" if old_amount > new_amount else "Increase"
+    if old_amount > new_amount:
+        pay_status = "Decrease"
+    elif old_amount < new_amount:
+        pay_status = "Increase"
+    else:
+        pay_status = None
     history_entry = InvestmentHistory(
         user_id=item.user_id,
         investment_id=id,

@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Relationship, Column, Numeric
+from sqlmodel import SQLModel, Field, Relationship, Column, DECIMAL
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional, List
@@ -31,7 +31,7 @@ class Users(SQLModel, table=True):
     unit_id: Optional[int] = Field(foreign_key="units.id", nullable=True)  # Foreign key to Units table
     appt: Optional[str] = None
     iban: Optional[str] = None
-    updated_password_status: bool = Field(default=False)  # Default to 0 (not updated)
+    update_password_status: bool = Field(default=False)  # Default to 0 (not updated)
     is_active: bool = True
     is_superuser: bool = False
 
@@ -94,7 +94,7 @@ class CommandFunds(SQLModel, table=True):
 
     id: int = Field(default=None, primary_key=True, nullable=False)
     fund_details: Optional[str] = None
-    amount: Optional[Decimal] = Field(default=None, sa_column=Column(Numeric(16, 2), nullable=True))
+    amount: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
     payment_method: Optional[str] = None
     iban_id: Optional[int] = Field(foreign_key="multi_ibn_user.id", nullable=True)
     date: Optional[datetime] = None
@@ -148,7 +148,7 @@ class Heads(SQLModel, table=True):
     sub_heads: List["SubHeads"] = Relationship(back_populates="head")
     command_funds: List["CommandFunds"] = Relationship(back_populates="head")
     expenses: List["Expenses"] = Relationship(back_populates="head")
-    liabilities: List["Liabilities"] = Relationship(back_populates="head")
+    # liabilities: List["Liabilities"] = Relationship(back_populates="head")
 
 
 class SubHeads(SQLModel, table=True):
@@ -167,7 +167,7 @@ class SubHeads(SQLModel, table=True):
     head: Optional["Heads"] = Relationship(back_populates="sub_heads")
     command_funds: List["CommandFunds"] = Relationship(back_populates="sub_heads")
     expenses: List["Expenses"] = Relationship(back_populates="sub_heads")
-    liabilities: List["Liabilities"] = Relationship(back_populates="sub_heads")
+    # liabilities: List["Liabilities"] = Relationship(back_populates="sub_heads")
 
 
 class Expenses(SQLModel, table=True):
@@ -213,6 +213,7 @@ class Assets(SQLModel, table=True):
     __tablename__ = "assets"
     id: int = Field(default=None, primary_key=True, nullable=False)
     name: str
+    subhead: Optional[str] = None
     type: Optional[str] = None
     purchase_date: Optional[datetime] = None
     model: Optional[str] = None
@@ -248,7 +249,7 @@ class Assets(SQLModel, table=True):
     gift_to: Optional[str] = None
     disposed_reason: Optional[str] = None
     disposed_date: Optional[datetime] = None
-    head_detaills: str  # Required field
+    head_details: str  # Required field
 
     # Relationships
     user: Users = Relationship(back_populates="assets")
@@ -301,8 +302,9 @@ class InvestmentHistory(SQLModel, table=True):
 
 class Liabilities(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
-    head_id: Optional[int] = Field(foreign_key="heads.id", nullable=True)
-    subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
+    name: Optional[str] = None
+    # head_id: Optional[int] = Field(foreign_key="heads.id", nullable=True)
+    # subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
     fund_details: Optional[str] = None
     amount: Optional[Decimal] = None
     payment_method: Optional[str] = None
@@ -324,11 +326,11 @@ class Liabilities(SQLModel, table=True):
 
     # Relationship
     user: Optional["Users"] = Relationship(back_populates="liabilities")
-    head: Optional["Heads"] = Relationship(back_populates="liabilities")
-    sub_heads: Optional["SubHeads"] = Relationship(
-        back_populates="liabilities",
-        sa_relationship_kwargs={"primaryjoin": "Liabilities.subhead_id == SubHeads.id"}
-    )
+    # head: Optional["Heads"] = Relationship(back_populates="liabilities")
+    # sub_heads: Optional["SubHeads"] = Relationship(
+    #     back_populates="liabilities",
+    #     sa_relationship_kwargs={"primaryjoin": "Liabilities.subhead_id == SubHeads.id"}
+    # )
     balances: List["LiabilityBalances"] = Relationship(back_populates="liability")
 
 

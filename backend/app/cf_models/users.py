@@ -59,7 +59,7 @@ class UserPublic(UserBase):
     id: int
     iban: Optional[str] = None
     username: str | None = Field(default=None, max_length=255)
-    updated_password_status: bool = Field(default=False)
+    update_password_status: bool = Field(default=False)
     corp: Optional[str] = None
     divs: Optional[str] = None
     brigade: Optional[str] = None

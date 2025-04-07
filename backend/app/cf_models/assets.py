@@ -15,7 +15,7 @@ class AssetBase(SQLModel):
     cost: Optional[Decimal] = None
     salvage_value: Optional[Decimal] = None
     status: Optional[str] = None
-    head_detaills: Optional[str] = None
+    head_details: Optional[str] = None
 
 
 # Properties to receive on item creation

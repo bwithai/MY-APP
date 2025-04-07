@@ -1,0 +1,5 @@
+git-hub
+.env
+*.tar
+docker-images
+docker-images/*

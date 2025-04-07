@@ -29,9 +29,10 @@ class LiabilityBase(SQLModel):
 
 # Properties to receive on item creation
 class LiabilityCreate(LiabilityBase):
-    head_id: Optional[int] = None
+    name: Optional[str] = None
+    # head_id: Optional[int] = None
     remaining_balance: Optional[Decimal] = None
-    subhead_id: Optional[int] = None
+    # subhead_id: Optional[int] = None
     payment_to: Optional[str] = None
 
 class LiabilityPay(LiabilityBase):
@@ -51,8 +52,9 @@ class LiabilityUpdate(LiabilityBase):
 # Properties to return via API, id is always required
 class LiabilityPublic(LiabilityBase):
     # Relationship
-    head: Optional[str] = None
-    sub_heads: Optional[str] = None
+    # head: Optional[str] = None
+    # sub_heads: Optional[str] = None
+    name: Optional[str]
     user: Optional[str] = None
     remaining_balance: Decimal  # Required field
     # ----------------
