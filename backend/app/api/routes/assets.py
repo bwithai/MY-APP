@@ -121,7 +121,7 @@ def read_assets(
             for term in search_filters["general"]:
                 general_conditions.append(
                     or_(
-                        Assets.head_detaills.ilike(f"%{term}%"),
+                        Assets.head_details.ilike(f"%{term}%"),
                         Assets.model.ilike(f"%{term}%"),
                         Assets.brand.ilike(f"%{term}%"),
                         Assets.purchased_from.ilike(f"%{term}%"),
@@ -254,6 +254,7 @@ def dispose_asset(
         raise HTTPException(status_code=400, detail="Not enough permissions")
     update_dict = item_in.model_dump(exclude_unset=True)
     item.sqlmodel_update(update_dict)
+    item.status = "Disposed"
     log_activity(
         session=session,
         log_name="Asset Disposed",

@@ -25,8 +25,6 @@ def parse_search_query(search: str, is_superuser: bool) -> dict:
         "payment_method": None,
         "date": None,
         "amount_range": None,
-        "head": None,
-        "subhead": None,
         "pay_to": None,
         "type": None,
         "paid": None,
@@ -34,7 +32,7 @@ def parse_search_query(search: str, is_superuser: bool) -> dict:
     }
 
     # Define recognized prefixes
-    known_prefixes = ["head:", "subhead:", "pay_to:", "type:", "paid:"]
+    known_prefixes = ["pay_to:", "type:", "paid:"]
 
     words = search.split()
     i = 0
@@ -84,14 +82,12 @@ def read_liabilities(
     """
     # Base query setup
     base_query = select(Liabilities).options(
-        joinedload(Liabilities.head),
-        joinedload(Liabilities.sub_heads),
         joinedload(Liabilities.user)
     ).order_by(Liabilities.date.desc())
 
     # Apply user restrictions (Admins see all, regular users see only their own)
     if not current_user.is_superuser:
-        base_query = base_query.where(Liabilities.user_id == current_user.id)
+        base_query = base_query.where(Liabilities.user_id == current_user.id, Liabilities.is_deleted == expression.false())
     if current_user.is_superuser and current_user.id != user_id:
         base_query = base_query.where(Liabilities.user_id == user_id)
 
@@ -127,11 +123,6 @@ def read_liabilities(
             min_amount, max_amount = search_filters["amount_range"]
             conditions.append(Liabilities.amount.between(min_amount, max_amount))
 
-        if search_filters['head']:
-            conditions.append(Liabilities.head.has(Heads.heads.ilike(f"%{search_filters['head']}%")))
-        if search_filters['subhead']:
-            conditions.append(Liabilities.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['subhead']}%")))
-
         if search_filters["general"]:
             general_conditions = []
             for term in search_filters["general"]:
@@ -156,8 +147,8 @@ def read_liabilities(
         {
             **item.dict(),
             "user": item.user.name if item.user else None,
-            "head": item.head.heads if item.head else None,
-            "sub_heads": item.sub_heads.subheads if item.sub_heads else None,
+            # "head": item.head.heads if item.head else None,
+            # "sub_heads": item.sub_heads.subheads if item.sub_heads else None,
         }
         for item in session.exec(base_query).all()
     ]
@@ -205,8 +196,8 @@ def create_liability(
     response = item.dict()
     response.update({
         "user": item.user.name if item.user else None,
-        "head": item.head.heads if item.head else None,
-        "sub_heads": item.sub_heads.subheads if item.sub_heads else None
+        # "head": item.head.heads if item.head else None,
+        # "sub_heads": item.sub_heads.subheads if item.sub_heads else None
     })
 
 
@@ -245,6 +236,33 @@ def create_liability(
     # session.add(history_entry)
     # session.commit()
 
+    return response
+
+
+@router.get("/{id}")
+def read_liability(session: SessionDep, current_user: CurrentUser, id: int) -> Any:
+    """
+    Get item by ID.
+    """
+    item = session.get(Liabilities, id)
+    response = {
+        "id": item.id,
+        "name": item.name,
+        # "head_id": item.head_id,
+        # "subhead_id": item.subhead_id,
+        "fund_details": item.fund_details,
+        "amount": item.amount,
+        "type": item.type,
+        "remaining_balance": item.remaining_balance,
+        "payment_to": item.payment_to,
+        "payment_method": item.payment_method,
+        "date": item.date
+    }
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.user_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    # return item
     return response
 
 
@@ -451,8 +469,8 @@ def update_liability(
     response = item.dict()
     response.update({
         "user": item.user.name if item.user else None,
-        "head": item.head.heads if item.head else None,
-        "sub_heads": item.sub_heads.subheads if item.sub_heads else None
+        # "head": item.head.heads if item.head else None,
+        # "sub_heads": item.sub_heads.subheads if item.sub_heads else None
     })
 
     # Log the update activity

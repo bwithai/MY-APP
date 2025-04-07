@@ -322,6 +322,7 @@ def get_yearly_balance(session: SessionDep, current_user: CurrentUser, year: int
 
 @router.get("/{year}/{month}/{user_id}")
 def get_monthly_balance(session: SessionDep, current_user: CurrentUser, year: int, month: str, user_id: int):
+    print("----------->: ", year, month, user_id)
     month_index = list(calendar.month_name).index(month)
     start_date, end_date = get_month_range(year, month_index)
     # Fetch monthly balance data
@@ -335,7 +336,6 @@ def get_weekly_balance(
         start_date: str, end_date: str, user_id: int):
     start_date = datetime.strptime(start_date, "%Y-%m-%d")
     end_date = datetime.strptime(end_date, "%Y-%m-%d")
-    start_date += timedelta(days=1)
-    end_date += timedelta(days=1)
+    print(start_date, end_date)
     range_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
     return range_balance

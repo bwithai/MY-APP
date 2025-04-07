@@ -85,7 +85,7 @@ def upgrade():
     sa.Column('unit_id', sa.Integer(), nullable=True),
     sa.Column('appt', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('iban', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('updated_password_status', sa.Boolean(), nullable=False),
+    sa.Column('update_password_status', sa.Boolean(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_superuser', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['brigade_id'], ['brigades.id'], ),

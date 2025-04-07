@@ -177,7 +177,7 @@ def create_outflow(
     # Extract payment method and amount
     payment_method = item.payment_type
     amount = item.cost
-    is_asset = True if item.type == "Non Expendable" else False
+    is_asset = True if item.type == "NONEXPANDABLE" else False
 
     if is_asset:
         salvage = get_salvage(amount)
@@ -198,7 +198,7 @@ def create_outflow(
 
     if user_balance:
         # Check for sufficient funds based on payment method
-        balance_field = 'cash_in_hand' if payment_method == "Cash Transfer" else 'cash_in_bank'
+        balance_field = 'cash_in_hand' if payment_method == "cash" else 'cash_in_bank'
         if getattr(user_balance, balance_field) < amount:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -277,7 +277,7 @@ def update_outflow(
         raise HTTPException(status_code=400, detail="User balance record not found")
 
     # Step 1: Ensure there's enough balance in the new payment method for the updated outflow
-    new_balance_field = 'cash_in_hand' if new_payment_method == "Cash Transfer" else 'cash_in_bank'
+    new_balance_field = 'cash_in_hand' if new_payment_method == "cash" else 'cash_in_bank'
     if getattr(user_balance, new_balance_field) < new_amount:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -286,7 +286,7 @@ def update_outflow(
 
     # Step 2: Revert the previous payment method's deduction
     if old_payment_method != new_payment_method or old_amount != new_amount:  # Only if the payment method changes
-        old_balance_field = 'cash_in_hand' if old_payment_method == "Cash Transfer" else 'cash_in_bank'
+        old_balance_field = 'cash_in_hand' if old_payment_method == "cash" else 'cash_in_bank'
         setattr(user_balance, old_balance_field,
                 getattr(user_balance, old_balance_field, Decimal('0.00')) + old_amount)
 
@@ -412,7 +412,7 @@ def delete_item(
         raise HTTPException(status_code=400, detail="User balance record not found")
 
     # Add the amount back to the balance field based on payment method
-    balance_field = 'cash_in_hand' if payment_method == "Cash Transfer" else 'cash_in_bank'
+    balance_field = 'cash_in_hand' if payment_method == "cash" else 'cash_in_bank'
     old_balance = getattr(user_balance, balance_field, Decimal('0.00'))
     setattr(user_balance, balance_field, old_balance + amount)
 

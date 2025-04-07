@@ -18,7 +18,7 @@ class InflowCreate(InflowBase):
     subhead_id: Optional[int] = None
     iban_id: Optional[int] = None
     date: Optional[datetime] = None  # date_of_entry
-    received_from: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    received_from: Optional[str] | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
 
 
 # Properties to receive on item update
@@ -26,7 +26,7 @@ class InflowUpdate(InflowBase):
     head_id: Optional[int] = None
     subhead_id: Optional[int] = None
     date: Optional[datetime] = None  # date_of_entry
-    received_from: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    received_from: Optional[str] | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
 
 
 # Properties to return via API, id is always required

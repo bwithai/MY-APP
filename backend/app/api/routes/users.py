@@ -141,7 +141,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
         "status": user.status,
         "is_active": user.is_active,
         "is_superuser": user.is_superuser,
-        "updated_password_status": user.updated_password_status,
+        "update_password_status": user.update_password_status,
         "corp": user.corp.name if user.corp else None,  # Extract name from corp
         "divs": user.divs.name if user.divs else None,  # Extract name from divs
         "brigade": user.brigade.name if user.brigade else None,  # Extract name from brigade
@@ -203,7 +203,7 @@ def update_user_me(
         "status": current_user.status,
         "is_active": current_user.is_active,
         "is_superuser": current_user.is_superuser,
-        "updated_password_status": current_user.updated_password_status,
+        "update_password_status": current_user.update_password_status,
         "corp": current_user.corp.name if current_user.corp else None,  # Extract name from corp
         "divs": current_user.divs.name if current_user.divs else None,  # Extract name from divs
         "brigade": current_user.brigade.name if current_user.brigade else None,  # Extract name from brigade
@@ -247,7 +247,7 @@ def update_password_me(
         )
     hashed_password = get_password_hash(body.new_password)
     current_user.password = hashed_password
-    current_user.updated_password_status = True
+    current_user.update_password_status = True
     session.add(current_user)
     session.commit()
 
@@ -276,7 +276,7 @@ def read_user_me(current_user: CurrentUser) -> Any:
         "status": current_user.status,
         "is_active": current_user.is_active,
         "is_superuser": current_user.is_superuser,
-        "updated_password_status": current_user.updated_password_status,
+        "update_password_status": current_user.update_password_status,
         "corp": current_user.corp.name if current_user.corp else None,  # Extract name from corp
         "divs": current_user.divs.name if current_user.divs else None,  # Extract name from divs
         "brigade": current_user.brigade.name if current_user.brigade else None,  # Extract name from brigade
@@ -376,7 +376,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         "status": user.status,
         "is_active": user.is_active,
         "is_superuser": user.is_superuser,
-        "updated_password_status": user.updated_password_status,
+        "update_password_status": user.update_password_status,
         "corp": user.corp.name if user.corp else None,  # Extract name from corp
         "divs": user.divs.name if user.divs else None,  # Extract name from divs
         "brigade": user.brigade.name if user.brigade else None,  # Extract name from brigade
@@ -438,7 +438,7 @@ def read_user_by_id(
         "status": user.status,
         "is_active": user.is_active,
         "is_superuser": user.is_superuser,
-        "updated_password_status": user.updated_password_status,
+        "update_password_status": user.update_password_status,
         "corp": user.corp.name if user.corp else None,  # Extract name from corp
         "divs": user.divs.name if user.divs else None,  # Extract name from divs
         "brigade": user.brigade.name if user.brigade else None,  # Extract name from brigade
@@ -521,7 +521,7 @@ def update_user(
         "status": db_user.status,
         "is_active": db_user.is_active,
         "is_superuser": db_user.is_superuser,
-        "updated_password_status": db_user.updated_password_status,
+        "update_password_status": db_user.update_password_status,
         "corp": db_user.corp.name if db_user.corp else None,  # Extract name from corp
         "divs": db_user.divs.name if db_user.divs else None,  # Extract name from divs
         "brigade": db_user.brigade.name if db_user.brigade else None,  # Extract name from brigade
