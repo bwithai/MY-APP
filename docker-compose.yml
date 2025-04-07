@@ -107,7 +107,7 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
     volumes:
-      - ./backend/app/cf_models/outflows.py:/app/app/cf_models/outflows.py  # Mount specific file
+      - ./backend/app:/app/app  # Only mount the app directory
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
@@ -141,6 +141,8 @@ services:
     networks:
       - traefik-public
       - default
+    volumes:
+      - ./frontend/public/js:/usr/share/nginx/html/js  # Mount local JS directory
     build:
       context: ./frontend
       args:

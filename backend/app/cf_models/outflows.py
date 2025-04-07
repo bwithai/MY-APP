@@ -8,10 +8,10 @@ from sqlmodel import SQLModel, Field
 # Shared properties
 class OutflowBase(SQLModel):
     head_details: Optional[str] = Field(min_length=1, max_length=255)
-    type: str = Field(min_length=1, max_length=255)
+    type: Optional[str] = Field(min_length=1, max_length=255)
     cost: Optional[Decimal] = None
-    payment_type: str = Field(min_length=1, max_length=255)
-    payment_to: str = Field(min_length=1, max_length=255)  # type: ignore
+    payment_type: Optional[str] = Field(min_length=1, max_length=255)
+    payment_to: Optional[str] = Field(min_length=1, max_length=255)  # type: ignore
 
 
 # Properties to receive on item creation
@@ -30,7 +30,7 @@ class OutflowUpdate(OutflowBase):
     subhead_id: Optional[int] = None
     expense_date: Optional[datetime] = None  # Outflow Date
     place_type: Optional[str] = None
-    received_from: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    received_from: Optional[str] | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
 
 
 # Properties to return via API, id is always required
