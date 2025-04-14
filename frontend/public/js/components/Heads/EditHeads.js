@@ -66,11 +66,7 @@ var EditHeads = {
     },
     
     close: function() {
-        var modal = document.getElementById('editHeadModal');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.removeChild(modal);
-        }
+        Utils.cleanup('editHeadModal');
     },
     
     setupEventListeners: function() {
@@ -179,11 +175,10 @@ var EditHeads = {
         // Call API to update head
         ApiClient.updateHead(this.head.id, headData)
             .then(function(response) {
-                // Show success message
-                Utils.showMessage('success', 'Head updated successfully');
-                
                 // Close modal
                 this.close();
+                // Show success message
+                Utils.onSuccess('edit', 'Head');
                 
                 // Call the callback function if provided
                 if (typeof this.onUpdated === 'function') {

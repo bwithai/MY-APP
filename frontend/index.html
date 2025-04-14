@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/DateRangePicker.css">
     <link rel="stylesheet" href="/css/yearDate.css">
+    <link rel="stylesheet" href="/css/settingsIVY.css">
   </head>
   <body>
     <div id="app">
@@ -43,7 +44,69 @@
     <script src="/js/api-client.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/sidebar.js"></script>
-    <!-- Load All Routes -->
+    
+    <!-- Load Common Components before specific ones -->
+    <script src="/js/components/common/ActionsMenu.js"></script>
+    <script src="/js/components/common/DateOfEntry.js"></script>
+    <script src="/js/components/common/DeleteAlert.js"></script>
+    
+    <!-- Component loading debug utility -->
+    <script src="/js/components/IVY/component-loader.js"></script>
+    
+    <!-- Load IVY Components -->
+    <script src="/js/components/IVY/SettingsIVY.js"></script>
+    <script src="/js/components/IVY/ChangeBrigade.js"></script>
+    <script src="/js/components/IVY/ChangeDiv.js"></script>
+    <script src="/js/components/IVY/ChangeUnit.js"></script>
+    
+    <!-- Load User Settings Components -->
+    <script src="/js/components/UserSettings/UserInformation.js"></script>
+    <script src="/js/components/UserSettings/ChangePassword.js"></script>
+    
+    <!-- Load Flow Components -->
+    <script src="/js/components/Flow/AddIban.js"></script>
+    
+    <!-- Load Heads Components -->
+    <script src="/js/components/Heads/AddHead.js"></script>
+    <script src="/js/components/Heads/EditHeads.js"></script>
+    <script src="/js/components/Heads/AddSubHead.js"></script>
+    <script src="/js/components/Heads/HeadsManagement.js"></script>
+    
+    <!-- Load Dashboard Components -->
+    <script src="/js/components/Dashboard/WellcomeBox.js"></script>
+    <script src="/js/components/Dashboard/FinancialOverview.js"></script>
+    <script src="/js/components/Dashboard/DateRangePicker.js"></script>
+    <script src="/js/components/Dashboard/InflowOutflowOverview.js"></script>
+    <script src="/js/components/Dashboard/EarlyChart.js"></script>
+    
+    <!-- Load Inflow Components -->
+    <script src="/js/components/inflow/AddInflow.js"></script>
+    <script src="/js/components/inflow/EditInflow.js"></script>
+    
+    <!-- Load Outflow Components -->
+    <script src="/js/components/outflow/AddOutflow.js"></script>
+    <script src="/js/components/outflow/EditOutflow.js"></script>
+    
+    <!-- Load Investment Components -->
+    <script src="/js/components/investment/AddInvestment.js"></script>
+    <script src="/js/components/investment/EditInvestment.js"></script>
+    <script src="/js/components/investment/InvestHistory.js"></script>
+    
+    <!-- Load Liability Components -->
+    <script src="/js/components/liability/AddLiability.js"></script>
+    <script src="/js/components/liability/EditLiability.js"></script>
+    <script src="/js/components/liability/PayLiability.js"></script>
+    <script src="/js/components/liability/LiabilityHistory.js"></script>
+    
+    <!-- Load Assets Components -->
+    <script src="/js/components/assets/EditAsset.js"></script>
+    <script src="/js/components/assets/ViewAsset.js"></script>
+    <script src="/js/components/assets/DisposeAsset.js"></script>
+    
+    <!-- Load Admin Components -->
+    <script src="/js/components/Admin/UsersTable.js"></script>
+    
+    <!-- Load Routes AFTER all components are loaded -->
     <script src="/js/routes/dashboard.js"></script>
     <script src="/js/routes/inflow.js"></script>
     <script src="/js/routes/outflow.js"></script>
@@ -52,48 +115,8 @@
     <script src="/js/routes/assets.js"></script>
     <script src="/js/routes/settings.js"></script>
     <script src="/js/routes/admin.js"></script>
-    <!-- Load Flow Components -->
-    <script src="/js/components/Flow/AddIban.js"></script>
-    <!-- Load Heads Components -->
-    <script src="/js/components/Heads/AddHead.js"></script>
-    <script src="/js/components/Heads/EditHeads.js"></script>
-    <script src="/js/components/Heads/AddSubHead.js"></script>
-    <script src="/js/components/Heads/HeadsManagement.js"></script>
-    <!-- Load Dashboard Components -->
-    <script src="/js/components/Dashboard/WellcomeBox.js"></script>
-    <script src="/js/components/Dashboard/FinancialOverview.js"></script>
-    <script src="/js/components/Dashboard/DateRangePicker.js"></script>
-    <script src="/js/components/Dashboard/InflowOutflowOverview.js"></script>
-    <script src="/js/components/Dashboard/EarlyChart.js"></script>
-    <!-- Load Inflow Components -->
-    <script src="/js/components/inflow/AddInflow.js"></script>
-    <script src="/js/components/inflow/EditInflow.js"></script>
-    <!-- Load Outflow Components -->
-    <script src="/js/components/outflow/AddOutflow.js"></script>
-    <script src="/js/components/outflow/EditOutflow.js"></script>
-    <!-- Load Investment Components -->
-    <script src="/js/components/investment/AddInvestment.js"></script>
-    <script src="/js/components/investment/EditInvestment.js"></script>
-    <script src="/js/components/investment/InvestHistory.js"></script>
-    <!-- Load Liability Components -->
-    <script src="/js/components/liability/AddLiability.js"></script>
-    <script src="/js/components/liability/EditLiability.js"></script>
-    <script src="/js/components/liability/PayLiability.js"></script>
-    <script src="/js/components/liability/LiabilityHistory.js"></script>
-    <!-- Load Assets Components -->
-    <script src="/js/components/assets/EditAsset.js"></script>
-    <script src="/js/components/assets/ViewAsset.js"></script>
-    <script src="/js/components/assets/DisposeAsset.js"></script>
-    <!-- Load Admin Components -->
-    <script src="/js/components/Admin/UsersTable.js"></script>
-    <!-- Load Common Components -->
-    <script src="/js/components/common/ActionsMenu.js"></script>
-    <script src="/js/components/common/DateOfEntry.js"></script>
-    <script src="/js/components/common/DeleteAlert.js"></script>
-    <!-- Load User Settings Components -->
-    <script src="/js/components/UserSettings/UserInformation.js"></script>
-    <script src="/js/components/UserSettings/ChangePassword.js"></script>
-    <!-- Load Index Components -->
+    
+    <!-- Main app initialization - should be last -->
     <script src="/js/index.js"></script>
     
   </body>

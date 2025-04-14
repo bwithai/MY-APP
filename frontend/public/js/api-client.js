@@ -567,7 +567,113 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
-
+    // ---------------------------->>>  IVY Read <<<----------------------------
+    readIvy: function() {
+        return fetch(this.baseUrl + 'common/ivy', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    // ---------------------------->>>  IVY Update <<<----------------------------    
+    updateDive: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/div', {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },  
+    updateBrigade: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/brigade', {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'  
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    updateUnit: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/unit', {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    // ---------------------------->>>  IVY Create <<<----------------------------
+    createCorp: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/corp', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    createDiv: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/div', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    createBrig: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/brigade', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    createUnit: function(data) {
+        return fetch(this.baseUrl + 'common/ivy/unit', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    // ---------------------------->>>  IVY Delete <<<----------------------------
+    deleteIVY: function(data) {
+        return fetch(this.baseUrl + 'common/ivy-deletion/' + data.flag + '/' + data.id, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
     /*------------------------------------ End of Heads API calls -------------------------------------*/
 
     getIBANs: function(userId) {

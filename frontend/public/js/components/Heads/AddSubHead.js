@@ -54,11 +54,7 @@ var AddSubHead = {
     },
     
     close: function() {
-        var modal = document.getElementById('addSubHeadModal');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.removeChild(modal);
-        }
+        Utils.cleanup('addSubHeadModal');
     },
     
     setupEventListeners: function() {
@@ -142,12 +138,10 @@ var AddSubHead = {
         // Call API to create sub head
         ApiClient.createSubHead(subHeadData)
             .then(function(response) {
-                // Show success message
-                Utils.showMessage('success', 'Sub head created successfully');
-                
                 // Close modal
                 this.close();
-                
+                // Show success message
+                Utils.onSuccess('add', 'Sub Head');
                 // Call the callback function if provided
                 if (typeof this.onCreated === 'function') {
                     this.onCreated();

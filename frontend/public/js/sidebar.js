@@ -62,7 +62,8 @@ var Sidebar = {
         
         var sidebarContent = '<div class="sidebar-content">' +
             '<div class="sidebar-header">' +
-            '<img src="/assets/images/logo.png" alt="Logo" class="sidebar-logo">' +
+            '<h2 class="sidebar-title" style="font-size: 1.7rem;">Command Fund</h2>' +
+            // '<img src="/assets/images/logo.png" alt="Logo" class="sidebar-logo">' +
             '</div>' +
             '<nav class="sidebar-nav">' +
             this.renderNavItems() +

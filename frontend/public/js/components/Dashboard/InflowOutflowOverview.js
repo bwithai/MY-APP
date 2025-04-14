@@ -107,11 +107,11 @@ var InflowOutflowOverview = {
                 }
                 
                 .inflow-card {
-                    background: linear-gradient(135deg, rgb(76, 194, 184), rgb(102, 185, 164));
+                    background: linear-gradient(135deg, rgba(0, 102, 0, 0.95) 0%,rgba(1, 65, 28, 0.9) 100%);
                 }
                 
                 .outflow-card {
-                    background: linear-gradient(135deg, rgb(228, 103, 94), rgb(207, 121, 120));
+                    background: linear-gradient(135deg, rgb(143, 1, 1),rgb(143, 1, 1));
                 }
                 
                 .card-icon {

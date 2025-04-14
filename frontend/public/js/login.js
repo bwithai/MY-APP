@@ -17,8 +17,7 @@ var LoginApp = {
         content.innerHTML = `
             <div class="login-container">
                 <div class="text-center">
-                    <img src="/assets/images/logo.png" alt="Logo" class="login-logo">
-                    <h2 class="login-title"></h2>
+                    <h2 class="login-title">Command Fund Management</h2>
                 </div>
                 <form id="loginForm" class="login-form">
                     <div class="form-group">
@@ -58,9 +57,6 @@ var LoginApp = {
                         </div>
                         <div class="error-message password-error"></div>
                     </div>
-                    <div class="form-group text-end">
-                        <a href="/recover-password" class="forgot-link">Forgot password?</a>
-                    </div>
                     <button type="submit" class="btn btn-primary btn-block">
                         <span class="normal-text">Login</span>
                         <span class="loading-text d-none">
@@ -68,9 +64,6 @@ var LoginApp = {
                             <span>Logging in...</span>
                         </span>
                     </button>
-                    <div class="signup-link">
-                        Don't have an account? <a href="/signup">Sign up</a>
-                    </div>
                 </form>
             </div>
         `;

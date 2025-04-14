@@ -65,11 +65,7 @@ var AddHead = {
     },
     
     close: function() {
-        var modal = document.getElementById('addHeadModal');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.removeChild(modal);
-        }
+        Utils.cleanup('addHeadModal');
     },
     
     setupEventListeners: function() {
@@ -165,11 +161,12 @@ var AddHead = {
         // Call API to create head
         ApiClient.createHead(headData)
             .then(function(response) {
-                // Show success message
-                Utils.showMessage('success', 'Head created successfully');
-                
                 // Close modal
                 this.close();
+                // Show success message
+                Utils.onSuccess('add', 'Head');
+                
+                
                 
                 // Call the callback function if provided
                 if (typeof this.onCreated === 'function') {

@@ -76,8 +76,15 @@ def format_yearly_data(session, current_user, year: int, user_id) -> Dict[int, D
         # Fetch monthly balance data
         monthly_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
 
-        # Only add months with relevant data
-        if monthly_balance["inflow"] or monthly_balance["outflow"]:
+        # Check if any financial data exists for the month
+        has_data = any([
+            monthly_balance["inflow"],
+            monthly_balance["outflow"],
+            monthly_balance["investment"],
+            monthly_balance["liability"]
+        ])
+
+        if has_data:
             monthly_data[calendar.month_name[month]] = {
                 "weeklyLabels": weekly_labels,
                 "inflow": weekly_inflow,
@@ -145,7 +152,8 @@ def format_weekly_data(session, current_user, month, year):
 
 
 def get_balance_data(session, current_user, start_date, end_date, user_id: int | None = None):
-    if current_user.is_superuser and current_user.id == user_id:
+    if current_user.is_superuser and user_id == current_user.id:
+        # Superuser wants to see all data
         cash_in_hand = session.query(func.sum(Balances.cash_in_hand)).scalar() or Decimal(0.00)
         cash_in_bank = session.query(func.sum(Balances.cash_in_bank)).scalar() or Decimal(0.00)
 
@@ -171,16 +179,13 @@ def get_balance_data(session, current_user, start_date, end_date, user_id: int |
                    Liabilities.date <= end_date)
         )
     else:
-        if user_id:
-            query_user_id = user_id
-        else:
-            query_user_id = current_user.id
+        # Either regular user or superuser viewing specific user data
+        query_user_id = user_id if user_id else current_user.id
 
         user_balance = session.query(Balances).filter(Balances.user_id == query_user_id).first()
         if user_balance is None:
-            # Handle the case where the balance does not exist
-            cash_in_hand = 0  # Default value
-            cash_in_bank = 0  # Default value
+            cash_in_hand = Decimal(0.00)
+            cash_in_bank = Decimal(0.00)
         else:
             cash_in_hand = user_balance.cash_in_hand or Decimal(0.00)
             cash_in_bank = user_balance.cash_in_bank or Decimal(0.00)
@@ -223,10 +228,10 @@ def get_balance_data(session, current_user, start_date, end_date, user_id: int |
             )
         )
 
-    inflow = session.exec(inflow_statement).one()
-    outflow = session.exec(outflow_statement).one()
-    investment = session.exec(invest_statement).one()
-    liability = session.exec(liability_statement).one()
+    inflow = session.exec(inflow_statement).one() or Decimal(0.00)
+    outflow = session.exec(outflow_statement).one() or Decimal(0.00)
+    investment = session.exec(invest_statement).one() or Decimal(0.00)
+    liability = session.exec(liability_statement).one() or Decimal(0.00)
 
     return {
         "cash_in_hand": cash_in_hand,

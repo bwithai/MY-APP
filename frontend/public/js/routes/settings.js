@@ -90,6 +90,8 @@ var SettingsApp = {
         var componentName = this.finalTabs[tabIndex].component;
         contentContainer.innerHTML = '';
         
+        console.log('Rendering tab content for:', componentName);
+        
         // Render the appropriate content based on the selected tab
         switch(componentName) {
             case 'UserInformation':
@@ -97,8 +99,8 @@ var SettingsApp = {
                 if (typeof UserInformation !== 'undefined') {
                     UserInformation.init(contentContainer, this.currentUser);
                 } else {
-                    contentContainer.innerHTML = '<div class="settings-panel"><p>User Information component not loaded.</p></div>';
                     console.error('UserInformation component not found');
+                    contentContainer.innerHTML = '<div class="settings-panel"><p>User Information component not loaded.</p></div>';
                 }
                 break;
             case 'ChangePassword':
@@ -106,8 +108,8 @@ var SettingsApp = {
                 if (typeof ChangePassword !== 'undefined') {
                     ChangePassword.init(contentContainer);
                 } else {
-                    contentContainer.innerHTML = '<div class="settings-panel"><p>Change Password component not loaded.</p></div>';
                     console.error('ChangePassword component not found');
+                    contentContainer.innerHTML = '<div class="settings-panel"><p>Change Password component not loaded.</p></div>';
                 }
                 break;
             case 'HeadsManagement':
@@ -115,12 +117,13 @@ var SettingsApp = {
                 if (typeof HeadsManagement !== 'undefined') {
                     HeadsManagement.init(contentContainer);
                 } else {
-                    contentContainer.innerHTML = '<div class="settings-panel"><p>Heads Management component not loaded.</p></div>';
                     console.error('HeadsManagement component not found');
+                    contentContainer.innerHTML = '<div class="settings-panel"><p>Heads Management component not loaded.</p></div>';
                 }
                 break;
             case 'SettingsIVY':
-                this.renderSettingsIVY(contentContainer);
+                // Use the SettingsIVY component
+                this.loadSettingsIVYComponent(contentContainer);
                 break;
             case 'UserAppoint':
                 this.renderUserAppoint(contentContainer);
@@ -130,46 +133,53 @@ var SettingsApp = {
         }
     },
     
-    renderSettingsIVY: function(container) {
-        container.innerHTML = `
-            <div class="settings-panel">
-                <h2>IVY Settings</h2>
-                <div class="ivy-settings">
-                    <div class="form-group">
-                        <label for="ivyApiKey">API Key</label>
-                        <input type="text" id="ivyApiKey" class="form-control" />
-                    </div>
-                    <div class="form-group">
-                        <label for="ivyEndpoint">Endpoint URL</label>
-                        <input type="text" id="ivyEndpoint" class="form-control" />
-                    </div>
-                    <div class="form-group">
-                        <label>Features</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="featureAutomation"> 
-                                <span>Enable Automation</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="featureReporting"> 
-                                <span>Enable Reporting</span>
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="featureAnalytics"> 
-                                <span>Enable Analytics</span>
-                            </label>
-                        </div>
-                    </div>
-                    <button type="button" id="saveIvySettings" class="btn btn-primary">Save Settings</button>
-                </div>
-            </div>
-        `;
+    loadSettingsIVYComponent: function(contentContainer) {
+        console.log('Checking for SettingsIVY component:', typeof SettingsIVY);
         
-        // Setup event listener for save button
-        var saveBtn = document.getElementById('saveIvySettings');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', this.handleSaveIvySettings.bind(this));
+        // Check if component exists
+        if (typeof SettingsIVY !== 'undefined') {
+            try {
+                console.log('Initializing SettingsIVY component...');
+                SettingsIVY.init(contentContainer);
+                console.log('SettingsIVY component initialized');
+            } catch (error) {
+                console.error('Error initializing SettingsIVY component:', error);
+                contentContainer.innerHTML = '<div class="settings-panel"><p>Error initializing IVY Settings component. Check console for details.</p></div>';
+            }
+        } else {
+            console.error('SettingsIVY component not found. Available components:', 
+                Object.keys(window).filter(function(key) { 
+                    return key.includes('IVY') || key.includes('Settings') || key.includes('Component'); 
+                })
+            );
+            
+            // Try to dynamically load the SettingsIVY component
+            this.tryToLoadSettingsIVYScript(contentContainer);
         }
+    },
+    
+    tryToLoadSettingsIVYScript: function(contentContainer) {
+        contentContainer.innerHTML = '<div class="settings-panel"><p>Loading IVY Settings component...</p></div>';
+        
+        // Create a script element to load the SettingsIVY component
+        var script = document.createElement('script');
+        script.src = '/js/components/IVY/SettingsIVY.js';
+        script.onload = function() {
+            console.log('SettingsIVY script loaded dynamically');
+            if (typeof SettingsIVY !== 'undefined') {
+                console.log('SettingsIVY component available after dynamic loading');
+                SettingsIVY.init(contentContainer);
+            } else {
+                console.error('SettingsIVY component still not available after script load');
+                contentContainer.innerHTML = '<div class="settings-panel"><p>Failed to load IVY Settings component.</p></div>';
+            }
+        };
+        script.onerror = function() {
+            console.error('Failed to load SettingsIVY script');
+            contentContainer.innerHTML = '<div class="settings-panel"><p>Failed to load IVY Settings component. Script not found.</p></div>';
+        };
+        
+        document.body.appendChild(script);
     },
     
     renderUserAppoint: function(container) {
@@ -307,23 +317,6 @@ var SettingsApp = {
         if (confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
             alert('Appointment with ID: ' + appointmentId + ' would be deleted here.');
         }
-    },
-    
-    handleSaveIvySettings: function() {
-        var apiKey = document.getElementById('ivyApiKey').value;
-        var endpoint = document.getElementById('ivyEndpoint').value;
-        var featureAutomation = document.getElementById('featureAutomation').checked;
-        var featureReporting = document.getElementById('featureReporting').checked;
-        var featureAnalytics = document.getElementById('featureAnalytics').checked;
-        
-        // Validate inputs
-        if (!apiKey || !endpoint) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-        
-        // Send API request to save settings
-        alert('IVY settings saved successfully!');
     }
 };
 

@@ -79,6 +79,9 @@ var Utils = {
             case 'delete':
                 message = 'Deleted ' + type + ' successfully!';
                 break;
+            case 'error':
+                message = 'Error: ' + type;
+                break;
         }
     
         // Display success message
@@ -119,18 +122,33 @@ var Utils = {
             return value.toFixed(2); // Less than 1,000
         } else if (value < 1000000) {
             return (value / 1000).toFixed(2) + 'K'; // Thousands
-        } else if (value < 1000000000) {
-            return (value / 1000000).toFixed(2) + 'M'; // Millions
-        } else if (value < 1000000000000) {
-            return (value / 1000000000).toFixed(2) + 'B'; // Billions
-        } else if (value < 1000000000000000) {
-            return (value / 1000000000000).toFixed(2) + 'T'; // Trillions
-        } else if (value < 1000000000000000000) {
-            return (value / 1000000000000000).toFixed(2) + 'Q'; // Quadrillions
         } else {
-            return (value / 1000000000000000000).toFixed(2) + 'Qi'; // Quintillions or more
+            return (value / 1000000).toFixed(2) + 'M'; // Millions
         }
     },
+
+    // formatNumber: function(value) {
+    //     value = Number(value);
+    //     if (value == null || isNaN(value)) {
+    //         return 'Invalid number'; // Handle null, undefined, or NaN
+    //     }
+    
+    //     if (value < 1000) {
+    //         return value.toFixed(2); // Less than 1,000
+    //     } else if (value < 1000000) {
+    //         return (value / 1000).toFixed(2) + 'K'; // Thousands
+    //     } else if (value < 1000000000) {
+    //         return (value / 1000000).toFixed(2) + 'M'; // Millions
+    //     } else if (value < 1000000000000) {
+    //         return (value / 1000000000).toFixed(2) + 'B'; // Billions
+    //     } else if (value < 1000000000000000) {
+    //         return (value / 1000000000000).toFixed(2) + 'T'; // Trillions
+    //     } else if (value < 1000000000000000000) {
+    //         return (value / 1000000000000000).toFixed(2) + 'Q'; // Quadrillions
+    //     } else {
+    //         return (value / 1000000000000000000).toFixed(2) + 'Qi'; // Quintillions or more
+    //     }
+    // },
     
     // Common formatDate function to be used across all components
     formatDate: function(dateString, includeTime = false) {

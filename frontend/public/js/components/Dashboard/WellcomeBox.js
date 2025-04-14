@@ -8,7 +8,17 @@ var WelcomeBox = {
             "Welcome back! Here's your financial overview.",
             "Did you check your latest transactions?",
             "Stay on top of your budget today!",
-            "Great to see you! Explore your insights."
+            "Great to see you! Explore your insights.",
+            // "Welcome to our financial management platform. By using this service, you acknowledge and agree to the following terms and conditions.",
+            // "The financial information provided through this platform is for general guidance only and should not be considered as professional financial advice.",
+            // "While we strive to maintain accurate and up-to-date information, we cannot guarantee the completeness, accuracy, or reliability of any data presented.",
+            // "Users are solely responsible for their financial decisions and should exercise due diligence when managing their finances through our platform.",
+            // "We are not liable for any losses, damages, or consequences that may arise from the use of our services or reliance on the information provided.",
+            // "The platform's features and functionalities are provided as is without any warranties, either express or implied.",
+            // "All financial transactions processed through this platform are subject to verification and relevant banking regulations.",
+            // "Users must maintain the confidentiality of their account credentials and immediately report any unauthorized access or suspicious activities.",
+            // "We reserve the right to modify, suspend, or terminate any aspect of our services without prior notice.",
+            // "By continuing to use this platform, you agree to these terms and acknowledge your understanding of the associated risks and limitations."
         ];
         
         this.render();
@@ -63,7 +73,7 @@ var WelcomeBox = {
             
             .welcome-message {
                 font-size: 1.125rem;
-                color: #4a5568;
+                color:rgb(144, 144, 175);
                 margin: 0;
                 animation: fadeIn 0.5s ease-in-out;
             }

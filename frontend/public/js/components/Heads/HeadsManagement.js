@@ -143,18 +143,18 @@ var HeadsManagement = {
                         </div>
                         <div class="head-actions">
                             ${hasSubHeads ? `
-                                <button class="toggle-subheads-btn" data-id="${head.id}">
+                                <button title="Toggle Sub Heads" class="toggle-subheads-btn" data-id="${head.id}">
                                     <i class="fas ${expandIconClass}"></i>
                                 </button>
                             ` : ''}
                             <div class="action-buttons">
-                                <button class="edit-head-btn" data-id="${head.id}">
+                                <button title="Edit Head" class="edit-head-btn" data-id="${head.id}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="add-subhead-btn" data-id="${head.id}">
+                                <button title="Add Sub Head" class="add-subhead-btn" data-id="${head.id}">
                                     <i class="fas fa-plus"></i>
                                 </button>
-                                <button class="delete-head-btn" data-id="${head.id}">
+                                <button title="Delete Head" class="delete-head-btn" data-id="${head.id}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -169,10 +169,12 @@ var HeadsManagement = {
                                         <div class="subhead-content">
                                             <div class="subhead-name">${subhead.subheads}</div>
                                             <div class="subhead-actions">
+                                                <!-- Edit Sub Head 
                                                 <button class="edit-subhead-btn" data-id="${subhead.id}" data-head-id="${head.id}">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button class="delete-subhead-btn" data-id="${subhead.id}" data-head-id="${head.id}">
+                                                -->
+                                                <button title="Delete Sub Head" class="delete-subhead-btn" data-id="${subhead.id}">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -231,18 +233,18 @@ var HeadsManagement = {
         }.bind(this));
         
         // Edit subhead buttons
-        var editSubheadButtons = container.querySelectorAll('.edit-subhead-btn');
-        editSubheadButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.handleEditSubhead(btn.dataset.id, btn.dataset.headId);
-            }.bind(this));
-        }.bind(this));
+        // var editSubheadButtons = container.querySelectorAll('.edit-subhead-btn');
+        // editSubheadButtons.forEach(function(btn) {
+        //     btn.addEventListener('click', function() {
+        //         this.handleEditSubhead(btn.dataset.id, btn.dataset.headId);
+        //     }.bind(this));
+        // }.bind(this));
         
         // Delete subhead buttons
         var deleteSubheadButtons = container.querySelectorAll('.delete-subhead-btn');
         deleteSubheadButtons.forEach(function(btn) {
             btn.addEventListener('click', function() {
-                this.handleDeleteSubhead(btn.dataset.id, btn.dataset.headId);
+                this.handleDeleteSubhead(btn.dataset.id);
             }.bind(this));
         }.bind(this));
     },
@@ -379,27 +381,29 @@ var HeadsManagement = {
             // Call API to delete the head
             ApiClient.deleteHead(headId)
                 .then(function(response) {
-                    Utils.showMessage('success', 'Head deleted successfully');
+                    // Show success message
+                    Utils.onSuccess('delete', 'Head');
                     // Reload the heads list
                     this.loadAllHeads();
                 }.bind(this))
                 .catch(function(error) {
-                    Utils.showMessage('error', 'Failed to delete head: ' + error.message);
+                    Utils.onSuccess('error', 'Failed to delete head: ' + error.message);
                 });
         }
     },
     
-    handleDeleteSubhead: function(subheadId, headId) {
+    handleDeleteSubhead: function(subheadId) {
+        console.log("subheadId:", subheadId);
         if (confirm('Are you sure you want to delete this subhead? This action cannot be undone.')) {
             // Call API to delete the subhead
-            ApiClient.deleteSubhead(subheadId)
+            ApiClient.deleteSubHead(subheadId)
                 .then(function(response) {
-                    Utils.showMessage('success', 'Subhead deleted successfully');
+                    Utils.onSuccess('delete', 'Sub Head');
                     // Reload the heads list
                     this.loadAllHeads();
                 }.bind(this))
                 .catch(function(error) {
-                    Utils.showMessage('error', 'Failed to delete subhead: ' + error.message);
+                    Utils.onSuccess('error', 'Failed to delete head: ' + error.message);
                 });
         }
     },

@@ -152,7 +152,7 @@ var DashboardApp = {
                     width: 100%;
                     margin-top: 16px;
                     padding: 8px;
-                    background: #50C878;
+                    background: linear-gradient(135deg,rgb(110, 136, 101), rgb(113, 145, 101));
                     border-radius: 4px;
                     text-align: center;
                     color: white;
@@ -164,7 +164,7 @@ var DashboardApp = {
                 }
                 
                 .all-time-btn:hover {
-                    background: #388e3c;
+                    background: rgb(61, 85, 53);
                 }
                 
                 .search-container {
@@ -865,7 +865,7 @@ var DashboardApp = {
                             <div class="transaction-description">${transaction.description}</div>
                             <div class="transaction-date">${transaction.date}</div>
                         </div>
-                        <div class="transaction-amount">${isInflow ? '+' : '-'} ₨ ${transaction.amount}</div>
+                        <div class="transaction-amount" style="color: white;">${isInflow ? '+' : '-'} ₨ ${transaction.amount}</div>
                     </div>
                 `;
             });
@@ -906,6 +906,7 @@ var DashboardApp = {
                     background-color: white;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                     margin-bottom: 12px;
+                    color: white;
                 }
                 
                 .transaction-icon {
@@ -920,12 +921,12 @@ var DashboardApp = {
                 
                 .inflow-card .transaction-icon {
                     background-color: rgba(135, 196, 160, 0.2);
-                    color: #38A169;
+                    color: white;
                 }
                 
                 .outflow-card .transaction-icon {
                     background-color: rgba(197, 136, 136, 0.2);
-                    color: #E53E3E;
+                    color: white;
                 }
                 
                 .transaction-details {
@@ -939,7 +940,7 @@ var DashboardApp = {
                 
                 .transaction-date {
                     font-size: 0.875rem;
-                    color: #718096;
+                    color: white;
                 }
                 
                 .transaction-amount {

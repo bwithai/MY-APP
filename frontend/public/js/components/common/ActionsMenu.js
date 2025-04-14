@@ -25,68 +25,105 @@ var ActionsMenu = {
 
             menuHtml += "<div id='" + menuId + "' class='action-menu-dropdown'>";
             
-            // Edit option
-            if (this.type === 'Asset') {
-                // Store this exact asset in a dataset attribute for retrieval later
-                var assetDataAttr = "data-asset='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "'";
-                menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
-                           "onclick=\"ActionsMenu.handleEdit(this)\">" +
-                           "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
-                           "Edit " + this.type +
-                           "</div>";
-            } else {
-                menuHtml += "<div class='action-menu-item' " +
-                           "onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
-                           "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
-                           "Edit " + this.type +
-                           "</div>";
-            }
-
-            // Pay Liability option (if applicable)
-            if (this.type === 'Liability' && !this.options.isPaid && !this.options.isDelete) {
-                menuHtml += "<div class='action-menu-item' " +
-                           "onclick=\"ActionsMenu.handlePayLiability(" + this.value.id + ")\">" +
-                           "<i class='fas fa-credit-card' style='color: lightblue;'></i> " +
-                           "Pay Liability" +
-                           "</div>";
-            }
-            
-            // History option (for Liability and Investment)
-            if (this.type === 'Liability' || this.type === 'Investment') {
-                menuHtml += "<div class='action-menu-item' " +
-                           "onclick=\"ActionsMenu.handleViewHistory(" + this.value.id + ")\">" +
-                           "<i class='fas fa-history' style='color: darkgray;'></i> " +
-                           this.type + " History" +
-                           "</div>";
-            }
-
-            // View option (for Asset)
-            if (this.type === 'Asset') {
-                // Store this exact asset in a dataset attribute for retrieval later
-                var assetDataAttr = "data-asset='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "'";
-                menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
-                           "onclick=\"ActionsMenu.handleViewAsset(this)\">" +
-                           "<i class='fas fa-eye' style='color: darkgray;'></i> " +
-                           "View Asset" +
-                           "</div>";
-                           
-                // Add Dispose Asset option if not already disposed
-                if (!this.value.dispose_status) {
-                    menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
-                               "onclick=\"ActionsMenu.handleDisposeAsset(this)\">" +
-                               "<i class='fas fa-archive' style='color: orange;'></i> " +
-                               "Dispose Asset" +
+            // IVY-specific menu items
+            if (this.type === 'Corp' || this.type === 'Division' || this.type === 'Brigade' || this.type === 'Unit') {
+                var entityDataAttr = "data-entity='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "' data-type='" + this.type + "'";
+                
+                // Change operation for each IVY entity type
+                if (this.type === 'Corp') {
+                    // Corps only have delete operation in our implementation
+                } else if (this.type === 'Division') {
+                    menuHtml += "<div class='action-menu-item' " + entityDataAttr + " " +
+                               "onclick=\"ActionsMenu.handleChangeDiv(this)\">" +
+                               "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                               "Change Corps" +
+                               "</div>";
+                } else if (this.type === 'Brigade') {
+                    menuHtml += "<div class='action-menu-item' " + entityDataAttr + " " +
+                               "onclick=\"ActionsMenu.handleChangeBrigade(this)\">" +
+                               "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                               "Change Division" +
+                               "</div>";
+                } else if (this.type === 'Unit') {
+                    menuHtml += "<div class='action-menu-item' " + entityDataAttr + " " +
+                               "onclick=\"ActionsMenu.handleChangeUnit(this)\">" +
+                               "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                               "Change Brigade" +
                                "</div>";
                 }
-            }
-
-            // Delete option (if enabled)
-            if (this.options.canDelete) {
-                menuHtml += "<div class='action-menu-item' " +
-                           "onclick=\"ActionsMenu.handleDelete(" + this.value.id + ")\">" +
+                
+                // Delete operation for all IVY entity types
+                menuHtml += "<div class='action-menu-item' " + entityDataAttr + " " +
+                           "onclick=\"ActionsMenu.handleDeleteIVY(this)\">" +
                            "<i class='fas fa-trash' style='color: red;'></i> " +
                            "Delete " + this.type +
                            "</div>";
+            }
+            // Handle non-IVY types using existing code
+            else {
+                // Edit option
+                if (this.type === 'Asset') {
+                    // Store this exact asset in a dataset attribute for retrieval later
+                    var assetDataAttr = "data-asset='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "'";
+                    menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
+                               "onclick=\"ActionsMenu.handleEdit(this)\">" +
+                               "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                               "Edit " + this.type +
+                               "</div>";
+                } else {
+                    menuHtml += "<div class='action-menu-item' " +
+                               "onclick=\"ActionsMenu.handleEdit(" + this.value.id + ")\">" +
+                               "<i class='fas fa-edit' style='color: darkgreen;'></i> " +
+                               "Edit " + this.type +
+                               "</div>";
+                }
+
+                // Pay Liability option (if applicable)
+                if (this.type === 'Liability' && !this.options.isPaid && !this.options.isDelete) {
+                    menuHtml += "<div class='action-menu-item' " +
+                               "onclick=\"ActionsMenu.handlePayLiability(" + this.value.id + ")\">" +
+                               "<i class='fas fa-credit-card' style='color: lightblue;'></i> " +
+                               "Pay Liability" +
+                               "</div>";
+                }
+                
+                // History option (for Liability and Investment)
+                if (this.type === 'Liability' || this.type === 'Investment') {
+                    menuHtml += "<div class='action-menu-item' " +
+                               "onclick=\"ActionsMenu.handleViewHistory(" + this.value.id + ")\">" +
+                               "<i class='fas fa-history' style='color: darkgray;'></i> " +
+                               this.type + " History" +
+                               "</div>";
+                }
+
+                // View option (for Asset)
+                if (this.type === 'Asset') {
+                    // Store this exact asset in a dataset attribute for retrieval later
+                    var assetDataAttr = "data-asset='" + JSON.stringify(this.value).replace(/'/g, "&apos;") + "'";
+                    menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
+                               "onclick=\"ActionsMenu.handleViewAsset(this)\">" +
+                               "<i class='fas fa-eye' style='color: darkgray;'></i> " +
+                               "View Asset" +
+                               "</div>";
+                                
+                    // Add Dispose Asset option if not already disposed
+                    if (!this.value.dispose_status) {
+                        menuHtml += "<div class='action-menu-item' " + assetDataAttr + " " +
+                                   "onclick=\"ActionsMenu.handleDisposeAsset(this)\">" +
+                                   "<i class='fas fa-archive' style='color: orange;'></i> " +
+                                   "Dispose Asset" +
+                                   "</div>";
+                    }
+                }
+
+                // Delete option (if enabled)
+                if (this.options.canDelete) {
+                    menuHtml += "<div class='action-menu-item' " +
+                               "onclick=\"ActionsMenu.handleDelete(" + this.value.id + ")\">" +
+                               "<i class='fas fa-trash' style='color: red;'></i> " +
+                               "Delete " + this.type +
+                               "</div>";
+                }
             }
 
             menuHtml += "</div>";
@@ -319,6 +356,108 @@ var ActionsMenu = {
         } catch (error) {
             console.error('Error preparing asset disposal:', error);
             alert('Failed to prepare asset disposal: ' + error.message);
+        }
+    },
+
+    // Add these new methods to handle IVY operations
+    handleChangeDiv: function(element) {
+        try {
+            var div = JSON.parse(element.dataset.entity);
+            // Create a container to hold the modal
+            var modalContainer = document.createElement('div');
+            modalContainer.id = 'changeDivContainer';
+            document.body.appendChild(modalContainer);
+            
+            // Initialize the ChangeDiv component
+            ChangeDiv.init(modalContainer, div, function() {
+                document.body.removeChild(modalContainer);
+                // Refresh the data
+                if (window.SettingsIVY) {
+                    SettingsIVY.loadCorps();
+                }
+            });
+        } catch (error) {
+            console.error('Error handling div change:', error);
+            alert('Failed to change division: ' + error.message);
+        }
+    },
+
+    handleChangeBrigade: function(element) {
+        try {
+            var brigade = JSON.parse(element.dataset.entity);
+            // Create a container to hold the modal
+            var modalContainer = document.createElement('div');
+            modalContainer.id = 'changeBrigadeContainer';
+            document.body.appendChild(modalContainer);
+            
+            // Initialize the ChangeBrigade component
+            ChangeBrigade.init(modalContainer, brigade, function() {
+                document.body.removeChild(modalContainer);
+                // Refresh the data
+                if (window.SettingsIVY) {
+                    SettingsIVY.loadCorps();
+                }
+            });
+        } catch (error) {
+            console.error('Error handling brigade change:', error);
+            alert('Failed to change brigade: ' + error.message);
+        }
+    },
+
+    handleChangeUnit: function(element) {
+        try {
+            var unit = JSON.parse(element.dataset.entity);
+            // Create a container to hold the modal
+            var modalContainer = document.createElement('div');
+            modalContainer.id = 'changeUnitContainer';
+            document.body.appendChild(modalContainer);
+            
+            // Initialize the ChangeUnit component
+            ChangeUnit.init(modalContainer, unit, function() {
+                document.body.removeChild(modalContainer);
+                // Refresh the data
+                if (window.SettingsIVY) {
+                    SettingsIVY.loadCorps();
+                }
+            });
+        } catch (error) {
+            console.error('Error handling unit change:', error);
+            alert('Failed to change unit: ' + error.message);
+        }
+    },
+
+    handleDeleteIVY: function(element) {
+        try {
+            var entity = JSON.parse(element.dataset.entity);
+            var type = element.dataset.type;
+            
+            // Map type to flag value for API
+            var flag;
+            switch (type) {
+                case 'Corp': flag = 'corp'; break;
+                case 'Division': flag = 'div'; break;
+                case 'Brigade': flag = 'brigade'; break;
+                case 'Unit': flag = 'unit'; break;
+                default: throw new Error('Unknown entity type: ' + type);
+            }
+            
+            if (confirm(`Are you sure you want to delete this ${type.toLowerCase()}? This action cannot be undone.`)) {
+                ApiClient.deleteIVY({ flag: flag, id: entity.id })
+                    .then(function() {
+                        Utils.showMessage('success', `${type} deleted successfully`);
+                        // Refresh the IVY data
+                        if (window.SettingsIVY) {
+                            SettingsIVY.loadCorps();
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error(`Failed to delete ${type.toLowerCase()}:`, error);
+                        alert(`Failed to delete ${type.toLowerCase()}: ` + (error.message || 'Unknown error'));
+                    });
+            }
+        } catch (error) {
+            console.error('Error handling IVY deletion:', error);
+            alert('Failed to process deletion: ' + error.message);
         }
     }
 };

@@ -252,10 +252,10 @@
         legend.className = 'chart-legend';
         
         var legendItems = [
-            { label: 'Inflow', colorClass: 'legend-inflow' },
-            { label: 'Outflow', colorClass: 'legend-outflow' },
-            { label: 'Investment', colorClass: 'legend-investment' },
-            { label: 'Liability', colorClass: 'legend-liability' }
+            { label: 'Inflow', colorClass: 'legend-inflow', color: 'rgba(31, 107, 1, 0.8)' },
+            { label: 'Outflow', colorClass: 'legend-outflow', color: 'rgba(143, 1, 1, 0.8)' },
+            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(211, 153, 106, 0.8)' },
+            { label: 'Liability', colorClass: 'legend-liability', color: 'rgba(248, 3, 3, 0.8)' }
         ];
         
         for (var i = 0; i < legendItems.length; i++) {
@@ -264,6 +264,7 @@
             
             var color = document.createElement('span');
             color.className = 'chart-legend-color ' + legendItems[i].colorClass;
+            color.style.backgroundColor = legendItems[i].color;
             
             var label = document.createElement('span');
             label.className = 'chart-legend-label';
@@ -775,11 +776,11 @@
                         {
                             label: "Investment",
                             data: monthlyData.investment,
-                            backgroundColor: "rgba(224, 183, 36, 0.7)",
-                            borderColor: "rgba(224, 183, 36, 1)",
+                            backgroundColor: "rgba(211, 153, 106, 0.7)",
+                            borderColor: "rgb(211, 153, 106)",
                             borderWidth: 2,
                             borderRadius: 6,
-                            hoverBackgroundColor: "rgba(224, 183, 36, 0.9)"
+                            hoverBackgroundColor: "rgba(211, 153, 106, 0.9)"
                         },
                         {
                             label: "Liability",
@@ -826,38 +827,38 @@
                     {
                         label: "Inflow",
                         data: inflowData,
-                        backgroundColor: "rgba(72, 187, 120, 0.7)",
-                        borderColor: "rgba(72, 187, 120, 1)",
+                        backgroundColor: "rgba(31, 107, 1, 0.7)",
+                        borderColor: "rgb(31, 107, 1)",
                         borderWidth: 2,
                         borderRadius: 6,
-                        hoverBackgroundColor: "rgba(72, 187, 120, 0.9)"
+                        hoverBackgroundColor: "rgba(31, 107, 1, 0.9)"
                     },
                     {
                         label: "Outflow",
                         data: outflowData,
-                        backgroundColor: "rgba(229, 57, 53, 0.7)",
-                        borderColor: "rgba(229, 57, 53, 1)",
+                        backgroundColor: "rgba(143, 1, 1, 0.7)",
+                        borderColor: "rgb(143, 1, 1)",
                         borderWidth: 2,
                         borderRadius: 6,
-                        hoverBackgroundColor: "rgba(229, 57, 53, 0.9)"
+                        hoverBackgroundColor: "rgba(143, 1, 1, 0.9)"
                     },
                     {
                         label: "Investment",
                         data: investmentData,
-                        backgroundColor: "rgba(224, 183, 36, 0.7)",
-                        borderColor: "rgba(224, 183, 36, 1)",
+                        backgroundColor: "rgba(211, 153, 106, 0.7)",
+                        borderColor: "rgb(211, 153, 106)",
                         borderWidth: 2,
                         borderRadius: 6,
-                        hoverBackgroundColor: "rgba(224, 183, 36, 0.9)"
+                        hoverBackgroundColor: "rgba(211, 153, 106, 0.9)"
                     },
                     {
                         label: "Liability",
                         data: liabilityData,
-                        backgroundColor: "rgba(221, 28, 131, 0.7)",
-                        borderColor: "rgba(221, 28, 131, 1)",
+                        backgroundColor: "rgba(248, 3, 3, 0.7)",
+                        borderColor: "rgb(248, 3, 3)",
                         borderWidth: 2,
                         borderRadius: 6,
-                        hoverBackgroundColor: "rgba(221, 28, 131, 0.9)"
+                        hoverBackgroundColor: "rgba(248, 3, 3, 0.9)"
                     }
                 ]
             };
@@ -865,10 +866,15 @@
         
         // Firefox 50 compatible chart options
         var chartOptions = {
-            responsive: false,
+            responsive: true,
             maintainAspectRatio: false,
             animation: {
                 duration: 600
+            },
+            interaction: {
+                mode: 'nearest',
+                intersect: true,
+                includeInvisible: true
             },
             tooltips: {
                 enabled: true,
@@ -901,6 +907,16 @@
                 mode: 'nearest',
                 intersect: true,
                 animationDuration: 400
+            },
+            onClick: function(evt, elements) {
+                if (elements && elements.length > 0) {
+                    var element = elements[0];
+                    var datasetIndex = element.datasetIndex;
+                    var dataIndex = element.index;
+                    var dataset = this.data.datasets[datasetIndex];
+                    var value = dataset.data[dataIndex];
+                    console.log('Clicked on:', dataset.label, 'value:', value);
+                }
             },
             scales: {
                 xAxes: [{
@@ -936,10 +952,7 @@
                         padding: 8,
                         maxTicksLimit: 5,
                         callback: function(value) {
-                            if (value >= 1000) {
-                                return 'Rs ' + (value / 1000) + 'k';
-                            }
-                            return 'Rs ' + value;
+                            return 'Rs ' + Utils.formatNumber(value);
                         }
                     }
                 }]
@@ -947,7 +960,7 @@
             layout: {
                 padding: {
                     top: 20,
-                    right: 90,
+                    right: 20,
                     bottom: 20,
                     left: 0
                 }
@@ -1006,10 +1019,10 @@
         legend.innerHTML = '';
         
         var legendItems = [
-            { label: 'Inflow', colorClass: 'legend-inflow', color: 'rgba(72, 187, 120, 0.8)' },
-            { label: 'Outflow', colorClass: 'legend-outflow', color: 'rgba(229, 57, 53, 0.8)' },
-            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(224, 183, 36, 0.8)' },
-            { label: 'Liability', colorClass: 'legend-liability', color: 'rgba(221, 28, 131, 0.8)' }
+            { label: 'Inflow', colorClass: 'legend-inflow', color: 'rgba(31, 107, 1, 0.8)' },
+            { label: 'Outflow', colorClass: 'legend-outflow', color: 'rgba(143, 1, 1, 0.8)' },
+            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(211, 153, 106, 0.8)' },
+            { label: 'Liability', colorClass: 'legend-liability', color: 'rgba(248, 3, 3, 0.8)' }
         ];
         
         // Create the items
@@ -1018,9 +1031,13 @@
             var item = document.createElement('div');
             item.className = 'chart-legend-item';
             item.setAttribute('data-index', i);
+            item.setAttribute('role', 'button');
+            item.setAttribute('aria-pressed', 'true');
+            item.setAttribute('tabindex', '0');
             
             var color = document.createElement('span');
             color.className = 'chart-legend-color ' + legendItems[i].colorClass;
+            color.style.backgroundColor = legendItems[i].color;
             
             var label = document.createElement('span');
             label.className = 'chart-legend-label';
@@ -1032,24 +1049,99 @@
             // Add click event to toggle dataset visibility
             var clickHandler = function(idx) {
                 return function() {
-                    if (self.chart && self.chart.isDatasetVisible(idx)) {
-                        self.chart.hide(idx);
-                        this.classList.add('inactive');
-                    } else if (self.chart) {
-                        self.chart.show(idx);
-                        this.classList.remove('inactive');
+                    if (self.chart) {
+                        var meta = self.chart.getDatasetMeta(idx);
+                        meta.hidden = !meta.hidden;
+                        self.chart.update();
+                        
+                        // Update visual state
+                        if (meta.hidden) {
+                            this.classList.add('inactive');
+                            this.setAttribute('aria-pressed', 'false');
+                        } else {
+                            this.classList.remove('inactive');
+                            this.setAttribute('aria-pressed', 'true');
+                        }
                     }
                 };
-            }(i);  // Pass current index to closure
+            }(i);
+
+            // Add keyboard support
+            var keyHandler = function(idx) {
+                return function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        clickHandler.call(this, idx)();
+                    }
+                };
+            }(i);
 
             if (item.addEventListener) {
                 item.addEventListener('click', clickHandler);
+                item.addEventListener('keydown', keyHandler);
             } else if (item.attachEvent) {
                 // For IE8 and below
                 item.attachEvent('onclick', clickHandler);
+                item.attachEvent('onkeydown', keyHandler);
             }
             
             legend.appendChild(item);
+        }
+
+        // Add legend styles if they don't exist
+        if (!document.getElementById('chart-legend-styles')) {
+            var style = document.createElement('style');
+            style.id = 'chart-legend-styles';
+            style.textContent = `
+                .chart-legend {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    margin-top: 15px;
+                }
+                
+                .chart-legend-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    user-select: none;
+                    transition: opacity 0.2s;
+                }
+                
+                .chart-legend-item:hover {
+                    background-color: rgba(0, 0, 0, 0.05);
+                }
+                
+                .chart-legend-item.inactive {
+                    opacity: 0.5;
+                }
+                
+                .chart-legend-color {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 3px;
+                }
+                
+                .chart-legend-label {
+                    font-size: 12px;
+                    color: #333;
+                }
+                
+                /* Dark mode support */
+                @media (prefers-color-scheme: dark) {
+                    .chart-legend-item:hover {
+                        background-color: rgba(255, 255, 255, 0.1);
+                    }
+                    
+                    .chart-legend-label {
+                        color: #fff;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
         }
     };
     

@@ -312,8 +312,8 @@
 .sidebar-header::after {
     content: '';
     position: absolute;
-    margin-top: 5rem;
-    left: 55%;
+    margin-top: 2.5rem;
+    left: 49%;
     transform: translateX(-50%);
     width: 70%;
     height: 3px;
