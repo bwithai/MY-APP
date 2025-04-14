@@ -303,6 +303,7 @@ class InvestmentHistory(SQLModel, table=True):
 class Liabilities(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
     name: Optional[str] = None
+    subhead: Optional[str] = None
     # head_id: Optional[int] = Field(foreign_key="heads.id", nullable=True)
     # subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
     fund_details: Optional[str] = None
