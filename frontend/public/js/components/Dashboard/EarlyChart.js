@@ -254,7 +254,7 @@
         var legendItems = [
             { label: 'Inflow', colorClass: 'legend-inflow', color: 'rgba(31, 107, 1, 0.8)' },
             { label: 'Outflow', colorClass: 'legend-outflow', color: 'rgba(143, 1, 1, 0.8)' },
-            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(211, 153, 106, 0.8)' },
+            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(177, 107, 51, 0.8)' },
             { label: 'Liability', colorClass: 'legend-liability', color: 'rgba(248, 3, 3, 0.8)' }
         ];
         
@@ -735,10 +735,10 @@
                         {
                             label: "Investment",
                             data: weekData.investment,
-                            backgroundColor: "rgba(224, 183, 36, 0.7)",
-                            borderColor: "rgba(224, 183, 36, 1)",
+                            backgroundColor: "rgba(177, 107, 51, 0.7)",
+                            borderColor: "rgb(172, 137, 14)",
                             borderWidth: 2,
-                            hoverBackgroundColor: "rgba(224, 183, 36, 0.9)"
+                            hoverBackgroundColor: "rgba(177, 107, 51, 0.9)"
                         },
                         {
                             label: "Liability",
