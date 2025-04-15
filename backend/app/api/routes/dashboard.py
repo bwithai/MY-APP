@@ -37,39 +37,43 @@ def format_yearly_data(session, current_user, year: int, user_id) -> Dict[int, D
             weekly_invest.append(weekly_balance.get("investment", 0))
             weekly_liability.append(weekly_balance.get("liability", 0))
 
-            # Fetch daily data for the week
-            daily_inflow = []
-            daily_outflow = []
-            daily_invest = []
-            daily_liability = []
-            daily_labels = []  # To store the actual day names for this week
-
+            # Prepare empty arrays for daily data
+            daily_data = {
+                "inflow": [0] * 7,
+                "outflow": [0] * 7,
+                "investment": [0] * 7,
+                "liability": [0] * 7
+            }
+            
+            # Map of actual days in this week
+            days_present = []
+            
+            # Process each day in the week
             for day in range((week_end - week_start).days + 1):
                 day_date = week_start + timedelta(days=day)
-                daily_labels.append(days_of_week[day_date.weekday()])  # Get the day's name
+                weekday_index = day_date.weekday()  # 0 = Monday, 6 = Sunday
+                # Convert to Sunday-first index (0 = Sunday, 1 = Monday, etc.)
+                sunday_first_index = (weekday_index + 1) % 7
+                
+                # Add this day to our days present list
+                days_present.append(days_of_week[sunday_first_index])
+                
                 # Fetch balance data for the specific day
                 daily_balance = get_balance_data(session, current_user, day_date, day_date, user_id)
-                daily_inflow.append(daily_balance.get("inflow", 0))
-                daily_outflow.append(daily_balance.get("outflow", 0))
-                daily_invest.append(daily_balance.get("investment", 0))
-                daily_liability.append(daily_balance.get("liability", 0))
+                
+                # Assign data to the correct day position
+                daily_data["inflow"][sunday_first_index] = daily_balance.get("inflow", 0)
+                daily_data["outflow"][sunday_first_index] = daily_balance.get("outflow", 0)
+                daily_data["investment"][sunday_first_index] = daily_balance.get("investment", 0)
+                daily_data["liability"][sunday_first_index] = daily_balance.get("liability", 0)
 
-            # Adjust the day names for the last week if it's a partial week
-            if week_end.month != week_start.month or (week_end - week_start).days < 6:
-                days_present = [
-                    days_of_week[(week_start + timedelta(days=offset)).weekday()]
-                    for offset in range((week_end - week_start).days + 1)
-                ]
-            else:
-                days_present = days_of_week
-
-            # Store week data
+            # Store week data with proper day alignment
             week_data[week_index] = {
-                "days": days_present,
-                "inflow": daily_inflow,
-                "outflow": daily_outflow,
-                "investment": daily_invest,
-                "liability": daily_liability
+                "days": days_of_week,
+                "inflow": daily_data["inflow"],
+                "outflow": daily_data["outflow"],
+                "investment": daily_data["investment"],
+                "liability": daily_data["liability"]
             }
             weekly_labels.append(f"Week {week_index}")
 
