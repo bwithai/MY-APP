@@ -16,6 +16,9 @@ cd app/alembic/versions; Remove-Item *.py
 cd ../../../; alembic revision --autogenerate -m "initial"
 # Now let's run the migration to create all the tables:
 alembic upgrade head
+
+# if face user privileges then try
+docker compose exec db mysql -u root -pmysqlroot -e "CREATE DATABASE IF NOT EXISTS cfms; GRANT ALL PRIVILEGES ON cfms.* TO 'newuser'@'%'; FLUSH PRIVILEGES;"
 ```
 
 #### Understanding Alembic Database Migrations

@@ -435,32 +435,27 @@ if (!Object.assign) {
     };
 }
 
-// Promise polyfill
+// Promise polyfill (simplified version)
 if (!window.Promise) {
-    window.Promise = function(executor) {
+    var Promise = function(executor) {
+        // Basic Promise implementation
         var callbacks = [];
-        var value;
         var state = 'pending';
+        var value;
 
-        function resolve(val) {
-            if (state !== 'pending') return;
+        function resolve(result) {
             state = 'fulfilled';
-            value = val;
+            value = result;
             callbacks.forEach(function(callback) {
-                setTimeout(function() {
-                    callback(value);
-                }, 0);
+                callback(value);
             });
         }
 
         function reject(error) {
-            if (state !== 'pending') return;
             state = 'rejected';
             value = error;
             callbacks.forEach(function(callback) {
-                setTimeout(function() {
-                    callback(value);
-                }, 0);
+                callback(value);
             });
         }
 
@@ -471,18 +466,36 @@ if (!window.Promise) {
         }
 
         return {
-            then: function(callback) {
+            then: function(onFulfilled) {
                 if (state === 'pending') {
-                    callbacks.push(callback);
+                    callbacks.push(onFulfilled);
                 } else {
-                    setTimeout(function() {
-                        callback(value);
-                    }, 0);
+                    onFulfilled(value);
                 }
                 return this;
+            },
+            catch: function(onRejected) {
+                return this.then(function(value) {
+                    onRejected(value);
+                });
             }
         };
     };
+    
+    // Add static methods to Promise
+    Promise.resolve = function(value) {
+        return new Promise(function(resolve) {
+            resolve(value);
+        });
+    };
+    
+    Promise.reject = function(reason) {
+        return new Promise(function(resolve, reject) {
+            reject(reason);
+        });
+    };
+    
+    window.Promise = Promise;
 }
 
 // Array.from polyfill
