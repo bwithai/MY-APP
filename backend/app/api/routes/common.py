@@ -294,7 +294,7 @@ def update_head(
 
 
 @router.delete("/heads/{id}")
-def delete_head(
+def delete_head_by_id(
         session: SessionDep, current_user: CurrentUser, id: int
 ) -> Message:
     """
@@ -355,7 +355,7 @@ def delete_head(
 
 
 @router.delete("/ivy-deletion/{flag}/{id}")
-def delete_head(
+def delete_head_by_flag(
         session: SessionDep, current_user: CurrentUser, flag: str, id: int
 ) -> Message:
     """
@@ -470,7 +470,7 @@ def delete_head(
 
 
 @router.delete("/sub-heads/{id}")
-def delete_head(
+def delete_subhead(
         session: SessionDep, current_user: CurrentUser, id: int
 ) -> Message:
     """
