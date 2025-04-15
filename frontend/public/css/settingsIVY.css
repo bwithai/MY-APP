@@ -146,7 +146,7 @@
     border-collapse: collapse;
     border-spacing: 0;
     margin-top: 10px;
-    table-layout: auto;
+    table-layout: fixed;
 }
 
 /* Force table to display properly even for older browsers */
@@ -169,29 +169,95 @@
 }
 
 .settings-ivy .table td {
+    position: relative;
+    text-align: left;
     padding: 12px 8px;
     vertical-align: middle;
     border-top: 1px solid #dee2e6;
     word-wrap: break-word;
     -ms-word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 0;
+    line-height: 1.5;
 }
 
-/* Better alignment for radio buttons and text */
+/* Simple radio buttons with dark green selection */
 .settings-ivy .table td input[type="radio"] {
-    margin-right: 8px;
+    position: relative;
+    padding: 0;
     vertical-align: middle;
-    margin-top: -2px;
+    margin-right: 10px;
+    margin-top: 9px;
     float: left;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    outline: none;
+    background-color: #fff;
 }
 
-.settings-ivy .table td span {
+.settings-ivy .table td label.entity-name {
     display: inline-block;
     vertical-align: middle;
-    margin-left: 5px;
+    margin-top: 1px;
+    line-height: 20px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: calc(100% - 30px);
+    float: left;
+    font-weight: 500;
+    color: #013a74;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.settings-ivy .table td input[type="radio"]:checked + label.entity-name {
+    color: #2f855a; /* Dark green text when checked */
+    border-bottom: 1px solid #2f855a;
+    font-weight: 600;
+}
+
+.settings-ivy .table tr:hover td label.entity-name {
+    color: #34495e;
+}
+
+/* Clear floats inside table cells */
+.settings-ivy .table td:after {
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .settings-ivy .table tr:hover {
     background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Column widths for better layout */
+.settings-ivy .table th:first-child,
+.settings-ivy .table td:first-child {
+    width: 70%;
+}
+
+.settings-ivy .table th:last-child,
+.settings-ivy .table td:last-child {
+    width: 30%;
+}
+
+/* Allow the action menu to remain properly aligned */
+.settings-ivy .action-menu-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
 }
 
 /* Error message */
@@ -248,6 +314,52 @@
     position: relative;
     display: inline-block;
     text-align: right;
+    width: 100%;
+}
+
+/* Action menu button and dropdown styles */
+.settings-ivy .action-menu-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+}
+
+.settings-ivy .btn-icon {
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-ivy .action-menu-dropdown {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 4px;
+    overflow: hidden;
+    right: 0;
+}
+
+.settings-ivy .action-menu-dropdown.show {
+    display: block;
+}
+
+.settings-ivy .action-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.settings-ivy .action-menu-item:hover {
+    background-color: #f1f1f1;
 }
 
 /* Screen size adjustments */
@@ -265,7 +377,7 @@
 
 @media (min-width: 992px) {
     .settings-ivy .grid-item {
-        width: 25%;
+        width: 33.333%;
     }
 }
 
@@ -278,4 +390,42 @@
     .settings-ivy .btn {
         display: none;
     }
+}
+
+/* Small spinner for buttons */
+.spinner-sm {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+/* Action button */
+.settings-ivy .btn-action {
+    padding: 5px 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #495057;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.settings-ivy .btn-action:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.settings-ivy .btn-action i {
+    margin-right: 5px;
+    font-size: 14px;
 }

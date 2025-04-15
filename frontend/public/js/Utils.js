@@ -89,7 +89,7 @@ var Utils = {
         successDiv.className = 'success-message';
         
         // Change background color to red if action is delete
-        if (action === 'delete') {
+        if (action === 'delete' || action === 'error') {
             successDiv.style.backgroundColor = '#d63031';
         }
         

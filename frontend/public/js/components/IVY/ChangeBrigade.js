@@ -1,4 +1,4 @@
-const ChangeBrigade = {
+var ChangeBrigade = {
     init: function(container, brig, onClose) {
         this.container = container;
         this.brig = brig;
@@ -11,19 +11,19 @@ const ChangeBrigade = {
         this.isSubmitting = false;
         this.isDirty = false;
 
-        // Initialize the component
+        // Initialize the component - only load corps data, don't setup event listeners yet
         this.loadCorps();
-        this.setupEventListeners();
     },
 
     loadCorps: function() {
         // Call API to get corps data
+        var self = this;
         ApiClient.readIvy()
-            .then(response => {
-                this.corps = response.data || [];
-                this.render();
+            .then(function(response) {
+                self.corps = response.data || [];
+                self.render();
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error loading corps:', error);
                 Utils.showMessage('error', 'Failed to load corps data');
             });
@@ -31,7 +31,7 @@ const ChangeBrigade = {
 
     render: function() {
         // Create warning alert if needed
-        if (this.brig?.units?.length > 0) {
+        if (this.brig && this.brig.units && this.brig.units.length > 0) {
             this.isAlertOpen = true;
             this.renderWarningAlert();
         } else {
@@ -41,114 +41,157 @@ const ChangeBrigade = {
     },
 
     renderWarningAlert: function() {
-        const alertHtml = `
-            <div class="alert-dialog-overlay">
-                <div class="alert-dialog-content">
-                    <div class="alert-dialog-header">
-                        <h3>Change Brigade</h3>
-                    </div>
-                    <div class="alert-dialog-body">
-                        You are about to change the brigade. This will also affect its child elements.
-                        Are you sure you want to continue?
-                    </div>
-                    <div class="alert-dialog-footer">
-                        <button class="btn btn-secondary" id="cancelWarningBtn">Cancel</button>
-                        <button class="btn btn-danger" id="confirmWarningBtn">Proceed</button>
-                    </div>
-                </div>
-            </div>
-        `;
+        var alertHtml = 
+            '<div class="alert-dialog-overlay">' +
+                '<div class="alert-dialog-content">' +
+                    '<div class="alert-dialog-header">' +
+                        '<h3>Change Brigade</h3>' +
+                    '</div>' +
+                    '<div class="alert-dialog-body">' +
+                        'You are about to change the brigade. This will also affect its child elements.' +
+                        'Are you sure you want to continue?' +
+                    '</div>' +
+                    '<div class="alert-dialog-footer">' +
+                        '<button class="btn btn-secondary" id="cancelWarningBtn">Cancel</button>' +
+                        '<button class="btn btn-danger" id="confirmWarningBtn">Proceed</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
 
         this.container.innerHTML = alertHtml;
         this.setupAlertEventListeners();
     },
 
     renderModal: function() {
-        const modalHtml = `
-            <div class="modal-overlay">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Change Brigade</h3>
-                        <button class="modal-close-btn">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="corp_id">Select Corps</label>
-                            <select id="corp_id" class="form-control" required>
-                                <option value="">Select a Corps</option>
-                                ${this.corps.map(corp => `
-                                    <option value="${corp.id}">${corp.name}</option>
-                                `).join('')}
-                            </select>
-                            <div class="error-message" id="corpError"></div>
-                        </div>
-                        <div class="form-group" id="divSelectContainer" style="display: none;">
-                            <label for="div_id">Select Division</label>
-                            <select id="div_id" class="form-control" required>
-                                <option value="">Select a Division</option>
-                            </select>
-                            <div class="error-message" id="divError"></div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary" id="saveBtn" disabled>Save</button>
-                        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
-                    </div>
-                </div>
-            </div>
-        `;
+        var self = this;
+        var corpsOptions = '';
+        
+        for (var i = 0; i < this.corps.length; i++) {
+            var corp = this.corps[i];
+            corpsOptions += '<option value="' + corp.id + '">' + corp.name + '</option>';
+        }
+        
+        var modalHtml = 
+            '<div class="modal-overlay">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<h3>Change Brigade</h3>' +
+                        '<button class="modal-close-btn">&times;</button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="form-group">' +
+                            '<label for="corp_id">Select Corps</label>' +
+                            '<select id="corp_id" class="form-control" required>' +
+                                '<option value="">Select a Corps</option>' +
+                                corpsOptions +
+                            '</select>' +
+                            '<div class="error-message" id="corpError"></div>' +
+                        '</div>' +
+                        '<div class="form-group" id="divSelectContainer" style="display: none;">' +
+                            '<label for="div_id">Select Division</label>' +
+                            '<select id="div_id" class="form-control" required>' +
+                                '<option value="">Select a Division</option>' +
+                            '</select>' +
+                            '<div class="error-message" id="divError"></div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button class="btn btn-primary" id="saveBtn" disabled>Save</button>' +
+                        '<button class="btn btn-secondary" id="cancelBtn">Cancel</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
 
         this.container.innerHTML = modalHtml;
         this.setupModalEventListeners();
     },
 
     setupAlertEventListeners: function() {
-        const cancelBtn = this.container.querySelector('#cancelWarningBtn');
-        const confirmBtn = this.container.querySelector('#confirmWarningBtn');
+        var self = this;
+        var cancelBtn = this.container.querySelector('#cancelWarningBtn');
+        var confirmBtn = this.container.querySelector('#confirmWarningBtn');
 
-        cancelBtn.addEventListener('click', () => this.closeWarning());
-        confirmBtn.addEventListener('click', () => this.confirmWarning());
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                self.closeWarning();
+            });
+        }
+        
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                self.confirmWarning();
+            });
+        }
     },
 
     setupModalEventListeners: function() {
-        const closeBtn = this.container.querySelector('.modal-close-btn');
-        const cancelBtn = this.container.querySelector('#cancelBtn');
-        const saveBtn = this.container.querySelector('#saveBtn');
-        const corpSelect = this.container.querySelector('#corp_id');
-        const divSelect = this.container.querySelector('#div_id');
-        const divSelectContainer = this.container.querySelector('#divSelectContainer');
+        var self = this;
+        var closeBtn = this.container.querySelector('.modal-close-btn');
+        var cancelBtn = this.container.querySelector('#cancelBtn');
+        var saveBtn = this.container.querySelector('#saveBtn');
+        var corpSelect = this.container.querySelector('#corp_id');
+        var divSelect = this.container.querySelector('#div_id');
+        var divSelectContainer = this.container.querySelector('#divSelectContainer');
 
-        closeBtn.addEventListener('click', () => this.onCancel());
-        cancelBtn.addEventListener('click', () => this.onCancel());
-        saveBtn.addEventListener('click', () => this.handleSubmit());
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                self.onCancel();
+            });
+        }
         
-        corpSelect.addEventListener('change', (e) => {
-            this.selectedCorpId = e.target.value;
-            this.selectedDivId = null;
-            this.updateDivisions();
-            this.isDirty = true;
-            this.updateSaveButton();
-        });
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                self.onCancel();
+            });
+        }
+        
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                self.handleSubmit();
+            });
+        }
+        
+        if (corpSelect) {
+            corpSelect.addEventListener('change', function(e) {
+                self.selectedCorpId = e.target.value;
+                self.selectedDivId = null;
+                self.updateDivisions();
+                self.isDirty = true;
+                self.updateSaveButton();
+            });
+        }
 
-        divSelect.addEventListener('change', (e) => {
-            this.selectedDivId = e.target.value;
-            this.isDirty = true;
-            this.updateSaveButton();
-        });
+        if (divSelect) {
+            divSelect.addEventListener('change', function(e) {
+                self.selectedDivId = e.target.value;
+                self.isDirty = true;
+                self.updateSaveButton();
+            });
+        }
     },
 
     updateDivisions: function() {
-        const divSelect = this.container.querySelector('#div_id');
-        const divSelectContainer = this.container.querySelector('#divSelectContainer');
-        const selectedCorp = this.corps.find(corp => corp.id === Number(this.selectedCorpId));
+        var divSelect = this.container.querySelector('#div_id');
+        var divSelectContainer = this.container.querySelector('#divSelectContainer');
+        var selectedCorp = null;
+        
+        // Find the selected corp using loop instead of find()
+        for (var i = 0; i < this.corps.length; i++) {
+            if (this.corps[i].id === Number(this.selectedCorpId)) {
+                selectedCorp = this.corps[i];
+                break;
+            }
+        }
 
         if (selectedCorp && selectedCorp.divs) {
-            divSelect.innerHTML = `
-                <option value="">Select a Division</option>
-                ${selectedCorp.divs.map(div => `
-                    <option value="${div.id}">${div.name}</option>
-                `).join('')}
-            `;
+            var divOptionsHtml = '<option value="">Select a Division</option>';
+            
+            for (var j = 0; j < selectedCorp.divs.length; j++) {
+                var div = selectedCorp.divs[j];
+                divOptionsHtml += '<option value="' + div.id + '">' + div.name + '</option>';
+            }
+            
+            divSelect.innerHTML = divOptionsHtml;
             divSelectContainer.style.display = 'block';
         } else {
             divSelectContainer.style.display = 'none';
@@ -156,7 +199,7 @@ const ChangeBrigade = {
     },
 
     updateSaveButton: function() {
-        const saveBtn = this.container.querySelector('#saveBtn');
+        var saveBtn = this.container.querySelector('#saveBtn');
         saveBtn.disabled = !this.isDirty || this.isSubmitting || !this.selectedCorpId || !this.selectedDivId;
     },
 
@@ -182,13 +225,13 @@ const ChangeBrigade = {
 
     handleSubmit: function() {
         if (!this.selectedCorpId) {
-            const errorElement = this.container.querySelector('#corpError');
+            var errorElement = this.container.querySelector('#corpError');
             errorElement.textContent = 'Corps selection is required';
             return;
         }
 
         if (!this.selectedDivId) {
-            const errorElement = this.container.querySelector('#divError');
+            var errorElement = this.container.querySelector('#divError');
             errorElement.textContent = 'Division selection is required';
             return;
         }
@@ -197,23 +240,24 @@ const ChangeBrigade = {
         this.updateSaveButton();
 
         // Call API to update brigade
-        ApiClient.updateBrig({
+        var self = this;
+        ApiClient.updateBrigade({
             id: this.brig.id,
             corp_id: this.selectedCorpId,
             div_id: this.selectedDivId
         })
-            .then(() => {
-                Utils.showMessage('success', 'Brigade updated successfully');
-                this.showModal = false;
-                this.onClose();
+            .then(function() {
+                Utils.onSuccess('edit', 'Brigade');
+                self.showModal = false;
+                self.onClose();
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error updating brigade:', error);
-                Utils.showMessage('error', 'Failed to update brigade');
+                Utils.onSuccess('error', String(error));
             })
-            .finally(() => {
-                this.isSubmitting = false;
-                this.updateSaveButton();
+            .finally(function() {
+                self.isSubmitting = false;
+                self.updateSaveButton();
             });
     }
 };

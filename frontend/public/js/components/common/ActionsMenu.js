@@ -363,9 +363,25 @@ var ActionsMenu = {
     handleChangeDiv: function(element) {
         try {
             var div = JSON.parse(element.dataset.entity);
+            // Use originalId if it exists
+            if (div.originalId) div.id = div.originalId;
+            
+            // Check if ChangeDiv component exists
+            if (typeof ChangeDiv === 'undefined' || ChangeDiv === null) {
+                console.error('ChangeDiv component is not defined');
+                alert('Cannot change division: The required component is not loaded');
+                return;
+            }
+            
             // Create a container to hold the modal
             var modalContainer = document.createElement('div');
             modalContainer.id = 'changeDivContainer';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.zIndex = '10000';
             document.body.appendChild(modalContainer);
             
             // Initialize the ChangeDiv component
@@ -385,9 +401,25 @@ var ActionsMenu = {
     handleChangeBrigade: function(element) {
         try {
             var brigade = JSON.parse(element.dataset.entity);
+            // Use originalId if it exists
+            if (brigade.originalId) brigade.id = brigade.originalId;
+            
+            // Check if ChangeBrigade component exists
+            if (typeof ChangeBrigade === 'undefined' || ChangeBrigade === null) {
+                console.error('ChangeBrigade component is not defined');
+                alert('Cannot change brigade: The required component is not loaded');
+                return;
+            }
+            
             // Create a container to hold the modal
             var modalContainer = document.createElement('div');
             modalContainer.id = 'changeBrigadeContainer';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.zIndex = '10000';
             document.body.appendChild(modalContainer);
             
             // Initialize the ChangeBrigade component
@@ -407,9 +439,25 @@ var ActionsMenu = {
     handleChangeUnit: function(element) {
         try {
             var unit = JSON.parse(element.dataset.entity);
+            // Use originalId if it exists
+            if (unit.originalId) unit.id = unit.originalId;
+            
+            // Check if ChangeUnit component exists
+            if (typeof ChangeUnit === 'undefined' || ChangeUnit === null) {
+                console.error('ChangeUnit component is not defined');
+                alert('Cannot change unit: The required component is not loaded');
+                return;
+            }
+            
             // Create a container to hold the modal
             var modalContainer = document.createElement('div');
             modalContainer.id = 'changeUnitContainer';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.zIndex = '10000';
             document.body.appendChild(modalContainer);
             
             // Initialize the ChangeUnit component
@@ -431,20 +479,28 @@ var ActionsMenu = {
             var entity = JSON.parse(element.dataset.entity);
             var type = element.dataset.type;
             
+            console.log('Deleting IVY entity:', type, entity);
+            
             // Map type to flag value for API
             var flag;
             switch (type) {
-                case 'Corp': flag = 'corp'; break;
-                case 'Division': flag = 'div'; break;
-                case 'Brigade': flag = 'brigade'; break;
-                case 'Unit': flag = 'unit'; break;
+                case 'Corp': flag = 'Corp'; break;
+                case 'Division': flag = 'Division'; break;
+                case 'Brigade': flag = 'Brigade'; break;
+                case 'Unit': flag = 'Unit'; break;
                 default: throw new Error('Unknown entity type: ' + type);
             }
             
+            // Use originalId if it exists (for modified IDs by SettingsIVY)
+            var entityId = entity.originalId || entity.id;
+            
             if (confirm(`Are you sure you want to delete this ${type.toLowerCase()}? This action cannot be undone.`)) {
-                ApiClient.deleteIVY({ flag: flag, id: entity.id })
-                    .then(function() {
-                        Utils.showMessage('success', `${type} deleted successfully`);
+                console.log('Sending delete request with flag:', flag, 'and id:', entityId);
+                
+                ApiClient.deleteIVY({ flag: flag, id: entityId })
+                    .then(function(response) {
+                        console.log('Delete successful:', response);
+                        Utils.onSuccess('delete', type);
                         // Refresh the IVY data
                         if (window.SettingsIVY) {
                             SettingsIVY.loadCorps();
@@ -452,7 +508,7 @@ var ActionsMenu = {
                     })
                     .catch(function(error) {
                         console.error(`Failed to delete ${type.toLowerCase()}:`, error);
-                        alert(`Failed to delete ${type.toLowerCase()}: ` + (error.message || 'Unknown error'));
+                        Utils.onSuccess('error', `Failed to delete ${type.toLowerCase()}: ` + (error.message || 'Unknown error'));
                     });
             }
         } catch (error) {

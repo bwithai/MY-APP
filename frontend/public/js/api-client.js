@@ -579,7 +579,7 @@ var ApiClient = {
     },
     // ---------------------------->>>  IVY Update <<<----------------------------    
     updateDive: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/div', {
+        return fetch(this.baseUrl + 'common/div', {
             method: 'PUT',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
@@ -591,7 +591,7 @@ var ApiClient = {
         .catch(this.handleError);
     },  
     updateBrigade: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/brigade', {
+        return fetch(this.baseUrl + 'common/brigade', {
             method: 'PUT',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
@@ -603,7 +603,7 @@ var ApiClient = {
         .catch(this.handleError);
     },
     updateUnit: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/unit', {
+        return fetch(this.baseUrl + 'common/unit', {
             method: 'PUT',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
@@ -616,7 +616,7 @@ var ApiClient = {
     },
     // ---------------------------->>>  IVY Create <<<----------------------------
     createCorp: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/corp', {
+        return fetch(this.baseUrl + 'common/corp', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
@@ -628,7 +628,7 @@ var ApiClient = {
         .catch(this.handleError);
     },
     createDiv: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/div', {
+        return fetch(this.baseUrl + 'common/div', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
@@ -640,7 +640,7 @@ var ApiClient = {
         .catch(this.handleError);
     },
     createBrig: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/brigade', {
+        return fetch(this.baseUrl + 'common/brigade', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
@@ -652,7 +652,7 @@ var ApiClient = {
         .catch(this.handleError);
     },
     createUnit: function(data) {
-        return fetch(this.baseUrl + 'common/ivy/unit', {
+        return fetch(this.baseUrl + 'common/unit', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
