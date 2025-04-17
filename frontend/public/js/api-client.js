@@ -52,6 +52,18 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
+    // ---------------------------->>>  IBAN API calls  <<<-------------------------------
+
+    getIBANs: function(userId) {
+        return fetch(this.baseUrl + 'users/iban/' + userId, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
     createIBAN: function(iban) {
         return fetch(this.baseUrl + 'iban', {
             method: 'POST',
@@ -692,10 +704,50 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
-    /*------------------------------------ End of Heads API calls -------------------------------------*/
+    // ---------------------------->>>  Appointment API calls  <<<-------------------------------
+    createAppt: function(data) {
+        console.log('Creating Appointment:', JSON.stringify(data.requestBody));
+        return fetch(this.baseUrl + 'common/appt', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data.requestBody)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
 
-    getIBANs: function(userId) {
-        return fetch(this.baseUrl + 'users/iban/' + userId, {
+    getAppointments: function() {
+        var url = new URL(this.baseUrl + 'common/appt');
+
+        return fetch(url, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    updateAppt: function(data) {
+        return fetch(this.baseUrl + 'common/appt/' + data.id, {
+            method: 'PUT',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data.requestBody)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+
+    deleteAppt: function(data) {
+        return fetch(this.baseUrl + 'common/appt/' + data.id, {
+            method: 'DELETE',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token')
             }
@@ -704,6 +756,7 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
+    // ---------------------------->>>  Handle Response & Error <<<-------------------------------
     handleResponse: function(response) {
         if (!response.ok) {
             return response.json().then(function(data) {
@@ -724,7 +777,7 @@ var ApiClient = {
     handleError: function(error) {
         console.error('API Error:', error);
         throw error;
-    }
+    },
 };
 
 window.ApiClient = ApiClient; // Make it globally available 

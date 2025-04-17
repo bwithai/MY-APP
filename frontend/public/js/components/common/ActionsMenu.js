@@ -215,6 +215,22 @@ var ActionsMenu = {
         var id = typeof idOrElement === 'object' ? idOrElement.id : idOrElement;
         
         switch (this.type) {
+            case 'Appt':
+                // Get the appointment data and open the EditAppt modal
+                if (typeof EditAppt === 'undefined') {
+                    console.error('EditAppt component is not available');
+                    alert('Cannot edit appointment: The required component is not loaded');
+                    return;
+                }
+                
+                // For Appt type, we already have the full object in this.value
+                EditAppt.open(this.value, function() {
+                    // Refresh the appointments list after edit
+                    if (window.AppointmentList && typeof window.AppointmentList.loadAppointments === 'function') {
+                        window.AppointmentList.loadAppointments();
+                    }
+                });
+                break;
             case 'Inflow':
                 EditInflow.init('Inflow', id, function() {
                     InflowApp.loadInflowData();
@@ -242,6 +258,23 @@ var ActionsMenu = {
 
     handleDelete: function(id) {
         switch (this.type) {
+            case 'Appt':
+                // For Appointment, confirm deletion and call the API
+                if (confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
+                    ApiClient.deleteAppt({ id: this.value.id })
+                        .then(function(response) {
+                            Utils.onSuccess('delete', 'Appointment');
+                            // Refresh the appointments list
+                            if (window.AppointmentList && typeof window.AppointmentList.loadAppointments === 'function') {
+                                window.AppointmentList.loadAppointments();
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to delete appointment:', error);
+                            Utils.showMessage('error', 'Failed to delete appointment: ' + (error.message || 'Unknown error'));
+                        });
+                }
+                break;
             case 'Inflow':
                 DeleteAlert.init('Inflow', id, function() {
                     InflowApp.loadInflowData();
@@ -263,7 +296,7 @@ var ActionsMenu = {
                 });
                 break;
             default:
-                console.error('Unknown type:', type);
+                console.error('Unknown type:', this.type);
         }
     },
 

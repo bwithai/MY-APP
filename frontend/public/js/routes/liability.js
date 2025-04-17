@@ -72,7 +72,7 @@ var LiabilityApp = {
                             '<th>Type</th>' +
                             '<th>Payment To</th>' +
                             '<th>Payment Method</th>' +
-                            '<th>Date of Entry</th>' +
+                            '<th>Entry Date</th>' +
                             '<th>User</th>' +
                             '<th>Actions</th>' +
                         '</tr>' +
@@ -187,7 +187,7 @@ var LiabilityApp = {
                 '<td>' + (liability.type || 'N/A') + '</td>' +
                 '<td>' + (liability.payment_to || 'N/A') + '</td>' +
                 '<td>' + (liability.payment_method || 'N/A') + '</td>' +
-                '<td>' + Utils.formatDate(liability.date, true) + '</td>' +
+                '<td >' + Utils.formatDate(liability.date, true) + '</td>' +
                 '<td>' + (liability.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Liability', liability, {
                     isDelete: liability.is_deleted,

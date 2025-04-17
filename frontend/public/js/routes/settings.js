@@ -183,109 +183,44 @@ var SettingsApp = {
     },
     
     renderUserAppoint: function(container) {
-        container.innerHTML = `
-            <div class="settings-panel">
-                <h2>Appointment Management</h2>
-                <div class="appointment-controls">
-                    <button id="scheduleAppointment" class="btn btn-secondary">Schedule New Appointment</button>
-                    <div class="date-filter">
-                        <label>Filter by Date:</label>
-                        <input type="date" id="appointmentDateFilter" class="form-control">
-                    </div>
-                </div>
-                
-                <div class="appointments-list" id="appointmentsList">
-                    <div class="loading-indicator">Loading appointments...</div>
-                </div>
-            </div>
-        `;
-        
-        // Setup event listeners
-        var scheduleBtn = document.getElementById('scheduleAppointment');
-        if (scheduleBtn) {
-            scheduleBtn.addEventListener('click', this.showScheduleAppointmentModal.bind(this));
+        // Initialize the AppointmentList component if it exists
+        if (typeof AppointmentList !== 'undefined') {
+            AppointmentList.init(container);
+        } else {
+            // Try to load the AppointmentList component dynamically
+            this.loadAppointmentComponents(container);
         }
-        
-        var dateFilter = document.getElementById('appointmentDateFilter');
-        if (dateFilter) {
-            dateFilter.addEventListener('change', this.handleAppointmentDateFilter.bind(this));
-        }
-        
-        // Load appointments
-        this.loadAppointments();
     },
     
-    loadAppointments: function() {
-        var appointmentsContainer = document.getElementById('appointmentsList');
-        if (!appointmentsContainer) return;
+    loadAppointmentComponents: function(container) {
+        container.innerHTML = '<div class="loading-indicator">Loading appointment management...</div>';
         
-        appointmentsContainer.innerHTML = '<div class="loading-indicator">Loading appointments...</div>';
+        var self = this;
+        var scripts = [
+            '/js/components/Appointment/AddAppt.js',
+            '/js/components/Appointment/AppointmentList.js'
+        ];
         
-        // Simulate API call to load appointments
-        setTimeout(function() {
-            var mockAppointments = [
-                { id: 1, title: 'Budget Review', date: '2023-11-25', time: '10:00 AM', with: 'Finance Team' },
-                { id: 2, title: 'Investment Planning', date: '2023-11-30', time: '2:00 PM', with: 'Investment Advisor' },
-                { id: 3, title: 'Tax Consultation', date: '2023-12-05', time: '11:30 AM', with: 'Tax Consultant' }
-            ];
-            
-            this.renderAppointmentsList(mockAppointments, appointmentsContainer);
-        }.bind(this), 500);
-    },
-    
-    renderAppointmentsList: function(appointments, container) {
-        if (appointments.length === 0) {
-            container.innerHTML = '<div class="empty-state">No appointments found. Schedule one to get started.</div>';
-            return;
-        }
+        var loadedCount = 0;
         
-        var html = '<div class="appointments-table">';
-        html += `
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>With</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        appointments.forEach(function(appointment) {
-            html += `
-                <tr>
-                    <td>${appointment.title}</td>
-                    <td>${appointment.date}</td>
-                    <td>${appointment.time}</td>
-                    <td>${appointment.with}</td>
-                    <td>
-                        <button class="btn-icon edit-appointment" data-id="${appointment.id}"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete-appointment" data-id="${appointment.id}"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
+        scripts.forEach(function(src) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = function() {
+                loadedCount++;
+                if (loadedCount === scripts.length) {
+                    if (typeof AppointmentList !== 'undefined') {
+                        AppointmentList.init(container);
+                    } else {
+                        container.innerHTML = '<div class="error-message">Failed to load appointment components.</div>';
+                    }
+                }
+            };
+            script.onerror = function() {
+                container.innerHTML = '<div class="error-message">Failed to load appointment components.</div>';
+            };
+            document.body.appendChild(script);
         });
-        
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
-        
-        // Attach event listeners to buttons
-        var editButtons = container.querySelectorAll('.edit-appointment');
-        editButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.handleEditAppointment(btn.dataset.id);
-            }.bind(this));
-        }.bind(this));
-        
-        var deleteButtons = container.querySelectorAll('.delete-appointment');
-        deleteButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.handleDeleteAppointment(btn.dataset.id);
-            }.bind(this));
-        }.bind(this));
     },
     
     setupEventListeners: function() {
