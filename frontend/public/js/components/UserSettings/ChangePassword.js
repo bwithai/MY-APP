@@ -193,20 +193,20 @@ var ChangePassword = {
         Utils.showLoading(true);
         
         // Send API request to change password
-        ApiClient.changePassword({
+        ApiClient.updatePasswordMe({
             current_password: currentPassword,
             new_password: newPassword
         })
         .then(function(response) {
             // Show success message
-            Utils.showMessage('success', 'Password changed successfully!');
+            Utils.onSuccess('edit', 'Password');
             
             // Reset form
             this.resetForm();
         }.bind(this))
         .catch(function(error) {
             // Show error message
-            Utils.showMessage('error', 'Failed to change password: ' + (error.message || 'Unknown error'));
+            Utils.onSuccess('error', 'Failed to change password: ' + (error.message || 'Unknown error'));
             
             // If the error is related to current password, show it in the form
             if (error.message && error.message.toLowerCase().includes('current password')) {

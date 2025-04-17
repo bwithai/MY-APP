@@ -51,6 +51,19 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
+    updatePasswordMe: function(data) {
+        return fetch(this.baseUrl + 'users/me/password', {
+            method: 'PATCH',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    
 
     // ---------------------------->>>  IBAN API calls  <<<-------------------------------
 
