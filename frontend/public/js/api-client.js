@@ -52,7 +52,6 @@ var ApiClient = {
         .catch(this.handleError);
     },
 
-    // Add other API methods from sdk.gen.ts here
     createIBAN: function(iban) {
         return fetch(this.baseUrl + 'iban', {
             method: 'POST',
@@ -68,6 +67,25 @@ var ApiClient = {
             }
             return response.json();
         });
+    },
+
+    /*----------------------------------------------------------------------------------------------------
+        [ All the Activity Logs API calls will be handled bellow this line ]
+    ----------------------------------------------------------------------------------------------------*/
+    readActivities: function({ skip, limit, search }) {
+        var url = new URL(this.baseUrl + 'logs/');
+        url.searchParams.append('skip', skip);
+        url.searchParams.append('limit', limit);
+        if (search) url.searchParams.append('search', search);
+
+        return fetch(url, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
     },
 
     /*----------------------------------------------------------------------------------------------------

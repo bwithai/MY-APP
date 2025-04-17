@@ -17,3 +17,5 @@ Users must maintain the confidentiality of their account credentials and immedia
 We reserve the right to modify, suspend, or terminate any aspect of our services without prior notice.
 
 By continuing to use this platform, you agree to these terms and acknowledge your understanding of the associated risks and limitations.
+
+I'm being asked to create an activity.js file in vanilla JavaScript, following the structure of the inflow.js file, but implementing the functionality shown in the provided React component code.

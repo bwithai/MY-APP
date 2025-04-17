@@ -273,7 +273,7 @@ var UsersTabl = {
             var emailCell = document.createElement('td');
             emailCell.className = 'truncate-text';
             emailCell.innerHTML = `
-                <div class="truncate-text" title="${user.email || ''}">
+                <div title="${user.email || ''}">
                     ${user.email || 'N/A'}
                 </div>
             `;
