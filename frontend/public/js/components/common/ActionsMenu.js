@@ -206,7 +206,7 @@ var ActionsMenu = {
                 return;
             } catch (error) {
                 console.error('Error parsing asset data:', error);
-                alert('Failed to edit asset: ' + error.message);
+                Utils.onSuccess('error', (error.message || 'Unknown error to edit asset'));
                 return;
             }
         }
@@ -219,7 +219,7 @@ var ActionsMenu = {
                 // Get the appointment data and open the EditAppt modal
                 if (typeof EditAppt === 'undefined') {
                     console.error('EditAppt component is not available');
-                    alert('Cannot edit appointment: The required component is not loaded');
+                    Utils.onSuccess('error', 'Cannot edit appointment: The required component is not loaded');
                     return;
                 }
                 
@@ -271,7 +271,7 @@ var ActionsMenu = {
                         })
                         .catch(function(error) {
                             console.error('Failed to delete appointment:', error);
-                            Utils.showMessage('error', 'Failed to delete appointment: ' + (error.message || 'Unknown error'));
+                            Utils.onSuccess('error', (error.message || 'Unknown error to delete appointment'));
                         });
                 }
                 break;
@@ -310,7 +310,7 @@ var ActionsMenu = {
             })
             .catch(function(error) {
                 console.error('Failed to load liability for payment:', error);
-                alert('Failed to load liability details: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error to load liability for payment'));
             });
     },
 
@@ -325,7 +325,7 @@ var ActionsMenu = {
                 })
                 .catch(function(error) {
                     console.error('Failed to load liability for history view:', error);
-                    alert('Failed to load liability details: ' + (error.message || 'Unknown error'));
+                    Utils.onSuccess('error', (error.message || 'Unknown error to load liability for history view'));
                 });
         } else if (this.type === 'Investment') {
             ApiClient.getInvestment(id)
@@ -336,7 +336,7 @@ var ActionsMenu = {
                 })
                 .catch(function(error) {
                     console.error('Failed to load investment for history view:', error);
-                    alert('Failed to load investment details: ' + (error.message || 'Unknown error'));
+                    Utils.onSuccess('error', (error.message || 'Unknown error to load investment for history view'));
                 });
         }
     },
@@ -362,7 +362,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error viewing asset:', error);
-            alert('Failed to view asset details: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to view asset details'));
         }
     },
 
@@ -388,7 +388,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error preparing asset disposal:', error);
-            alert('Failed to prepare asset disposal: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to prepare asset disposal'));
         }
     },
 
@@ -402,7 +402,7 @@ var ActionsMenu = {
             // Check if ChangeDiv component exists
             if (typeof ChangeDiv === 'undefined' || ChangeDiv === null) {
                 console.error('ChangeDiv component is not defined');
-                alert('Cannot change division: The required component is not loaded');
+                Utils.onSuccess('error', 'Cannot change division: The required component is not loaded');
                 return;
             }
             
@@ -427,7 +427,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error handling div change:', error);
-            alert('Failed to change division: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to change division'));
         }
     },
 
@@ -440,7 +440,7 @@ var ActionsMenu = {
             // Check if ChangeBrigade component exists
             if (typeof ChangeBrigade === 'undefined' || ChangeBrigade === null) {
                 console.error('ChangeBrigade component is not defined');
-                alert('Cannot change brigade: The required component is not loaded');
+                Utils.onSuccess('error', 'Cannot change brigade: The required component is not loaded');
                 return;
             }
             
@@ -465,7 +465,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error handling brigade change:', error);
-            alert('Failed to change brigade: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to change brigade'));
         }
     },
 
@@ -478,7 +478,7 @@ var ActionsMenu = {
             // Check if ChangeUnit component exists
             if (typeof ChangeUnit === 'undefined' || ChangeUnit === null) {
                 console.error('ChangeUnit component is not defined');
-                alert('Cannot change unit: The required component is not loaded');
+                Utils.onSuccess('error', 'Cannot change unit: The required component is not loaded');
                 return;
             }
             
@@ -503,7 +503,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error handling unit change:', error);
-            alert('Failed to change unit: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to change unit'));
         }
     },
 
@@ -541,12 +541,12 @@ var ActionsMenu = {
                     })
                     .catch(function(error) {
                         console.error(`Failed to delete ${type.toLowerCase()}:`, error);
-                        Utils.onSuccess('error', (error.message || 'Unknown error'));
+                        Utils.onSuccess('error', (error.message || 'Unknown error to delete IVY entity'));
                     });
             }
         } catch (error) {
             console.error('Error handling IVY deletion:', error);
-            alert('Failed to process deletion: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to process deletion'));
         }
     }
 };
