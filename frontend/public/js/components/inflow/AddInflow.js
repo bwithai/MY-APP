@@ -219,7 +219,7 @@ var AddInflow = {
             })
             .catch(function(error) {
                 console.error('Failed to create inflow:', error);
-                Utils.onSuccess('error', 'Inflow');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create inflow'));
             })
             .finally(function() {
                 submitButton.disabled = false;

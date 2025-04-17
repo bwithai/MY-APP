@@ -200,7 +200,7 @@ var ChangeDiv = {
             })
             .catch(function(error) {
                 console.error('Error updating division:', error);
-                Utils.onSuccess('error', String(error));
+                Utils.onSuccess('error', (error.message || 'Unknown error to update division'));
             })
             .finally(function() {
                 self.isSubmitting = false;

@@ -256,7 +256,7 @@ var AddOutflow = {
             })
             .catch(function(error) {
                 console.error('Failed to create outflow:', error);
-                Utils.onSuccess('error', 'Outflow');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create outflow'));
             })
             .then(function() {
                 submitButton.disabled = false;

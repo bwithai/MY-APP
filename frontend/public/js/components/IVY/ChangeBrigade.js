@@ -253,7 +253,7 @@ var ChangeBrigade = {
             })
             .catch(function(error) {
                 console.error('Error updating brigade:', error);
-                Utils.onSuccess('error', String(error));
+                Utils.onSuccess('error', (error.message || 'Unknown error to update brigade'));
             })
             .finally(function() {
                 self.isSubmitting = false;

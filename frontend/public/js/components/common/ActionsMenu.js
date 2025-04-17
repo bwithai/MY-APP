@@ -541,7 +541,7 @@ var ActionsMenu = {
                     })
                     .catch(function(error) {
                         console.error(`Failed to delete ${type.toLowerCase()}:`, error);
-                        Utils.onSuccess('error', `Failed to delete ${type.toLowerCase()}: ` + (error.message || 'Unknown error'));
+                        Utils.onSuccess('error', (error.message || 'Unknown error'));
                     });
             }
         } catch (error) {

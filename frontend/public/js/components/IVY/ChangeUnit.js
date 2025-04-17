@@ -264,7 +264,7 @@ var ChangeUnit = {
             })
             .catch(function(error) {
                 console.error('Error updating unit:', error);
-                Utils.onSuccess('error', String(error));
+                Utils.onSuccess('error', (error.message || 'Unknown error to update unit'));
             })
             .finally(function() {
                 self.isSubmitting = false;

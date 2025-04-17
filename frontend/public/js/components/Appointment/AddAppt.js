@@ -151,7 +151,7 @@ var AddAppt = {
             }.bind(this))
             .catch(function(error) {
                 // Show error message
-                Utils.showMessage('error', 'Failed to create appointment: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error to create appointment'));
             })
             .finally(function() {
                 // Reset button state

@@ -513,7 +513,7 @@ var SettingsIVY = {
             })
             .catch(function(error) {
                 console.error('Error adding corps:', error);
-                Utils.onSuccess('error', 'Failed to add corps');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create corps'));
             })
             .finally(function() {
                 // Reset loading state
@@ -539,7 +539,7 @@ var SettingsIVY = {
             })
             .catch(function(error) {
                 console.error('Error adding division:', error);
-                Utils.onSuccess('error', 'Failed to add division');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create division'));
             })
             .finally(function() {
                 // Reset loading state
@@ -565,7 +565,7 @@ var SettingsIVY = {
             })
             .catch(function(error) {
                 console.error('Error adding brigade:', error);
-                Utils.onSuccess('error', 'Failed to add brigade');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create brigade'));
             })
             .finally(function() {
                 // Reset loading state
@@ -591,7 +591,7 @@ var SettingsIVY = {
             })
             .catch(function(error) {
                 console.error('Error adding unit:', error);
-                Utils.onSuccess('error', 'Failed to add unit');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create unit'));
             })
             .finally(function() {
                 // Reset loading state

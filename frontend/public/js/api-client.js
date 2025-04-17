@@ -63,6 +63,19 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
+    updateUserMe: function(data) {
+        return fetch(this.baseUrl + 'users/me', {
+            method: 'PATCH',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
+    
     
 
     // ---------------------------->>>  IBAN API calls  <<<-------------------------------
@@ -78,20 +91,16 @@ var ApiClient = {
     },
 
     createIBAN: function(iban) {
-        return fetch(this.baseUrl + 'iban', {
+        return fetch(this.baseUrl + 'common/iban', {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ iban: iban })
+            body: JSON.stringify(iban)
         })
-        .then(function(response) {
-            if (!response.ok) {
-                throw new Error('Failed to create IBAN');
-            }
-            return response.json();
-        });
+        .then(this.handleResponse)
+        .catch(this.handleError);
     },
 
     /*----------------------------------------------------------------------------------------------------

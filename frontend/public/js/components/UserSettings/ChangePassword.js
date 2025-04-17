@@ -3,41 +3,161 @@ var ChangePassword = {
         this.container = container;
         this.formErrors = {};
         this.render();
+        this.addStyles();
     },
     
     render: function() {
         this.container.innerHTML = `
-            <div class="settings-panel">
-                <h2 class="section-title">Change Password</h2>
-                <form id="changePasswordForm">
-                    <div class="form-group">
-                        <label for="current_password" class="form-label">Current Password</label>
-                        <input type="password" id="current_password" class="form-control" placeholder="Current password" />
-                        <div id="current_password_error" class="form-error-message ${this.formErrors.current_password ? 'visible' : ''}">
-                            ${this.formErrors.current_password || ''}
-                        </div>
+            <div class="password-card-container">
+                <div class="password-card">
+                    <div class="password-card-header">
+                        <h2 class="section-title">Change Password</h2>
                     </div>
-                    <div class="form-group">
-                        <label for="new_password" class="form-label">Set Password</label>
-                        <input type="password" id="new_password" class="form-control" placeholder="New password" />
-                        <div id="new_password_error" class="form-error-message ${this.formErrors.new_password ? 'visible' : ''}">
-                            ${this.formErrors.new_password || ''}
-                        </div>
+                    <div class="password-card-body">
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" id="current_password" class="form-control" placeholder="Current password" />
+                                <div id="current_password_error" class="form-error-message ${this.formErrors.current_password ? 'visible' : ''}">
+                                    ${this.formErrors.current_password || ''}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_password" class="form-label">Set Password</label>
+                                <input type="password" id="new_password" class="form-control" placeholder="New password" />
+                                <div id="new_password_error" class="form-error-message ${this.formErrors.new_password ? 'visible' : ''}">
+                                    ${this.formErrors.new_password || ''}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <input type="password" id="confirm_password" class="form-control" placeholder="Confirm password" />
+                                <div id="confirm_password_error" class="form-error-message ${this.formErrors.confirm_password ? 'visible' : ''}">
+                                    ${this.formErrors.confirm_password || ''}
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" id="savePassword" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" id="confirm_password" class="form-control" placeholder="Confirm password" />
-                        <div id="confirm_password_error" class="form-error-message ${this.formErrors.confirm_password ? 'visible' : ''}">
-                            ${this.formErrors.confirm_password || ''}
-                        </div>
-                    </div>
-                    <button type="button" id="savePassword" class="btn btn-primary">Save</button>
-                </form>
+                </div>
             </div>
         `;
         
         // Setup event listeners
         this.setupEventListeners();
+    },
+    
+    addStyles: function() {
+        // Check if styles already exist
+        if (document.getElementById('password-change-styles')) {
+            return;
+        }
+        
+        // Create and add custom styles
+        var styleElement = document.createElement('style');
+        styleElement.id = 'password-change-styles';
+        styleElement.textContent = `
+            .password-card-container {
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 20px;
+            }
+            
+            .password-card {
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 500px;
+                overflow: hidden;
+                border: 1px solid #e2e8f0;
+            }
+            
+            .password-card-header {
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .section-title {
+                margin: 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #2d3748;
+            }
+            
+            .password-card-body {
+                padding: 24px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+            }
+            
+            .form-label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #4a5568;
+            }
+            
+            .form-control {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #e2e8f0;
+                border-radius: 4px;
+                font-size: 1rem;
+                transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            }
+            
+            .form-control:focus {
+                border-color: #3182ce;
+                outline: none;
+                box-shadow: 0 0 0 1px #3182ce;
+            }
+            
+            .form-error-message {
+                color: #e53e3e;
+                font-size: 0.875rem;
+                margin-top: 4px;
+                display: none;
+            }
+            
+            .form-error-message.visible {
+                display: block;
+            }
+            
+            .form-actions {
+                margin-top: 24px;
+                display: flex;
+                justify-content: flex-end;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                border-radius: 4px;
+                font-size: 1rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            
+            .btn-primary:disabled {
+                background-color: #a0aec0;
+                cursor: not-allowed;
+            }
+            
+            @media (max-width: 576px) {
+                .password-card {
+                    max-width: 100%;
+                }
+            }
+        `;
+        
+        document.head.appendChild(styleElement);
     },
     
     setupEventListeners: function() {
@@ -206,7 +326,7 @@ var ChangePassword = {
         }.bind(this))
         .catch(function(error) {
             // Show error message
-            Utils.onSuccess('error', 'Failed to change password: ' + (error.message || 'Unknown error'));
+            Utils.onSuccess('error', (error.message || 'Unknown error to update password'));
             
             // If the error is related to current password, show it in the form
             if (error.message && error.message.toLowerCase().includes('current password')) {
