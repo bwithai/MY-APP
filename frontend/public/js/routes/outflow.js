@@ -212,7 +212,11 @@ var OutflowApp = {
                 '<td class="' + (outflow.entity ? '' : 'text-muted') + '">' + (outflow.entity || 'N/A') + '</td>' +
                 '<td title="' + (outflow.cost || 0) + '">' + self.formatNumber(outflow.cost) + '</td>' +
                 '<td>' + (outflow.payment_type || 'N/A') + '</td>' +
-                '<td class="' + (outflow.iban ? '' : 'text-muted') + '">' + (outflow.iban || 'N/A') + '</td>' +
+                '<td class="long-text ' + (outflow.iban ? '' : 'text-muted') + '">' +
+                    '<div class="truncate-text" title="' + (outflow.iban || '') + '">' +
+                        (outflow.iban || 'N/A') +
+                    '</div>' +
+                '</td>' +
                 '<td class="' + (outflow.payment_to ? '' : 'text-muted') + '">' + (outflow.payment_to || 'N/A') + '</td>' +
                 '<td>' + self.formatDate(outflow.expense_date, true) + '</td>' +
                 '<td>' + (outflow.user || 'N/A') + '</td>' +

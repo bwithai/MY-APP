@@ -205,7 +205,11 @@ var InflowApp = {
                 '</td>' +
                 '<td title="' + (inflow.amount || 0) + '">' + self.formatNumber(inflow.amount) + '</td>' +
                 '<td>' + (inflow.payment_method || 'N/A') + '</td>' +
-                '<td class="' + (inflow.iban ? '' : 'text-muted') + '">' + (inflow.iban || 'N/A') + '</td>' +
+                '<td class="long-text ' + (inflow.iban ? '' : 'text-muted') + '">' +
+                    '<div class="truncate-text" title="' + (inflow.iban || '') + '">' +
+                        (inflow.iban || 'N/A') +
+                    '</div>' +
+                '</td>' +
                 '<td>' + self.formatDate(inflow.date, true) + '</td>' +
                 '<td>' + self.formatDate(inflow.created_at) + '</td>' +
                 '<td>' + (inflow.user || 'N/A') + '</td>' +

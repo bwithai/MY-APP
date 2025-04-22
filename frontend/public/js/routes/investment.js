@@ -192,7 +192,11 @@ var InvestmentApp = {
                 '<td title="' + (investment.amount || 0) + '">' + self.formatNumber(investment.amount) + '</td>' +
                 '<td>' + (investment.type || 'N/A') + '</td>' +
                 '<td>' + (investment.payment_method || 'N/A') + '</td>' +
-                '<td class="' + (investment.iban ? '' : 'text-muted') + '">' + (investment.iban || 'N/A') + '</td>' +
+                '<td class="long-text ' + (investment.iban ? '' : 'text-muted') + '">' +
+                    '<div class="truncate-text" title="' + (investment.iban || '') + '">' +
+                        (investment.iban || 'N/A') +
+                    '</div>' +
+                '</td>' +
                 '<td>' + self.formatDate(investment.date, true) + '</td>' +
                 '<td>' + (investment.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Investment', investment, {
