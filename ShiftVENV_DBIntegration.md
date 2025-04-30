@@ -21,6 +21,11 @@ alembic upgrade head
 docker compose exec db mysql -u root -pmysqlroot -e "CREATE DATABASE IF NOT EXISTS cfms; GRANT ALL PRIVILEGES ON cfms.* TO 'newuser'@'%'; FLUSH PRIVILEGES;"
 ```
 
+```bash
+# After update field in models
+alembic revision --autogenerate -m "Updated fields in <your model>"
+```
+
 #### Understanding Alembic Database Migrations
 
 ##### 1. What is Alembic?
