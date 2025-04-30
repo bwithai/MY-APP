@@ -123,7 +123,7 @@ def create_head(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Type must be 1: Inflow or 2: Outflow"
         )
-    is_head_in_db = session.exec(select(Heads).where(Heads.heads == item_in.heads)).first()
+    is_head_in_db = session.exec(select(Heads).where(Heads.heads == item_in.heads, Heads.type == item_in.type)).first()
     if is_head_in_db:
         log_activity(
             session=session,
