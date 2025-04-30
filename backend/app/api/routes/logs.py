@@ -30,7 +30,7 @@ def read_logs(
     """
 
     # Base query setup
-    query = select(ActivityLog).order_by(desc(ActivityLog.created_at)).offset(skip).limit(limit)
+    base_query = select(ActivityLog).order_by(desc(ActivityLog.created_at))
 
     # Apply search filter if provided
     if search:
@@ -68,18 +68,17 @@ def read_logs(
             # If only one word, search normally in description
             conditions.append(ActivityLog.description.ilike(f"%{first_word}%"))
 
-        query = query.where(or_(*conditions))
+        base_query = base_query.where(or_(*conditions))
 
-    # Admin view: Can see all logs
-    if current_user.is_superuser:
-        # Get count before pagination
-        count = session.exec(select(func.count()).select_from(query.subquery())).one()
-    else:
-        # Regular user view: Can only see their own logs
-        query = query.where(ActivityLog.causer_id == current_user.id)
-        count = session.exec(
-            select(func.count()).select_from(query.subquery())
-        ).one()
+    # Apply user restrictions (Admins see all, regular users see only their own)
+    if not current_user.is_superuser:
+        base_query = base_query.where(ActivityLog.causer_id == current_user.id)
+
+    # Get total count before pagination
+    total_count = session.exec(select(func.count()).select_from(base_query.subquery())).one()
+
+    # Apply pagination
+    paginated_query = base_query.offset(skip).limit(limit)
 
     # Fetch logs and prepare response
     items = [
@@ -88,10 +87,10 @@ def read_logs(
             "user": item.user.name if item.user else None,
             "user_id": item.causer_id or 0,
         }
-        for item in session.exec(query).all()
+        for item in session.exec(paginated_query).all()
     ]
 
-    return LogsPublic(data=items, count=count)
+    return LogsPublic(data=items, count=total_count)
 
 
 @router.get("/search/", response_model=LogsPublic)
