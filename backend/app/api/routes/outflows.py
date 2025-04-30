@@ -24,14 +24,14 @@ def parse_search_query(search: str, is_superuser: bool) -> dict:
         "payment_type": None,
         "date": None,
         "amount_range": None,
-        "head": None,
-        "subhead": None,
+        "h": None,
+        "sh": None,
         "pay_to": None,
         "general": [],
     }
 
     # Define recognized prefixes
-    known_prefixes = ["head:", "subhead:", "pay_to:"]
+    known_prefixes = ["h:", "sh:", "pay_to:"]
 
     words = search.split()
     i = 0
@@ -122,10 +122,10 @@ def read_expenses(
             min_amount, max_amount = search_filters["amount_range"]
             conditions.append(Expenses.cost.between(min_amount, max_amount))
 
-        if search_filters['head']:
-            conditions.append(Expenses.head.has(Heads.heads.ilike(f"%{search_filters['head']}%")))
-        if search_filters['subhead']:
-            conditions.append(Expenses.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['subhead']}%")))
+        if search_filters['h']:
+            conditions.append(Expenses.head.has(Heads.heads.ilike(f"%{search_filters['h']}%")))
+        if search_filters['sh']:
+            conditions.append(Expenses.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['sh']}%")))
 
         if search_filters["general"]:
             for term in search_filters["general"]:
@@ -186,7 +186,7 @@ def create_outflow(
             name=item.head_details, type="PURCHASED", purchase_date=item.expense_date,
             asset_id=asset_serial_id, purchased_from=item.payment_to, serial_number=asset_serial_id,
             cost=amount, status="Pending", salvage_value=salvage, user_id=current_user.id,
-            head_detaills=item.head_details, payment_type=item.payment_type
+            head_details=item.head_details, payment_type=item.payment_type
 
         )
         session.add(asset)
