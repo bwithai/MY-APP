@@ -183,16 +183,16 @@ class Expenses(SQLModel, table=True):
     reciept: Optional[str] = None
     site_id: Optional[int] = None
     category_id: Optional[int] = None
-    corps_id: Optional[int] = None
-    div_id: Optional[int] = None
-    brigade_id: Optional[int] = None
-    unit_id: Optional[int] = None
+    corps_id: Optional[int] = Field(foreign_key="corps.id", nullable=True)
+    div_id: Optional[int] = Field(foreign_key="divs.id", nullable=True)
+    brigade_id: Optional[int] = Field(foreign_key="brigades.id", nullable=True)
+    unit_id: Optional[int] = Field(foreign_key="units.id", nullable=True)
     created_at: Optional[datetime] = Field(default_factory=get_pakistan_timestamp)
     updated_at: datetime = Field(default_factory=get_pakistan_timestamp,
                                  sa_column_kwargs={"onupdate": get_pakistan_timestamp})
-    asset_id: Optional[str] = None
-    liability_id: Optional[int] = None
-    fixed_asset_id: Optional[int] = None
+    asset_id: Optional[int] = Field(foreign_key="assets.id", nullable=True)
+    liability_id: Optional[int] = Field(foreign_key="liabilities.id", nullable=True)
+    fixed_asset_id: Optional[int] = Field(foreign_key="fixed_assets.id", nullable=True)
     head_id: Optional[int] = Field(foreign_key="heads.id", nullable=True)
     subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
     is_deleted: bool = Field(default=False)
@@ -207,6 +207,13 @@ class Expenses(SQLModel, table=True):
         back_populates="expenses",
         sa_relationship_kwargs={"primaryjoin": "Expenses.subhead_id == SubHeads.id"}
     )
+    asset: Optional["Assets"] = Relationship(back_populates="expenses")
+    liability: Optional["Liabilities"] = Relationship(back_populates="expenses")
+    fixed_asset: Optional["Investments"] = Relationship(back_populates="expenses")
+    corps: Optional["Corps"] = Relationship(back_populates="expenses")
+    divs: Optional["Divs"] = Relationship(back_populates="expenses")
+    brigades: Optional["Brigades"] = Relationship(back_populates="expenses")
+    units: Optional["Units"] = Relationship(back_populates="expenses")
 
 
 class Assets(SQLModel, table=True):
@@ -253,7 +260,7 @@ class Assets(SQLModel, table=True):
 
     # Relationships
     user: Users = Relationship(back_populates="assets")
-
+    expenses: Optional["Expenses"] = Relationship(back_populates="asset")
 
 class Investments(SQLModel, table=True):
     __tablename__ = "fixed_assets"
@@ -278,7 +285,7 @@ class Investments(SQLModel, table=True):
     user: Optional["Users"] = Relationship(back_populates="investments")
     history: List["InvestmentHistory"] = Relationship(back_populates="investment")
     iban: Optional["MultiIbnUser"] = Relationship(back_populates="investments")
-
+    expenses: Optional["Expenses"] = Relationship(back_populates="fixed_asset")
 
 class InvestmentHistory(SQLModel, table=True):
     __tablename__ = "investment_balance_histories"
@@ -334,6 +341,7 @@ class Liabilities(SQLModel, table=True):
     #     sa_relationship_kwargs={"primaryjoin": "Liabilities.subhead_id == SubHeads.id"}
     # )
     balances: List["LiabilityBalances"] = Relationship(back_populates="liability")
+    expenses: List["Expenses"] = Relationship(back_populates="liability")
 
 
 class LiabilityBalances(SQLModel, table=True):
@@ -385,7 +393,7 @@ class Corps(SQLModel, table=True):
     # Relationships
     users: List["Users"] = Relationship(back_populates="corp")
     divs: List["Divs"] = Relationship(back_populates="corp")  # Relationship with Divs
-
+    expenses: List["Expenses"] = Relationship(back_populates="corps")
 
 class Divs(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
@@ -400,7 +408,7 @@ class Divs(SQLModel, table=True):
     corp: Optional["Corps"] = Relationship(back_populates="divs")
     users: Optional["Users"] = Relationship(back_populates="divs")  # Relationship with Users
     brigades: List["Brigades"] = Relationship(back_populates="division")  # Relationship with Brigades
-
+    expenses: List["Expenses"] = Relationship(back_populates="divs")
 
 class Brigades(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
@@ -415,7 +423,7 @@ class Brigades(SQLModel, table=True):
     division: Optional["Divs"] = Relationship(back_populates="brigades")  # Relationship with Divs
     users: List["Users"] = Relationship(back_populates="brigade")  # Relationship with Users
     units: List["Units"] = Relationship(back_populates="brigade")  # Relationship with Units
-
+    expenses: List["Expenses"] = Relationship(back_populates="brigades")
 
 class Units(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
@@ -431,3 +439,4 @@ class Units(SQLModel, table=True):
     # Relationships
     brigade: Optional["Brigades"] = Relationship(back_populates="units")  # Relationship with Brigades
     users: List["Users"] = Relationship(back_populates="unit")  # Relationship with Users
+    expenses: List["Expenses"] = Relationship(back_populates="units")

@@ -192,6 +192,8 @@ def create_outflow(
         session.add(asset)
         session.commit()
         session.refresh(asset)
+        # Assign the asset.id (integer) to item.asset_id
+        item.asset_id = asset.id
 
     # Get user balance
     user_balance = session.query(Balances).filter_by(user_id=current_user.id).first()
@@ -277,6 +279,7 @@ def update_outflow(
     old_amount = item.cost
     new_payment_method = item_in.payment_type
     new_amount = item_in.cost
+    is_asset = True if item.type == "NONEXPANDABLE" else False
 
     # Find the user's balance record
     user_balance = session.query(Balances).filter_by(user_id=current_user.id).first()
@@ -307,6 +310,52 @@ def update_outflow(
     # Apply the updates to the outflow item
     update_dict = item_in.model_dump(exclude_unset=True)
     item.sqlmodel_update(update_dict)
+
+    # If this is a non-expandable asset, update the corresponding asset record
+    if is_asset:
+        # Try to find the asset based on the id reference in asset_id
+        asset = None
+        if item.asset_id:
+            asset = session.query(Assets).filter_by(id=item.asset_id).first()
+        
+        # If not found by direct id reference, try to find it by matching criteria
+        if not asset:
+            asset = session.query(Assets).filter_by(
+                user_id=item.user_id,
+                head_details=item.head_details,
+                cost=old_amount,
+                payment_type=old_payment_method
+            ).first()
+        
+        # If an asset record was found, update it
+        if asset:
+            # Update asset details to match the updated outflow
+            asset.head_details = item.head_details
+            asset.cost = item.cost
+            asset.payment_type = item.payment_type
+            asset.purchased_from = item.payment_to
+            asset.purchase_date = item.expense_date
+            
+            # If cost changed, recalculate salvage value
+            if old_amount != new_amount:
+                asset.salvage_value = get_salvage(new_amount)
+                
+            session.add(asset)
+            
+            # Log the asset update
+            log_activity(
+                session=session,
+                log_name="Asset Updated",
+                description=(
+                    f"Asset {asset.asset_id} updated via outflow update. "
+                    f"Original cost: {old_amount}, New cost: {new_amount}"
+                ),
+                event="asset_updated",
+                user_id=current_user.id,
+                router_prefix="outflow",
+                subject_type="Assets",
+                subject_id=asset.id
+            )
 
     # Commit changes to balances and outflow in a single transaction
     session.commit()
