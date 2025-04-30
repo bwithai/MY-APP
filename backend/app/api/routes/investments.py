@@ -236,6 +236,13 @@ def update_invest(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    # Check if admin is trying to update another user's record
+    if current_user.is_superuser and item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Administrators cannot modify user investment records. This restriction is in place to maintain data integrity."
+        )
+
     # Check if the user has permission to update
     if not current_user.is_superuser and (item.user_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")

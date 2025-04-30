@@ -250,6 +250,12 @@ def update_inflow(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    if current_user.is_superuser and item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Administrators cannot modify user inflow records. This restriction is in place to maintain data integrity."
+        )
+
     if not current_user.is_superuser and (item.user_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 

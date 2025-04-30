@@ -283,6 +283,13 @@ def pay_liability(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    # Check if admin is trying to update another user's record
+    if current_user.is_superuser and item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Administrators cannot modify user liability payment records. This restriction is in place to maintain data integrity."
+        )
+
     # Check if the user has permission to update
     if not current_user.is_superuser and (item.user_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
@@ -421,6 +428,13 @@ def update_liability(
     item = session.get(Liabilities, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+
+    # Check if admin is trying to update another user's record
+    if current_user.is_superuser and item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Administrators cannot modify user liability records. This restriction is in place to maintain data integrity."
+        )
 
     # Check if the user has permission to update
     if not current_user.is_superuser and (item.user_id != current_user.id):

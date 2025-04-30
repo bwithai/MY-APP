@@ -258,8 +258,7 @@ var EditInflow = {
             })
             .catch(function(error) {
                 // Display error in alert
-                var errorMessage = error.message || 'An unknown error occurred';
-                alert('Error updating inflow: ' + errorMessage);
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update inflow'));
                 console.error(error);
                 // Re-enable the submit button
                 submitButton.disabled = true;

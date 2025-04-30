@@ -339,8 +339,7 @@ var EditOutflow = {
             })
             .catch(function(error) {
                 // Display error in alert
-                var errorMessage = error.message || 'An unknown error occurred';
-                alert('Error updating outflow: ' + errorMessage);
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update outflow'));
                 console.error(error);
                 // Re-enable the submit button
                 submitButton.disabled = true;

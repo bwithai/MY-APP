@@ -233,7 +233,7 @@ var EditLiability = {
             })
             .catch(function(error) {
                 console.error('Failed to update liability:', error);
-                alert('Failed to update liability: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update liability'));
             })
             .finally(function() {
                 if (submitButton) {

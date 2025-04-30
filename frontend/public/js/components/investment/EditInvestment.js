@@ -225,7 +225,7 @@ var EditInvestment = {
         })
         .catch(function(error) {
           console.error('Failed to update investment:', error);
-          alert('Failed to update investment: ' + (error.message || 'Unknown error'));
+          Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update investment'));
         })
         .then(function() {
           if (submitButton) {
