@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Relationship, Column, DECIMAL
+from sqlmodel import SQLModel, Field, Relationship, Column, DECIMAL, TEXT
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional, List
@@ -58,7 +58,7 @@ class ActivityLog(SQLModel, table=True):
     __tablename__ = "activity_log"
     id: int = Field(default=None, primary_key=True, nullable=False)
     log_name: Optional[str] = Field(default=None, index=True)
-    description: str
+    description: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
     subject_type: Optional[str] = Field(default=None, index=True)
     event: Optional[str] = None
     subject_id: Optional[int] = None
@@ -87,13 +87,13 @@ class MultiIbnUser(SQLModel, table=True):
     # Define relationship back to User
     user: Optional["Users"] = Relationship(back_populates="ibans")
     inflows: List["CommandFunds"] = Relationship(back_populates="iban")
-
+    investments: List["Investments"] = Relationship(back_populates="iban")
 
 class CommandFunds(SQLModel, table=True):
     __tablename__ = "command_funds"
 
     id: int = Field(default=None, primary_key=True, nullable=False)
-    fund_details: Optional[str] = None
+    fund_details: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
     amount: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
     payment_method: Optional[str] = None
     iban_id: Optional[int] = Field(foreign_key="multi_ibn_user.id", nullable=True)
@@ -175,7 +175,7 @@ class Expenses(SQLModel, table=True):
     user_id: int = Field(foreign_key="users.id", nullable=False)
     expense_id: Optional[str] = None
     type: Optional[str] = None
-    cost: Optional[Decimal] = None
+    cost: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
     payment_type: Optional[str] = None
     payment_to: Optional[str] = None
     expense_date: Optional[datetime] = None  # You might want to adjust the type if this should be a datetime
@@ -197,7 +197,7 @@ class Expenses(SQLModel, table=True):
     subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
     is_deleted: bool = Field(default=False)
     deleted_at: Optional[datetime] = None
-    head_details: Optional[str] = None
+    head_details: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
     place_type: Optional[str] = None
 
     # Relationships
@@ -221,7 +221,7 @@ class Assets(SQLModel, table=True):
     purchased_from: Optional[str] = None
     brand: Optional[str] = None
     serial_number: Optional[str] = None
-    cost: Optional[Decimal] = None
+    cost: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
     site_id: Optional[int] = None
     location_id: Optional[int] = None
     category_id: Optional[int] = None
@@ -249,7 +249,7 @@ class Assets(SQLModel, table=True):
     gift_to: Optional[str] = None
     disposed_reason: Optional[str] = None
     disposed_date: Optional[datetime] = None
-    head_details: str  # Required field
+    head_details: str = Field(default=None, sa_column=Column(TEXT, nullable=True))
 
     # Relationships
     user: Users = Relationship(back_populates="assets")
@@ -260,10 +260,10 @@ class Investments(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
     user_id: Optional[int] = Field(foreign_key="users.id", nullable=True)  # Foreign key to Users table
     name: Optional[str] = None
-    asset_details: Optional[str] = None
-    amount: Optional[Decimal] = None
+    asset_details: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
+    amount: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
     payment_method: Optional[str] = None
-    iban_id: Optional[int] = None
+    iban_id: Optional[int] = Field(foreign_key="multi_ibn_user.id", nullable=True)
     date: Optional[datetime] = None
     type: Optional[str] = None
     is_deleted: bool = Field(default=False)  # Default value is False
@@ -277,6 +277,7 @@ class Investments(SQLModel, table=True):
     # Relationship
     user: Optional["Users"] = Relationship(back_populates="investments")
     history: List["InvestmentHistory"] = Relationship(back_populates="investment")
+    iban: Optional["MultiIbnUser"] = Relationship(back_populates="investments")
 
 
 class InvestmentHistory(SQLModel, table=True):
@@ -288,7 +289,7 @@ class InvestmentHistory(SQLModel, table=True):
     last_balance: Decimal = Field(..., nullable=False)  # Required field
     date: str = Field(..., nullable=False)  # Date as a string
     status: str = Field(..., nullable=False)  # Required field
-    description: Optional[str] = None  # Optional text field
+    description: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
     created_at: Optional[datetime] = Field(default_factory=get_pakistan_timestamp)
     updated_at: Optional[datetime] = Field(
         default_factory=get_pakistan_timestamp,
@@ -306,8 +307,8 @@ class Liabilities(SQLModel, table=True):
     subhead: Optional[str] = None
     # head_id: Optional[int] = Field(foreign_key="heads.id", nullable=True)
     # subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
-    fund_details: Optional[str] = None
-    amount: Optional[Decimal] = None
+    fund_details: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
+    amount: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
     payment_method: Optional[str] = None
     date: datetime
     created_at: Optional[datetime] = Field(default_factory=get_pakistan_timestamp)
@@ -345,14 +346,14 @@ class LiabilityBalances(SQLModel, table=True):
     payment_type: str = Field(..., nullable=False)  # Required field
     date: str = Field(..., nullable=False)  # Date as a string, required field
     status: str = Field(..., nullable=False)  # Required field
-    description: Optional[str] = None
+    description: Optional[str] = Field(default=None, sa_column=Column(TEXT, nullable=True))
     created_at: Optional[datetime] = Field(default_factory=get_pakistan_timestamp)
     updated_at: Optional[datetime] = Field(
         default_factory=get_pakistan_timestamp,
         sa_column_kwargs={"onupdate": get_pakistan_timestamp}
     )
     payment_to: Optional[str] = None
-    current_amount: Optional[Decimal] = None
+    current_amount: Optional[Decimal] = Field(default=None, sa_column=Column(DECIMAL(16, 2), nullable=True))
 
     # Relationships
     user: Optional["Users"] = Relationship(back_populates="liability_balances")
