@@ -387,7 +387,7 @@
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, #859c85 0%, #195c17 100%);
+    background: var(--office-green);
     color: white;
     box-shadow: 0 4px 12px rgba(1, 65, 28, 0.2);
 }
@@ -880,11 +880,12 @@
 
 /* Text truncation styles */
 .truncate-text {
-    max-width: 200px;
+    max-width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: help; /* Shows help cursor on hover */
+    display: inline-block;
 }
 
 /* Table cell with long text */
@@ -1835,14 +1836,6 @@ button:disabled {
 .badge-success {
     color: #fff;
     background-color: #38a169;
-}
-
-/* Make sure truncate-text works for all tables */
-.truncate-text {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Style for the user table in ivy mode */

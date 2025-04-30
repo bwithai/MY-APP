@@ -10,7 +10,9 @@ var InflowApp = {
             this.currentPage = parseInt(sessionStorage.getItem('inflowCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'inflow'; // For use with pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
@@ -72,8 +74,7 @@ var InflowApp = {
                             '<th>Amount</th>' +
                             '<th>Payment Method</th>' +
                             '<th>IBAN</th>' +
-                            '<th>Date of Entry</th>' +
-                            '<th>Created At</th>' +
+                            '<th>Entry Date</th>' +
                             '<th>User</th>' +
                             '<th>Actions</th>' +
                         '</tr>' +
@@ -86,11 +87,7 @@ var InflowApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
@@ -150,7 +147,8 @@ var InflowApp = {
         .then(function(response) {
             if (response && response.data) {
                 self.renderInflowTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -207,11 +205,11 @@ var InflowApp = {
                 '<td>' + (inflow.payment_method || 'N/A') + '</td>' +
                 '<td class="long-text ' + (inflow.iban ? '' : 'text-muted') + '">' +
                     '<div class="truncate-text" title="' + (inflow.iban || '') + '">' +
-                        (inflow.iban || 'N/A') +
+                        (inflow.iban ? ('••• ' + inflow.iban.slice(-4)) : 'N/A') +
                     '</div>' +
                 '</td>' +
-                '<td>' + self.formatDate(inflow.date, true) + '</td>' +
-                '<td>' + self.formatDate(inflow.created_at) + '</td>' +
+                '<td>' + self.formatDate(inflow.date) + '</td>' +
+                // '<td>' + self.formatDate(inflow.created_at) + '</td>' +
                 '<td>' + (inflow.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Inflow', inflow, {
                     delete: !inflow.is_deleted,
@@ -239,32 +237,6 @@ var InflowApp = {
             searchInput.addEventListener('input', this.searchHandler);
         }
 
-        // Pagination
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
-
-        if (prevPage) {
-            this.prevPageHandler = function(e) {
-                e.preventDefault();
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
-                    self.loadInflowData(searchInput ? searchInput.value : '');
-                }
-            };
-            prevPage.addEventListener('click', this.prevPageHandler);
-        }
-
-        if (nextPage) {
-            this.nextPageHandler = function(e) {
-                e.preventDefault();
-                self.currentPage++;
-                sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
-                self.loadInflowData(searchInput ? searchInput.value : '');
-            };
-            nextPage.addEventListener('click', this.nextPageHandler);
-        }
-
         // Add new inflow
         var addButton = document.getElementById('addInflowBtn');
         if (addButton) {
@@ -274,10 +246,6 @@ var InflowApp = {
                 });
             });
         }
-    },
-
-    updatePagination: function(hasNextPage) {
-        Utils.updatePagination(this, hasNextPage);
     },
 
     formatNumber: function(value) {

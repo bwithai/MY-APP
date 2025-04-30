@@ -1,5 +1,5 @@
 var ApiClient = {
-    baseUrl: (window.ENV && window.ENV.API_URL) + "/api/v1/",
+    baseUrl: ((window.ENV && window.ENV.API_URL) || "http://localhost:8000") + "/api/v1/",
     token: null,
 
     /*----------------------------------------------------------------------------------------------------
@@ -75,8 +75,19 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
-    
-    
+
+    createUser: function(data) {    
+        return fetch(this.baseUrl + 'users/', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
 
     // ---------------------------->>>  IBAN API calls  <<<-------------------------------
 

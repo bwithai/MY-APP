@@ -1,15 +1,21 @@
 var LoginApp = {
     init: function() {
-        this.baseUrl = 'http://localhost:8001/api/v1/';
-        // Check if already logged in
-        if (localStorage.getItem('access_token')) {
-            window.location.href = '/index.html';
-            return;
+        try {
+            // Use the same API URL as defined in api-client.js
+            this.baseUrl = ((window.ENV && window.ENV.API_URL) || "http://localhost:8000") + "/api/v1/";
+            
+            // Check if already logged in
+            if (localStorage.getItem('access_token')) {
+                window.location.href = '/index.html';
+                return;
+            }
+            // Add login-page class to body
+            document.body.classList.add('login-page');
+            this.showLoginPage();
+            this.setupEventListeners();
+        } catch (error) {
+            console.error("Error initializing LoginApp:", error);
         }
-        // Add login-page class to body
-        document.body.classList.add('login-page');
-        this.showLoginPage();
-        this.setupEventListeners();
     },
 
     showLoginPage: function() {

@@ -8,11 +8,12 @@ var InvestmentApp = {
             this.currentPage = parseInt(sessionStorage.getItem('investmentCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'investment'; // For use with common pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
-        this.storageKey = 'investment'; // For use with common pagination functions
         
         // Mark that we're in investment page
         sessionStorage.setItem('isInvestment', 'true');
@@ -71,7 +72,7 @@ var InvestmentApp = {
                             '<th>Type</th>' +
                             '<th>Payment Method</th>' +
                             '<th>IBAN</th>' +
-                            '<th>Date of Entry</th>' +
+                            '<th>Entry Date</th>' +
                             '<th>User</th>' +
                             '<th>Actions</th>' +
                         '</tr>' +
@@ -84,11 +85,7 @@ var InvestmentApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
@@ -145,7 +142,8 @@ var InvestmentApp = {
         .then(function(response) {
             if (response && response.data) {
                 self.renderInvestmentTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -183,7 +181,7 @@ var InvestmentApp = {
             }
             
             row.innerHTML = 
-                '<td class="truncate-text" title="' + (investment.name || '') + '">' + (investment.name || 'N/A') + '</td>' +
+                '<td title="' + (investment.name || '') + '">' + (investment.name || 'N/A') + '</td>' +
                 '<td class="long-text ' + (investment.asset_details ? '' : 'text-muted') + '">' +
                     '<div class="truncate-text" title="' + (investment.asset_details || '') + '">' +
                         (investment.asset_details || 'N/A') +
@@ -194,10 +192,10 @@ var InvestmentApp = {
                 '<td>' + (investment.payment_method || 'N/A') + '</td>' +
                 '<td class="long-text ' + (investment.iban ? '' : 'text-muted') + '">' +
                     '<div class="truncate-text" title="' + (investment.iban || '') + '">' +
-                        (investment.iban || 'N/A') +
+                        (investment.iban ? ('••• ' + investment.iban.slice(-4)) : 'N/A') +
                     '</div>' +
                 '</td>' +
-                '<td>' + self.formatDate(investment.date, true) + '</td>' +
+                '<td>' + self.formatDate(investment.date) + '</td>' +
                 '<td>' + (investment.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Investment', investment, {
                     delete: !investment.is_deleted,
@@ -227,11 +225,11 @@ var InvestmentApp = {
             };
         }
         
-        // Use common pagination initialization with compatibility fixes
-        Utils.initPagination(this, function(searchTerm) {
-            var searchInput = document.getElementById('searchInput');
-            self.loadInvestmentData(searchTerm || (searchInput ? searchInput.value : ''));
-        });
+        // Search functionality
+        var searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.oninput = this.searchDebounced();
+        }
     },
 
     searchDebounced: function() {

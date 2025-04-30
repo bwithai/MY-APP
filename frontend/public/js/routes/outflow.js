@@ -9,7 +9,9 @@ var OutflowApp = {
             this.currentPage = parseInt(sessionStorage.getItem('outflowCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'outflow'; // For use with pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
@@ -69,7 +71,6 @@ var OutflowApp = {
                             '<th>Sub Head</th>' +
                             '<th>Head Details</th>' +
                             '<th>Type</th>' +
-                            '<th>Entity</th>' +
                             '<th>Amount</th>' +
                             '<th>Payment Type</th>' +
                             '<th>IBAN</th>' +
@@ -87,11 +88,7 @@ var OutflowApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
@@ -151,7 +148,8 @@ var OutflowApp = {
         .then(function(response) {
             if (response && response.data) {
                 self.renderOutflowTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -209,16 +207,15 @@ var OutflowApp = {
                     '</div>' +
                 '</td>' +
                 '<td>' + (outflow.type || 'N/A') + '</td>' +
-                '<td class="' + (outflow.entity ? '' : 'text-muted') + '">' + (outflow.entity || 'N/A') + '</td>' +
                 '<td title="' + (outflow.cost || 0) + '">' + self.formatNumber(outflow.cost) + '</td>' +
                 '<td>' + (outflow.payment_type || 'N/A') + '</td>' +
                 '<td class="long-text ' + (outflow.iban ? '' : 'text-muted') + '">' +
                     '<div class="truncate-text" title="' + (outflow.iban || '') + '">' +
-                        (outflow.iban || 'N/A') +
+                        (outflow.iban ? ('••• ' + outflow.iban.slice(-4)) : 'N/A') +
                     '</div>' +
                 '</td>' +
                 '<td class="' + (outflow.payment_to ? '' : 'text-muted') + '">' + (outflow.payment_to || 'N/A') + '</td>' +
-                '<td>' + self.formatDate(outflow.expense_date, true) + '</td>' +
+                '<td>' + self.formatDate(outflow.expense_date, false) + '</td>' +
                 '<td>' + (outflow.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Outflow', outflow, {
                     delete: !outflow.is_deleted,
@@ -239,37 +236,11 @@ var OutflowApp = {
                 clearTimeout(self.searchTimeout);
                 self.searchTimeout = setTimeout(function() {
                     self.currentPage = 1;
-                    sessionStorage.setItem('inflowCurrentPage', '1');
+                    sessionStorage.setItem('outflowCurrentPage', '1');
                     self.loadOutflowData(searchInput.value);
                 }, 300);
             };
             searchInput.addEventListener('input', this.searchHandler);
-        }
-
-        // Pagination
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
-
-        if (prevPage) {
-            this.prevPageHandler = function(e) {
-                e.preventDefault();
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
-                    self.loadOutflowData(searchInput ? searchInput.value : '');
-                }
-            };
-            prevPage.addEventListener('click', this.prevPageHandler);
-        }
-
-        if (nextPage) {
-            this.nextPageHandler = function(e) {
-                e.preventDefault();
-                self.currentPage++;
-                sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
-                self.loadOutflowData(searchInput ? searchInput.value : '');
-            };
-            nextPage.addEventListener('click', this.nextPageHandler);
         }
 
         // Add new outflow
@@ -281,10 +252,6 @@ var OutflowApp = {
                 });
             });
         }
-    },
-
-    updatePagination: function(hasNextPage) {
-        Utils.updatePagination(this, hasNextPage);
     },
 
     formatDate: function(dateString, includeTime = false) {

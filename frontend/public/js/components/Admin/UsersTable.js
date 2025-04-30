@@ -24,7 +24,12 @@ var UsersTabl = {
         }.bind(this);
         this.ivy = options.ivy || false;
         this.onUserChange = options.onUserChange || function() {};
-        this.perPage = 10; // Same as PER_PAGE constant in React
+        
+        // Set storage key for pagination
+        this.storageKey = 'users';
+        
+        // Get per-page setting from sessionStorage or default to 10
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         
         // Get current user data
         this.currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
@@ -47,11 +52,7 @@ var UsersTabl = {
             this.container.innerHTML = `
                 ${tableHtml}
                 
-                <div class="pagination-footer">
-                    <button id="prevPage" class="btn btn-secondary" disabled>Previous</button>
-                    <span class="page-info">Page <span id="currentPage">${this.page}</span></span>
-                    <button id="nextPage" class="btn btn-secondary" disabled>Next</button>
-                </div>
+                <div class="pagination-footer"></div>
             `;
         } else {
             tableHtml = this.getStandardTableHtml();
@@ -60,16 +61,11 @@ var UsersTabl = {
                     ${tableHtml}
                 </div>
                 
-                <div class="pagination-footer">
-                    <button id="prevPage" class="btn btn-secondary" disabled>Previous</button>
-                    <span class="page-info">Page <span id="currentPage">${this.page}</span></span>
-                    <button id="nextPage" class="btn btn-secondary" disabled>Next</button>
-                </div>
+                <div class="pagination-footer"></div>
             `;
         }
         
-        // Attach event listeners for pagination
-        this.attachPaginationListeners();
+        // No need to attach pagination listeners as the numbered pagination will handle it
     },
     
     /**
@@ -103,7 +99,7 @@ var UsersTabl = {
                     <tr>
                         <th style="width: 10%">ID</th>
                         <th style="width: 15%">UserName</th>
-                        <th style="width: 30%">Formation</th>
+                        <th style="width: 15%">Formation</th>
                         <th style="width: 10%">Role</th>
                         <th style="width: 10%">Status</th>
                         <th style="width: 10%">Actions</th>
@@ -144,7 +140,11 @@ var UsersTabl = {
             if (response && response.data) {
                 self.users = response.data;
                 self.renderUsersTable(response.data);
-                self.updatePagination(response.data.length === self.perPage);
+                // Need to set storageKey and currentPage for compatibility with Utils pagination
+                self.storageKey = 'users';
+                self.currentPage = self.page;
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count || response.data.length * 2, response.data.length === self.perPage);
             } else {
                 throw new Error('Invalid response format');
             }
@@ -209,7 +209,6 @@ var UsersTabl = {
             
             // Username cell with "You" badge if current user
             var usernameCell = document.createElement('td');
-            usernameCell.className = 'truncate-text';
             
             if (self.currentUser.id === user.id) {
                 usernameCell.innerHTML = `
@@ -258,7 +257,6 @@ var UsersTabl = {
             
             // Username cell with "You" badge if current user
             var usernameCell = document.createElement('td');
-            usernameCell.className = 'truncate-text';
             
             if (self.currentUser.id === user.id) {
                 usernameCell.innerHTML = `
@@ -271,10 +269,10 @@ var UsersTabl = {
             
             // Email/Formation cell
             var emailCell = document.createElement('td');
-            emailCell.className = 'truncate-text';
+            var formation = user.username.split('-')[0]
             emailCell.innerHTML = `
-                <div title="${user.email || ''}">
-                    ${user.email || 'N/A'}
+                <div class='${formation ? '' : 'text-muted'}' title="${formation || ''}">
+                    ${formation || 'N/A'}
                 </div>
             `;
             
@@ -313,38 +311,12 @@ var UsersTabl = {
     },
     
     /**
-     * Attach event listeners for pagination
-     */
-    attachPaginationListeners: function() {
-        var self = this;
-        var prevPageBtn = document.getElementById('prevPage');
-        var nextPageBtn = document.getElementById('nextPage');
-        
-        if (prevPageBtn) {
-            prevPageBtn.addEventListener('click', function() {
-                if (self.page > 1) {
-                    self.setPage(self.page - 1);
-                }
-            });
-        }
-        
-        if (nextPageBtn) {
-            nextPageBtn.addEventListener('click', function() {
-                self.setPage(self.page + 1);
-            });
-        }
-    },
-    
-    /**
      * Update pagination buttons and current page display
      * 
      * @param {boolean} hasNextPage - Whether there is a next page
      */
     updatePagination: function(hasNextPage) {
-        // Set currentPage property to match page for compatibility with Utils.updatePagination
-        this.currentPage = this.page;
-        // Use the common Utils method
-        Utils.updatePagination(this, hasNextPage);
+        // No longer needed as we're using the Utils.updateNumberedPagination
     },
     
     /**
@@ -366,6 +338,14 @@ var UsersTabl = {
             // Re-render if ivy mode changed
             this.render();
         }
+        
+        // Add loadData method for compatibility with numbered pagination
+        this.loadData = function(query) {
+            if (query !== undefined) {
+                this.query = query;
+            }
+            this.loadUsers();
+        }.bind(this);
         
         // Reload users with new options
         this.loadUsers();

@@ -182,7 +182,7 @@ var AddHead = {
             }.bind(this))
             .catch(function(error) {
                 // Show error message
-                Utils.showMessage('error', 'Failed to create head: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', 'Failed to create head: ' + (error.message || 'Unknown error'));
             })
             .finally(function() {
                 // Reset button state

@@ -9,7 +9,9 @@ var ActivityApp = {
             this.currentPage = parseInt(sessionStorage.getItem('activityCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'activity'; // For use with pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         
         // Mark that we're in activity page
@@ -21,16 +23,7 @@ var ActivityApp = {
 
     cleanup: function() {
         // Remove existing event listeners
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
         var searchInput = document.getElementById('searchInput');
-
-        if (prevPage) {
-            prevPage.removeEventListener('click', this.prevPageHandler);
-        }
-        if (nextPage) {
-            nextPage.removeEventListener('click', this.nextPageHandler);
-        }
         if (searchInput) {
             searchInput.removeEventListener('input', this.searchHandler);
         }
@@ -67,17 +60,13 @@ var ActivityApp = {
                     '</thead>' +
                     '<tbody id="activityTableBody">' +
                         '<tr>' +
-                            '<td colspan="7" class="text-center">Loading...</td>' +
+                            '<td colspan="6" class="text-center">Loading...</td>' +
                         '</tr>' +
                     '</tbody>' +
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
@@ -105,6 +94,10 @@ var ActivityApp = {
         history.pushState(null, '', '?' + searchParams.toString());
     },
 
+    loadData: function(query) {
+        this.loadActivityData(query);
+    },
+
     loadActivityData: function(query) {
         // Default parameter value for older browser compatibility
         query = query || this.searchQuery || '';
@@ -116,7 +109,7 @@ var ActivityApp = {
         // Show loading state
         if (tableBody) {
             // Create a row with a cell that spans all columns
-            tableBody.innerHTML = '<tr><td colspan="7" class="text-center" id="loadingCell"></td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center" id="loadingCell"></td></tr>';
             // Apply loading to the single cell instead of the whole tbody
             Utils.showLoading('loadingCell', 'Loading activity logs...');
         }
@@ -127,9 +120,12 @@ var ActivityApp = {
             search: query
         })
         .then(function(response) {
+            console.log("activity response: ", response);
             if (response && response.data) {
                 self.renderActivityTable(response.data);
-                self.updatePagination(response.data.length >= self.perPage);
+                
+                // Update pagination using the same pattern as inflow.js
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -140,7 +136,7 @@ var ActivityApp = {
             var tableBody = document.getElementById('activityTableBody');
             if (tableBody) {
                 tableBody.innerHTML = '<tr>' +
-                    '<td colspan="7" class="text-center text-danger">' +
+                    '<td colspan="6" class="text-center text-danger">' +
                         'Error loading logs: ' + (error.message || 'Unknown error') +
                     '</td>' +
                 '</tr>';
@@ -157,7 +153,7 @@ var ActivityApp = {
 
         if (!logs || logs.length === 0) {
             tableBody.innerHTML = '<tr>' +
-                '<td colspan="7" class="text-center">No activity logs found</td>' +
+                '<td colspan="6" class="text-center">No activity logs found</td>' +
             '</tr>';
             return;
         }
@@ -206,36 +202,6 @@ var ActivityApp = {
             };
             searchInput.addEventListener('input', this.searchHandler);
         }
-
-        // Pagination
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
-
-        if (prevPage) {
-            this.prevPageHandler = function(e) {
-                e.preventDefault();
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('activityCurrentPage', self.currentPage.toString());
-                    self.loadActivityData(searchInput ? searchInput.value : '');
-                }
-            };
-            prevPage.addEventListener('click', this.prevPageHandler);
-        }
-
-        if (nextPage) {
-            this.nextPageHandler = function(e) {
-                e.preventDefault();
-                self.currentPage++;
-                sessionStorage.setItem('activityCurrentPage', self.currentPage.toString());
-                self.loadActivityData(searchInput ? searchInput.value : '');
-            };
-            nextPage.addEventListener('click', this.nextPageHandler);
-        }
-    },
-
-    updatePagination: function(hasNextPage) {
-        Utils.updatePagination(this, hasNextPage);
     }
 };
 

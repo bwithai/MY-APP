@@ -437,26 +437,41 @@ if (!Object.assign) {
 
 // Promise polyfill (simplified version)
 if (!window.Promise) {
-    var Promise = function(executor) {
-        // Basic Promise implementation
-        var callbacks = [];
-        var state = 'pending';
-        var value;
+    window.Promise = function(executor) {
+        var self = this;
+        self.state = 'pending';
+        self.value = undefined;
+        self.callbacks = [];
 
         function resolve(result) {
-            state = 'fulfilled';
-            value = result;
-            callbacks.forEach(function(callback) {
-                callback(value);
-            });
+            if (self.state !== 'pending') return;
+            self.state = 'fulfilled';
+            self.value = result;
+            executeCallbacks();
         }
 
         function reject(error) {
-            state = 'rejected';
-            value = error;
-            callbacks.forEach(function(callback) {
-                callback(value);
-            });
+            if (self.state !== 'pending') return;
+            self.state = 'rejected';
+            self.value = error;
+            executeCallbacks();
+        }
+
+        function executeCallbacks() {
+            setTimeout(function() {
+                self.callbacks.forEach(function(callback) {
+                    try {
+                        var cb = self.state === 'fulfilled' ? callback.onFulfilled : callback.onRejected;
+                        if (typeof cb === 'function') {
+                            callback.resolve(cb(self.value));
+                        } else {
+                            (self.state === 'fulfilled' ? callback.resolve : callback.reject)(self.value);
+                        }
+                    } catch(e) {
+                        callback.reject(e);
+                    }
+                });
+            }, 0);
         }
 
         try {
@@ -464,38 +479,73 @@ if (!window.Promise) {
         } catch (error) {
             reject(error);
         }
-
-        return {
-            then: function(onFulfilled) {
-                if (state === 'pending') {
-                    callbacks.push(onFulfilled);
-                } else {
-                    onFulfilled(value);
-                }
-                return this;
-            },
-            catch: function(onRejected) {
-                return this.then(function(value) {
-                    onRejected(value);
-                });
-            }
-        };
     };
-    
-    // Add static methods to Promise
-    Promise.resolve = function(value) {
+
+    window.Promise.prototype.then = function(onFulfilled, onRejected) {
+        var self = this;
+        return new Promise(function(resolve, reject) {
+            self.callbacks.push({
+                onFulfilled: onFulfilled,
+                onRejected: onRejected,
+                resolve: resolve,
+                reject: reject
+            });
+            
+            if (self.state !== 'pending') {
+                setTimeout(function() {
+                    try {
+                        var cb = self.state === 'fulfilled' ? onFulfilled : onRejected;
+                        if (typeof cb === 'function') {
+                            resolve(cb(self.value));
+                        } else {
+                            (self.state === 'fulfilled' ? resolve : reject)(self.value);
+                        }
+                    } catch(e) {
+                        reject(e);
+                    }
+                }, 0);
+            }
+        });
+    };
+
+    window.Promise.prototype.catch = function(onRejected) {
+        return this.then(null, onRejected);
+    };
+
+    // Define static methods
+    window.Promise.resolve = function(value) {
         return new Promise(function(resolve) {
             resolve(value);
         });
     };
-    
-    Promise.reject = function(reason) {
+
+    window.Promise.reject = function(reason) {
         return new Promise(function(resolve, reject) {
             reject(reason);
         });
     };
-    
-    window.Promise = Promise;
+
+    window.Promise.all = function(promises) {
+        return new Promise(function(resolve, reject) {
+            var results = [];
+            var remaining = promises.length;
+            
+            if (promises.length === 0) {
+                resolve(results);
+                return;
+            }
+
+            promises.forEach(function(promise, index) {
+                Promise.resolve(promise).then(function(result) {
+                    results[index] = result;
+                    remaining--;
+                    if (remaining === 0) {
+                        resolve(results);
+                    }
+                }, reject);
+            });
+        });
+    };
 }
 
 // Array.from polyfill
@@ -568,224 +618,89 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Optional chaining (?.) polyfill
-if (!Object.prototype.optionalChain) {
-    Object.prototype.optionalChain = function(key) {
-        return this == null ? undefined : this[key];
+if (!window.safeAccess) {
+    window.safeAccess = function(obj, path) {
+        return path.split('.').reduce(function(acc, part) {
+            return acc && acc[part] ? acc[part] : undefined;
+        }, obj);
     };
 }
 
-// Function to safely access nested properties
-window.safeAccess = function(obj, path) {
-    return path.split('.').reduce(function(acc, part) {
-        return acc && acc[part] ? acc[part] : undefined;
-    }, obj);
-};
-
-// Replace ?. usage with safe access
-// Instead of: obj?.prop?.method?.()
-// Use: safeAccess(obj, 'prop.method')
-
-// Replace arrow functions with regular functions
-// Instead of: (mod) => deps?.(mod)
-// Use: function(mod) { return deps && deps(mod); }
-
-// Object.entries polyfill
-if (!Object.entries) {
-    Object.entries = function(obj) {
-        var ownProps = Object.keys(obj),
-            i = ownProps.length,
-            resArray = new Array(i);
-        while (i--)
-            resArray[i] = [ownProps[i], obj[ownProps[i]]];
-        return resArray;
-    };
-}
-
-// Object.fromEntries polyfill
-if (!Object.fromEntries) {
-    Object.fromEntries = function(entries) {
-        if (!entries || !entries[Symbol.iterator]) { throw new Error('Object.fromEntries() requires a single iterable argument'); }
-        var obj = {};
-        for (var entry of entries) {
-            if (Object(entry) !== entry) { throw new TypeError('Each entry must be an object'); }
-            if (!Array.isArray(entry)) { throw new TypeError('Each entry must be an array'); }
-            if (entry.length !== 2) { throw new TypeError('Each entry must be a [key, value] array'); }
-            obj[entry[0]] = entry[1];
+// Array.prototype.findIndex polyfill (missing in Firefox 52)
+if (!Array.prototype.findIndex) {
+    Array.prototype.findIndex = function(predicate) {
+        if (this == null) {
+            throw new TypeError('Array.prototype.findIndex called on null or undefined');
         }
-        return obj;
+        if (typeof predicate !== 'function') {
+            throw new TypeError('predicate must be a function');
+        }
+        var list = Object(this);
+        var length = list.length >>> 0;
+        var thisArg = arguments[1];
+
+        for (var i = 0; i < length; i++) {
+            if (predicate.call(thisArg, list[i], i, list)) {
+                return i;
+            }
+        }
+        return -1;
     };
 }
 
-// Add these to your existing polyfills
-(function() {
-    // Array.from polyfill
-    if (!Array.from) {
-        Array.from = function(arrayLike) {
-            return [].slice.call(arrayLike);
-        };
-    }
-
-    // Object.assign polyfill
-    if (!Object.assign) {
-        Object.assign = function(target) {
-            if (target == null) {
-                throw new TypeError('Cannot convert undefined or null to object');
-            }
-            var to = Object(target);
-            for (var i = 1; i < arguments.length; i++) {
-                var nextSource = arguments[i];
-                if (nextSource != null) {
-                    for (var nextKey in nextSource) {
-                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                            to[nextKey] = nextSource[nextKey];
-                        }
-                    }
+// Array.prototype.flat polyfill (missing in older browsers)
+if (!Array.prototype.flat) {
+    Array.prototype.flat = function(depth) {
+        var flattened = [];
+        (function flat(array, depth) {
+            for (var i = 0; i < array.length; i++) {
+                if (Array.isArray(array[i]) && depth > 0) {
+                    flat(array[i], depth - 1);
+                } else {
+                    flattened.push(array[i]);
                 }
             }
-            return to;
-        };
-    }
+        })(this, Math.floor(depth) || 1);
+        return flattened;
+    };
+}
 
-    // Promise polyfill (simplified version)
-    if (!window.Promise) {
-        window.Promise = function(executor) {
-            // Basic Promise implementation
-            var callbacks = [];
-            var state = 'pending';
-            var value;
+// Function.prototype.bind polyfill (for very old browsers)
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function(oThis) {
+        if (typeof this !== 'function') {
+            throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+        }
 
-            function resolve(result) {
-                state = 'fulfilled';
-                value = result;
-                callbacks.forEach(function(callback) {
-                    callback(value);
-                });
-            }
-
-            function reject(error) {
-                state = 'rejected';
-                value = error;
-                callbacks.forEach(function(callback) {
-                    callback(value);
-                });
-            }
-
-            try {
-                executor(resolve, reject);
-            } catch (error) {
-                reject(error);
-            }
-
-            return {
-                then: function(onFulfilled) {
-                    if (state === 'pending') {
-                        callbacks.push(onFulfilled);
-                    } else {
-                        onFulfilled(value);
-                    }
-                    return this;
-                },
-                catch: function(onRejected) {
-                    return this.then(function(value) {
-                        onRejected(value);
-                    });
-                }
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function() {},
+            fBound = function() {
+                return fToBind.apply(this instanceof fNOP
+                    ? this
+                    : oThis,
+                    aArgs.concat(Array.prototype.slice.call(arguments)));
             };
-        };
-    }
-})(); 
 
-// Polyfills for old browsers like Firefox 50
-
-// Element.remove() polyfill
-(function() {
-  if (!Element.prototype.remove) {
-    Element.prototype.remove = function() {
-      if (this.parentNode) {
-        this.parentNode.removeChild(this);
-      }
-    };
-  }
-})();
-
-// String.includes polyfill
-if (!String.prototype.includes) {
-  String.prototype.includes = function(search, start) {
-    if (typeof start !== 'number') {
-      start = 0;
-    }
-
-    if (start + search.length > this.length) {
-      return false;
-    } else {
-      return this.indexOf(search, start) !== -1;
-    }
-  };
-}
-
-// Object.assign polyfill
-if (typeof Object.assign !== 'function') {
-  Object.assign = function(target) {
-    if (target == null) {
-      throw new TypeError('Cannot convert undefined or null to object');
-    }
-
-    var to = Object(target);
-
-    for (var index = 1; index < arguments.length; index++) {
-      var nextSource = arguments[index];
-
-      if (nextSource != null) {
-        for (var nextKey in nextSource) {
-          if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-            to[nextKey] = nextSource[nextKey];
-          }
+        if (this.prototype) {
+            fNOP.prototype = this.prototype;
         }
-      }
-    }
-    return to;
-  };
-}
+        fBound.prototype = new fNOP();
 
-// Promise.finally polyfill
-if (!Promise.prototype.finally) {
-  Promise.prototype.finally = function(callback) {
-    var P = this.constructor;
-    return this.then(
-      function(value) {
-        return P.resolve(callback()).then(function() {
-          return value;
-        });
-      },
-      function(reason) {
-        return P.resolve(callback()).then(function() {
-          throw reason;
-        });
-      }
-    );
-  };
-}
-
-// NodeList.forEach polyfill
-if (window.NodeList && !NodeList.prototype.forEach) {
-  NodeList.prototype.forEach = function(callback, thisArg) {
-    thisArg = thisArg || window;
-    for (var i = 0; i < this.length; i++) {
-      callback.call(thisArg, this[i], i, this);
-    }
-  };
+        return fBound;
+    };
 }
 
 // Error handling utility to make debugging easier
 window.handleError = function(error, source) {
-  console.error('Error in ' + (source || 'unknown') + ':', error);
-  if (typeof error === 'string') {
-    alert('Error: ' + error);
-  } else if (error && error.message) {
-    alert('Error: ' + error.message);
-  } else {
-    alert('An unknown error occurred');
-  }
+    console.error('Error in ' + (source || 'unknown') + ':', error);
+    if (typeof error === 'string') {
+        alert('Error: ' + error);
+    } else if (error && error.message) {
+        alert('Error: ' + error.message);
+    } else {
+        alert('An unknown error occurred');
+    }
 };
 
-console.log('Polyfills loaded for better browser compatibility'); 
+console.log('Polyfills loaded for better browser compatibility - version 1.1'); 

@@ -8,11 +8,12 @@ var LiabilityApp = {
             this.currentPage = parseInt(sessionStorage.getItem('liabilityCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'liability'; // For use with common pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
-        this.storageKey = 'liability'; // For use with common pagination functions
         
         // Mark that we're in liability page
         sessionStorage.setItem('isLiability', 'true');
@@ -85,11 +86,7 @@ var LiabilityApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
@@ -142,7 +139,8 @@ var LiabilityApp = {
         .then(function(response) {
             if (response && response.data) {
                 self.renderLiabilityTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -221,11 +219,18 @@ var LiabilityApp = {
             };
         }
         
-        // Use common pagination initialization
-        Utils.initPagination(this, function(searchTerm) {
-            var searchInput = document.getElementById('searchInput');
-            self.loadLiabilityData(searchTerm || (searchInput ? searchInput.value : ''));
-        });
+        // Search functionality
+        var searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.oninput = function() {
+                clearTimeout(self.searchTimeout);
+                self.searchTimeout = setTimeout(function() {
+                    self.currentPage = 1;
+                    sessionStorage.setItem('liabilityCurrentPage', '1');
+                    self.loadLiabilityData(searchInput.value);
+                }, 300);
+            };
+        }
     },
     
     // Handle action menu operations (edit, delete, paid)

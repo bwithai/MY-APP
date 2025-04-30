@@ -8,11 +8,12 @@ var AssetsApp = {
             this.currentPage = parseInt(sessionStorage.getItem('assetsCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'assets'; // For use with common pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
-        this.storageKey = 'assets'; // For use with common pagination functions
         this.searchQuery = '';
         
         // Mark that we're in assets page
@@ -64,7 +65,6 @@ var AssetsApp = {
                 '<table class="table">' +
                     '<thead>' +
                         '<tr>' +
-                            '<th>ID</th>' +
                             '<th>Name</th>' +
                             '<th>Type</th>' +
                             '<th>Purchase Date</th>' +
@@ -84,11 +84,7 @@ var AssetsApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
@@ -146,7 +142,8 @@ var AssetsApp = {
         .then(function(response) {
             if (response && response.data) {
                 self.renderAssetsTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -190,8 +187,7 @@ var AssetsApp = {
             
             // Build row using direct HTML like liability.js
             row.innerHTML = 
-                '<td title="' + (asset.status || '') + '">' + (asset.asset_id || 'N/A') + '</td>' +
-                '<td>' + (asset.name || 'N/A') + '</td>' +
+                '<td title="' + (asset.status || '') + '">' + (asset.name || 'N/A') + '</td>' +
                 '<td>' + (asset.type || 'N/A') + '</td>' +
                 '<td title="' + (asset.purchase_date || '') + '">' + (asset.purchase_date ? Utils.formatDate(asset.purchase_date, true) : 'N/A') + '</td>' +
                 '<td>' + (asset.purchased_from || 'N/A') + '</td>' +
@@ -205,10 +201,6 @@ var AssetsApp = {
             
             tableBody.appendChild(row);
         });
-    },
-
-    updatePagination: function(hasMore) {
-        Utils.updatePagination(this, hasMore);
     },
 
     setupEventListeners: function() {
@@ -239,30 +231,6 @@ var AssetsApp = {
                     self.loadAssetsData(self.searchQuery);
                 }, 500); // Debounce for 500ms
             });
-        }
-        
-        // Pagination buttons
-        var prevPageBtn = document.getElementById('prevPage');
-        var nextPageBtn = document.getElementById('nextPage');
-        
-        if (prevPageBtn) {
-            this.prevPageHandler = function() {
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('assetsCurrentPage', self.currentPage.toString());
-                    self.loadAssetsData();
-                }
-            };
-            prevPageBtn.addEventListener('click', this.prevPageHandler);
-        }
-        
-        if (nextPageBtn) {
-            this.nextPageHandler = function() {
-                self.currentPage++;
-                sessionStorage.setItem('assetsCurrentPage', self.currentPage.toString());
-                self.loadAssetsData();
-            };
-            nextPageBtn.addEventListener('click', this.nextPageHandler);
         }
     }
 };

@@ -36,9 +36,16 @@
     <script src="/js/lib/chart.js@2.9.4"></script>
     <!-- Environment variables -->
     <script>
+        // Set a default URL in case the environment variable isn't set
         window.ENV = {
-            API_URL: '%VITE_API_URL%'
+            API_URL: '%VITE_API_URL%' || 'http://localhost:8000'
         };
+        
+        // Fix for older browsers where || might not work properly with '%VITE_API_URL%'
+        if (window.ENV.API_URL === '%VITE_API_URL%') {
+            window.ENV.API_URL = 'http://localhost:8000';
+        }
+        
     </script>
     <!-- External libraries -->
     <!-- Main application scripts -->
@@ -111,7 +118,7 @@
     
     <!-- Load Admin Components -->
     <script src="/js/components/Admin/UsersTable.js"></script>
-    
+    <script src="/js/components/Admin/AddUser.js"></script>
     <!-- Load Routes AFTER all components are loaded -->
     <script src="/js/routes/dashboard.js"></script>
     <script src="/js/routes/inflow.js"></script>

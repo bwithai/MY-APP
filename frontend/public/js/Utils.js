@@ -160,18 +160,19 @@ var Utils = {
                 return 'Invalid date';
             }
             
-            var options = { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric'
-            };
+            var day = date.getDate();
+            var month = date.toLocaleString('en-US', { month: 'short' });
+            var year = date.getFullYear();
+            
+            var formattedDate = day + ' ' + month + ' ' + year;
             
             if (includeTime) {
-                options.hour = '2-digit';
-                options.minute = '2-digit';
+                var hours = date.getHours().toString().padStart(2, '0');
+                var minutes = date.getMinutes().toString().padStart(2, '0');
+                formattedDate += ' ' + hours + ':' + minutes;
             }
             
-            return date.toLocaleDateString('en-US', options);
+            return formattedDate;
         } catch (e) {
             console.error('Error formatting date:', e);
             return 'Error';
@@ -340,6 +341,358 @@ var Utils = {
             inputElement.type = 'date';
             inputElement.readOnly = false;
         }
+    },
+
+    // Initialize Google-style pagination for any component
+    initNumberedPagination: function(component, loadDataFunction, totalPages, targetContainer) {
+        var self = this;
+        var container = targetContainer || document.querySelector('.pagination-footer');
+        if (!container) return;
+        
+        // Create numbered pagination
+        this.renderPageNumbers(container, component.currentPage, totalPages, function(pageNum) {
+            component.currentPage = pageNum;
+            sessionStorage.setItem(component.storageKey + 'CurrentPage', pageNum);
+            loadDataFunction();
+        });
+    },
+    
+    // Render page numbers for Google-style pagination
+    renderPageNumbers: function(container, currentPage, totalPages, onPageClick) {
+        // Clear existing pagination content
+        container.innerHTML = '';
+        
+        // Create a wrapper for the pagination
+        var paginationWrapper = document.createElement('div');
+        paginationWrapper.className = 'pagination-wrapper';
+        
+        // Add previous button
+        var prevButton = document.createElement('button');
+        prevButton.className = 'btn btn-secondary pagination-btn';
+        prevButton.textContent = 'Previous';
+        prevButton.disabled = currentPage <= 1;
+        prevButton.onclick = function() {
+            if (currentPage > 1) {
+                onPageClick(currentPage - 1);
+            }
+        };
+        paginationWrapper.appendChild(prevButton);
+        
+        // Calculate which page numbers to show
+        var startPage = Math.max(1, currentPage - 4);
+        var endPage = Math.min(totalPages, startPage + 9);
+        
+        // Adjust start page if we're near the end
+        if (endPage - startPage < 9) {
+            startPage = Math.max(1, endPage - 9);
+        }
+        
+        // Add first page button if not visible in current range
+        if (startPage > 1) {
+            var firstPageBtn = document.createElement('button');
+            firstPageBtn.className = 'btn pagination-number';
+            firstPageBtn.textContent = '1';
+            firstPageBtn.dataset.page = 1;
+            firstPageBtn.onclick = function() {
+                onPageClick(1);
+            };
+            paginationWrapper.appendChild(firstPageBtn);
+            
+            // Add ellipsis if there's a gap
+            if (startPage > 2) {
+                var ellipsis = document.createElement('span');
+                ellipsis.className = 'pagination-ellipsis';
+                ellipsis.textContent = '...';
+                paginationWrapper.appendChild(ellipsis);
+            }
+        }
+        
+        // Add page numbers
+        for (var i = startPage; i <= endPage; i++) {
+            var pageButton = document.createElement('button');
+            pageButton.className = 'btn pagination-number';
+            if (i === currentPage) {
+                pageButton.className += ' pagination-active';
+            }
+            pageButton.textContent = i;
+            pageButton.dataset.page = i;
+            pageButton.onclick = function() {
+                onPageClick(parseInt(this.dataset.page));
+            };
+            paginationWrapper.appendChild(pageButton);
+        }
+        
+        // Add last page button if not visible in current range
+        if (endPage < totalPages) {
+            // Add ellipsis if there's a gap
+            if (endPage < totalPages - 1) {
+                var ellipsis = document.createElement('span');
+                ellipsis.className = 'pagination-ellipsis';
+                ellipsis.textContent = '...';
+                paginationWrapper.appendChild(ellipsis);
+            }
+            
+            var lastPageBtn = document.createElement('button');
+            lastPageBtn.className = 'btn pagination-number';
+            lastPageBtn.textContent = totalPages;
+            lastPageBtn.dataset.page = totalPages;
+            lastPageBtn.onclick = function() {
+                onPageClick(totalPages);
+            };
+            paginationWrapper.appendChild(lastPageBtn);
+        }
+        
+        // Add next button
+        var nextButton = document.createElement('button');
+        nextButton.className = 'btn btn-secondary pagination-btn';
+        nextButton.textContent = 'Next';
+        nextButton.disabled = currentPage >= totalPages;
+        nextButton.onclick = function() {
+            if (currentPage < totalPages) {
+                onPageClick(currentPage + 1);
+            }
+        };
+        paginationWrapper.appendChild(nextButton);
+        
+        // Add to container
+        container.appendChild(paginationWrapper);
+        
+        // Add CSS for pagination if it doesn't exist
+        if (!document.getElementById('pagination-styles')) {
+            var style = document.createElement('style');
+            style.id = 'pagination-styles';
+            style.innerHTML = `
+                .pagination-wrapper {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 20px 0;
+                    flex-wrap: wrap;
+                    font-family: Arial, sans-serif;
+                }
+                .pagination-number {
+                    margin: 0 3px;
+                    min-width: 36px;
+                    height: 36px;
+                    background-color: transparent;
+                    color: var(--office-blue);
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    border: none;
+                    border-radius: 50%;
+                    font-size: 14px;
+                }
+                .pagination-number:hover {
+                    background-color: #f1f3f4;
+                    text-decoration: underline;
+                }
+                .pagination-active {
+                    background-color: var(--office-green);
+                    color: #fff;
+                    font-weight: bold;
+                }
+                .pagination-active:hover {
+                    background-color: var(--office-blue);
+                    color: #fff;
+                    text-decoration: none;
+                }
+                .pagination-btn {
+                    margin: 0 8px;
+                    color: var(--office-green);
+                    background-color: transparent;
+                    border: none;
+                    font-weight: bold;
+                    cursor: pointer;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                }
+                .pagination-btn:hover {
+                    background-color: #f1f3f4;
+                    text-decoration: underline;
+                }
+                .pagination-ellipsis {
+                    margin: 0 3px;
+                    min-width: 20px;
+                    text-align: center;
+                    color: #5f6368;
+                }
+                @media (max-width: 576px) {
+                    .pagination-wrapper {
+                        justify-content: center;
+                    }
+                    .pagination-number {
+                        margin: 0 2px;
+                        min-width: 32px;
+                        height: 32px;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    },
+    
+    // Create a per-page selector dropdown
+    createPerPageSelector: function(component, loadDataFunction) {
+        // Get current per-page value from session storage or default to 10
+        var storageKey = component.storageKey || 'default';
+        var currentPerPage = parseInt(sessionStorage.getItem(storageKey + 'PerPage')) || 10;
+        
+        // Create the select element and its container
+        var container = document.createElement('div');
+        container.className = 'per-page-selector';
+        
+        var label = document.createElement('label');
+        label.textContent = 'Show ';
+        
+        var select = document.createElement('select');
+        select.id = 'perPageSelect';
+        select.className = 'form-control form-control-sm';
+        
+        // Add options: 10, 20, 50
+        [10, 20, 50].forEach(function(value) {
+            var option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            option.selected = value === currentPerPage;
+            select.appendChild(option);
+        });
+        
+        // Add label for entries
+        var entriesLabel = document.createElement('span');
+        entriesLabel.textContent = ' entries';
+        
+        // Assemble the container
+        label.appendChild(select);
+        label.appendChild(entriesLabel);
+        container.appendChild(label);
+        
+        // Add event listener
+        select.addEventListener('change', function() {
+            var newPerPage = parseInt(this.value);
+            component.perPage = newPerPage;
+            component.currentPage = 1; // Reset to first page when changing per-page
+            
+            // Store in session storage
+            sessionStorage.setItem(storageKey + 'PerPage', newPerPage);
+            sessionStorage.setItem(storageKey + 'CurrentPage', '1');
+            
+            // Reload data
+            if (typeof loadDataFunction === 'function') {
+                loadDataFunction();
+            }
+        });
+        
+        // Set the per-page on the component
+        component.perPage = currentPerPage;
+        
+        // Add styles if they don't exist
+        if (!document.getElementById('per-page-selector-styles')) {
+            var style = document.createElement('style');
+            style.id = 'per-page-selector-styles';
+            style.innerHTML = `
+                .per-page-selector {
+                    text-align: right;
+                }
+                .per-page-selector label {
+                    display: inline-flex;
+                    align-items: center;
+                    margin-bottom: 0;
+                }
+                .per-page-selector select {
+                    width: auto;
+                    margin: 0 5px;
+                    display: inline-block;
+                }
+                .pagination-container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                }
+                .pagination-wrapper {
+                    margin: 10px 0;
+                }
+                @media (max-width: 768px) {
+                    .per-page-selector {
+                        text-align: left;
+                        margin-bottom: 10px;
+                    }
+                    .pagination-container {
+                        flex-direction: column;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        return container;
+    },
+
+    // Update pagination with total pages information and add per-page selector
+    updateNumberedPagination: function(component, totalItems, hasMore) {
+        var totalPages = Math.ceil(totalItems / component.perPage);
+        if (totalPages === 0) totalPages = 1;
+        
+        var self = this;
+        
+        // Determine the proper data loading function
+        var loadDataFunction = function(query) {
+            if (typeof component.loadData === 'function') {
+                component.loadData(query);
+            } else if (typeof component.loadActivityData === 'function') {
+                component.loadActivityData(query);
+            } else if (typeof component.loadInflowData === 'function') {
+                component.loadInflowData(query);
+            } else if (typeof component.loadOutflowData === 'function') {
+                component.loadOutflowData(query);
+            } else if (typeof component.loadInvestmentData === 'function') {
+                component.loadInvestmentData(query);
+            } else if (typeof component.loadLiabilityData === 'function') {
+                component.loadLiabilityData(query);
+            } else if (typeof component.loadAssetsData === 'function') {
+                component.loadAssetsData(query);
+            } else if (typeof component.loadUsers === 'function') {
+                component.loadUsers();
+            } else {
+                console.error('No appropriate load function found for component', component);
+            }
+        };
+        
+        // Get pagination footer
+        var paginationFooter = document.querySelector('.pagination-footer');
+        if (!paginationFooter) return;
+        
+        // Clear existing content
+        paginationFooter.innerHTML = '';
+        
+        // Create container for pagination and per-page selector
+        var container = document.createElement('div');
+        container.className = 'pagination-container';
+        
+        // Add per-page selector
+        var perPageSelector = this.createPerPageSelector(component, function() {
+            var searchInput = document.getElementById('searchInput');
+            var searchValue = searchInput ? searchInput.value : '';
+            loadDataFunction(searchValue);
+        });
+        container.appendChild(perPageSelector);
+        
+        // Create wrapper for pagination numbers
+        var paginationWrapper = document.createElement('div');
+        paginationWrapper.className = 'pagination-wrapper-container';
+        container.appendChild(paginationWrapper);
+        
+        // Add container to footer
+        paginationFooter.appendChild(container);
+        
+        // Initialize pagination in the wrapper
+        this.initNumberedPagination(component, function() {
+            var searchInput = document.getElementById('searchInput');
+            var searchValue = searchInput ? searchInput.value : '';
+            loadDataFunction(searchValue);
+        }, totalPages, paginationWrapper);
     },
 };
 

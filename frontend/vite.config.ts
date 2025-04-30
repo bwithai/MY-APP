@@ -6,7 +6,12 @@ export default defineConfig({
     legacy({
       targets: ['firefox 52'],
       polyfills: [
-        'es.promise',
+        'es.promise.constructor',
+        'es.promise.all',
+        'es.promise.catch',
+        'es.promise.race',
+        'es.promise.reject',
+        'es.promise.resolve',
         'es.array.iterator',
         'es.object.assign',
         'es.symbol',
@@ -44,6 +49,6 @@ export default defineConfig({
     include: ['es6-promise/auto']
   },
   define: {
-    '%VITE_API_URL%': JSON.stringify(process.env.VITE_API_URL)
+    '%VITE_API_URL%': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:8000')
   }
 });
