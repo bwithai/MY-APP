@@ -100,7 +100,7 @@ var Utils = {
         // Remove the message after 3 seconds
         setTimeout(function () {
             successDiv.remove();
-        }, 3000);
+        }, 4000);
     
         // Close the modal if it's open
         if (typeof ModalHandler !== 'undefined' && typeof ModalHandler.close === 'function') {
@@ -472,8 +472,8 @@ var Utils = {
                 }
                 .pagination-number {
                     margin: 0 3px;
-                    min-width: 36px;
-                    height: 36px;
+                    min-width: 40px;
+                    height: 40px;
                     background-color: transparent;
                     color: var(--office-blue);
                     display: inline-flex;
@@ -604,6 +604,9 @@ var Utils = {
                     width: auto;
                     margin: 0 5px;
                     display: inline-block;
+                    background-color: #415540;
+                    color: white;
+                    font-size: 14px;
                 }
                 .pagination-container {
                     display: flex;

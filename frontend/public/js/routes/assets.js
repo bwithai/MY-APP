@@ -271,15 +271,23 @@ var AssetsApp = {
         }
         
         .pending-row {
-            background-color: rgba(226, 100, 136, 0.2);
+            background-color: rgba(185, 44, 44, 0.2);
+        }
+        
+        .pending-row:hover {
+            background-color: rgba(185, 44, 44, 0.4) !important;
         }
         
         .disposed-row {
             background-color: rgba(218, 194, 89, 0.2);
         }
         
-        tr:hover {
-            background-color: rgba(240, 240, 240, 0.5) !important;
+        .disposed-row:hover {
+            background-color: rgba(218, 194, 89, 0.4) !important;
+        }
+        
+        tr:not(.pending-row):not(.disposed-row):hover {
+            background-color: #f0f0f0 !important;
         }
     `;
     document.head.appendChild(style);

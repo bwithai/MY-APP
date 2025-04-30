@@ -510,9 +510,10 @@
 }
 
 .table th {
-    background: linear-gradient(135deg, #e3e3e4 0%, #b6d4b5 100%);
+    background: #415540;
+    color: white;
+    font-weight: 510;
     padding: 1rem;
-    font-weight: 500;
     text-align: left;
     white-space: nowrap;
 }
@@ -896,12 +897,12 @@ td.long-text {
 
 /* Add this to your existing CSS */
 .deleted-row {
-    background-color: rgba(255, 0, 0, 0.1) !important;
+    background-color: rgba(161, 83, 77, 0.5) !important;
     color: #666;
     text-decoration: line-through;
 }
 .deleted-row:hover {
-    background-color: rgba(255, 0, 0, 0.15) !important;
+    background-color: rgba(161, 83, 77, 0.2) !important;
 }
 
 /* Style for paid liabilities */

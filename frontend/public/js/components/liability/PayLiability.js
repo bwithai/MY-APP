@@ -292,7 +292,7 @@ var PayLiability = {
             })
             .catch(function(error) {
                 console.error('Failed to pay liability:', error);
-                self.showErrorMessage(error.message || 'An error occurred while processing the payment.');
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to pay liability'));
             })
             .finally(function() {
                 if (submitButton) {
@@ -302,18 +302,6 @@ var PayLiability = {
             });
     },
     
-    showErrorMessage: function(message) {
-        var errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message global';
-        errorDiv.innerText = message || 'An error occurred.';
-        document.body.appendChild(errorDiv);
-        
-        // Remove the message after 5 seconds
-        setTimeout(function() {
-            errorDiv.remove();
-        }, 5000);
-    },
-  
     close: function() {
         Utils.cleanup('payLiabilityModal');
     }
