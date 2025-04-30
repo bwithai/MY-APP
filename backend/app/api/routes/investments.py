@@ -138,6 +138,7 @@ def read_invests(
         {
             **item.dict(),
             "user": item.user.name if item.user else None,  # Transform user field
+            "iban": item.iban.ibn if item.iban else None,
         }
         for item in session.exec(base_query).all()
     ]
@@ -150,7 +151,7 @@ def create_invest(
         *, session: SessionDep, current_user: CurrentUser, item_in: InvestCreate
 ) -> Any:
     """
-    Create new inflow item and update the user's balance accordingly.
+    Create new investment item and update the user's balance accordingly.
     """
     item = Investments.model_validate(item_in, update={"user_id": current_user.id})
 
@@ -200,6 +201,7 @@ def create_invest(
     response = item.dict()
     response.update({
         "user": item.user.name if item.user else None,
+        "iban": item.iban.ibn if item.iban else None,
     })
 
     # Log the investment creation activity
@@ -289,7 +291,8 @@ def update_invest(
     elif old_amount < new_amount:
         pay_status = "Increase"
     else:
-        pay_status = None
+        pay_status = "No Change"
+        
     history_entry = InvestmentHistory(
         user_id=item.user_id,
         investment_id=id,
