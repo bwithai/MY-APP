@@ -187,7 +187,6 @@ def create_outflow(
             asset_id=asset_serial_id, purchased_from=item.payment_to, serial_number=asset_serial_id,
             cost=amount, status="Pending", salvage_value=salvage, user_id=current_user.id,
             head_details=item.head_details, payment_type=item.payment_type
-
         )
         session.add(asset)
         session.commit()
@@ -317,25 +316,19 @@ def update_outflow(
         asset = None
         if item.asset_id:
             asset = session.query(Assets).filter_by(id=item.asset_id).first()
-        
-        # If not found by direct id reference, try to find it by matching criteria
-        if not asset:
-            asset = session.query(Assets).filter_by(
-                user_id=item.user_id,
-                head_details=item.head_details,
-                cost=old_amount,
-                payment_type=old_payment_method
-            ).first()
+        else:
+            raise HTTPException(status_code=400, detail=f"Asset Update Failed due to asset_id: {item.asset_id} not found")
         
         # If an asset record was found, update it
         if asset:
+            salvage = get_salvage(item.cost)
             # Update asset details to match the updated outflow
             asset.head_details = item.head_details
             asset.cost = item.cost
             asset.payment_type = item.payment_type
             asset.purchased_from = item.payment_to
             asset.purchase_date = item.expense_date
-            
+            asset.salvage_value = salvage
             # If cost changed, recalculate salvage value
             if old_amount != new_amount:
                 asset.salvage_value = get_salvage(new_amount)

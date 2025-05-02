@@ -190,9 +190,9 @@ class Expenses(SQLModel, table=True):
     created_at: Optional[datetime] = Field(default_factory=get_pakistan_timestamp)
     updated_at: datetime = Field(default_factory=get_pakistan_timestamp,
                                  sa_column_kwargs={"onupdate": get_pakistan_timestamp})
-    asset_id: Optional[int] = Field(foreign_key="assets.id", nullable=True)
-    liability_id: Optional[int] = Field(foreign_key="liabilities.id", nullable=True)
-    fixed_asset_id: Optional[int] = Field(foreign_key="fixed_assets.id", nullable=True)
+    asset_id: Optional[int] = Field(default=None, foreign_key="assets.id", nullable=True)
+    liability_id: Optional[int] = Field(default=None, foreign_key="liabilities.id", nullable=True)
+    fixed_asset_id: Optional[int] = Field(default=None, foreign_key="fixed_assets.id", nullable=True)
     head_id: Optional[int] = Field(foreign_key="heads.id", nullable=True)
     subhead_id: Optional[int] = Field(foreign_key="sub_heads.id", nullable=True)
     is_deleted: bool = Field(default=False)
@@ -257,6 +257,7 @@ class Assets(SQLModel, table=True):
     disposed_reason: Optional[str] = None
     disposed_date: Optional[datetime] = None
     head_details: str = Field(default=None, sa_column=Column(TEXT, nullable=True))
+    quantity: Optional[int] = None
 
     # Relationships
     user: Users = Relationship(back_populates="assets")

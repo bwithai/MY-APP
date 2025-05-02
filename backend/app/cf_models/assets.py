@@ -30,6 +30,7 @@ class AssetUpdate(AssetBase):
     useful_life: Optional[int] = None
     remarks: Optional[str] = None
     place_type: Optional[str] = None
+    quantity: Optional[int] = None
 
 
 class AssetDispose(SQLModel):
@@ -58,6 +59,8 @@ class AssetPublic(AssetBase):
     gift_to: Optional[str] = None
     disposed_reason: Optional[str] = None
     disposed_date: Optional[datetime] = None
+    quantity: Optional[int] = None
+    QR_path: Optional[str] = None
     # ----------------
     id: int
     user_id: int

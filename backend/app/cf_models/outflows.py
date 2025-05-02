@@ -16,10 +16,15 @@ class OutflowBase(SQLModel):
 
 # Properties to receive on item creation
 class OutflowCreate(OutflowBase):
-    head_id: int
+    head_id: Optional[int] = None
     subhead_id: Optional[int] = None
+    asset_id: Optional[int] = None
+    liability_id: Optional[int] = None
+    fixed_asset_id: Optional[int] = None
+    expense_date: Optional[datetime] = None
+    payment_to: Optional[str] = None
     place_type: Optional[str] = None
-    expense_date: Optional[datetime] = None  # Outflow Date
+    type: Optional[str] = None
 
 
 
