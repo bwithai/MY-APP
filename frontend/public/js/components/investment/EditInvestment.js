@@ -42,7 +42,7 @@ var EditInvestment = {
       }
       
       var modalHtml = '<div class="modal" id="editInvestmentModal">' +
-        '<div class="modal-content">' +
+        '<div class="modal-content" style="max-width: 800px;">' +
           '<div class="modal-header">' +
             '<h2>Edit Investment</h2>' +
             '<button type="button" class="close-btn">&times;</button>' +
@@ -93,7 +93,7 @@ var EditInvestment = {
               // Asset Details field (full width)
               '<div class="form-group full-width">' +
                 Utils.createLabel('asset_details', 'Asset Details', true) +
-                '<textarea id="fund_details" name="fund_details" required placeholder="Enter details..." rows="3">' + (this.investment.asset_details || '') + '</textarea>' +
+                '<textarea id="asset_details" name="asset_details" required placeholder="Enter details..." rows="3">' + (this.investment.asset_details || '') + '</textarea>' +
               '</div>' +
             '</form>' +
           '</div>' +
@@ -161,6 +161,12 @@ var EditInvestment = {
           }
         });
       }
+
+      // Apply word limit to fund_details textarea
+      var fundDetailsTextarea = document.getElementById('asset_details');
+      if (fundDetailsTextarea) {
+        Utils.limitTextareaWords(fundDetailsTextarea, 800);
+      }
   
       if (form) {
         form.addEventListener('submit', function(e) {
@@ -207,7 +213,7 @@ var EditInvestment = {
         amount: amount,
         type: data.type,
         payment_method: data.payment_method,
-        asset_details: data.fund_details,
+        asset_details: data.asset_details,
         date: data.date
       };
       if (data.payment_method === 'Bank Transfer' && data.iban_id) {

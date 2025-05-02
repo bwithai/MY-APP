@@ -18,7 +18,7 @@ var PayLiability = {
         }
         // Create modal HTML structure
         var modalHtml = '<div class="modal" id="payLiabilityModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Pay Liability</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +

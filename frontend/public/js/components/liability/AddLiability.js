@@ -17,7 +17,7 @@ var AddLiability = {
     render: function() {
         var modalHtml =
             '<div class="modal" id="addLiabilityModal">' +
-                '<div class="modal-content">' +
+                '<div class="modal-content" style="max-width: 800px;">' +
                     '<div class="modal-header">' +
                         '<h2>Add Liability</h2>' +
                         '<button type="button" class="close-btn">&times;</button>' +
@@ -140,6 +140,12 @@ var AddLiability = {
         var dateInput = document.getElementById('date');
         if (dateInput) {
             Utils.initDatePicker(dateInput);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('fund_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
         }
     },
   

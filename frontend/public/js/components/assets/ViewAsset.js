@@ -33,7 +33,7 @@ var ViewAsset = {
         modal.innerHTML = `
             <div class="modal-content" style="max-width: 800px;">
                 <div class="modal-header">
-                    <h2>Asset Details</h2>
+                    <h2>${this.asset.name} Details</h2>
                     <button type="button" class="close-btn" id="closeViewAssetModal">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -81,6 +81,11 @@ var ViewAsset = {
                                 <span class="detail-label">Receipt:</span>
                                 <img src="https://img.freepik.com/free-vector/receipt-template-collection-with-realistic-design_23-2147917744.jpg?semt=ais_hybrid" 
                                      alt="Receipt" class="asset-image">
+                            </div>
+                            <div class="image-container">
+                                <span class="detail-label">QR Code:</span>
+                                <img src="${this.asset.QR_path}" 
+                                     alt="QR Code" class="asset-image">
                             </div>
                         </div>
                     </div>
@@ -171,6 +176,35 @@ var ViewAsset = {
                 background-color: #fff;
             }
             
+            .modal-content {
+                max-width: 800px;
+                position: relative;
+                z-index: 1;
+            }
+            
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                margin: -10px;
+                position: relative;
+            }
+            
+            .image-grid img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                max-width: 100%;
+                display: block;
+                cursor: zoom-in;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+            }
+            
+            .image-container {
+                position: relative;
+                margin: 10px;
+            }
+            
             .section-title {
                 font-size: 18px;
                 font-weight: bold;
@@ -204,12 +238,10 @@ var ViewAsset = {
             .image-grid {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
+                margin: -10px;
             }
-            
-            .image-container {
-                display: flex;
-                flex-direction: column;
+            .image-grid > * {
+                margin: 10px;
             }
             
             .asset-image {
@@ -254,6 +286,68 @@ var ViewAsset = {
                 }
             };
         }
+
+        // Set up image zoom functionality
+        this.setupImageZoom();
+    },
+    
+    setupImageZoom: function() {
+        // Remove any existing overlay if present
+        var existingOverlay = document.getElementById('zoom-overlay');
+        if (existingOverlay) {
+            document.body.removeChild(existingOverlay);
+        }
+        
+        // Create zoom overlay element
+        var zoomOverlay = document.createElement('div');
+        zoomOverlay.id = 'zoom-overlay';
+        zoomOverlay.style.display = 'none';
+        zoomOverlay.style.position = 'fixed';
+        zoomOverlay.style.top = '0';
+        zoomOverlay.style.left = '0';
+        zoomOverlay.style.width = '100%';
+        zoomOverlay.style.height = '100%';
+        zoomOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        zoomOverlay.style.zIndex = '10000';
+        zoomOverlay.style.justifyContent = 'center';
+        zoomOverlay.style.alignItems = 'center';
+        zoomOverlay.style.cursor = 'zoom-out';
+        
+        document.body.appendChild(zoomOverlay);
+        
+        // Get all asset images
+        var assetImages = document.querySelectorAll('.asset-image');
+        
+        // Add hover event listeners to each image
+        assetImages.forEach(function(img) {
+            // Change cursor style
+            img.style.cursor = 'zoom-in';
+            
+            // Click event to zoom
+            img.addEventListener('click', function() {
+                var zoomedImg = document.createElement('img');
+                zoomedImg.src = this.src;
+                zoomedImg.style.maxHeight = '90vh';
+                zoomedImg.style.maxWidth = '90vw';
+                zoomedImg.style.objectFit = 'contain';
+                zoomedImg.style.boxShadow = '0 5px 25px rgba(0,0,0,0.5)';
+                zoomedImg.style.border = '2px solid white';
+                
+                // Clear previous image
+                zoomOverlay.innerHTML = '';
+                zoomOverlay.appendChild(zoomedImg);
+                zoomOverlay.style.display = 'flex';
+                
+                // Prevent scrolling while zoomed
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Close zoom overlay when clicked
+        zoomOverlay.addEventListener('click', function() {
+            this.style.display = 'none';
+            document.body.style.overflow = '';
+        });
     },
     
     formatNumber: function(value) {

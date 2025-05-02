@@ -20,7 +20,7 @@ var AddOutflow = {
 
     render: function() {
         var modalHtml = '<div class="modal" id="addOutflowModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Add Outflow</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -59,6 +59,9 @@ var AddOutflow = {
                                 '<option value="EXPANDABLE">Expandable</option>' +
                                 '<option value="NONEXPANDABLE">Non Expandable</option>' +
                             '</select>' +
+                            '<div id="assetNotification" class="notification-message" style="display: none;">' +
+                                '<i class="fas fa-info-circle"></i> This will be added to Assets' +
+                            '</div>' +
                         '</div>' +
 
                         '<div class="form-group" id="entityContainer" style="display: none;">' +
@@ -157,17 +160,20 @@ var AddOutflow = {
 
         if (typeSelect) {
             typeSelect.addEventListener('change', function() {
-                if (this.value === 'NONEXPADABLE') {
+                var assetNotification = document.getElementById('assetNotification');
+                
+                if (this.value === 'NONEXPANDABLE') {
                     entityContainer.style.display = 'block';
                     placeTypeSelect.setAttribute('required', 'required');
+                    assetNotification.style.display = 'block';
                 } else {
                     entityContainer.style.display = 'none';
                     placeTypeSelect.removeAttribute('required');
+                    assetNotification.style.display = 'none';
                 }
             });
         }
         
-
         if (headSelect) {
             headSelect.addEventListener('change', function() {
                 Utils.loadSubHeads(this.value);
@@ -198,6 +204,34 @@ var AddOutflow = {
         if (dateInput) {
             Utils.setCurrentDate(dateInput);
             Utils.initDatePicker(dateInput);
+        }
+
+        // Add CSS for notification message
+        if (!document.getElementById('notification-styles')) {
+            var styleEl = document.createElement('style');
+            styleEl.id = 'notification-styles';
+            styleEl.textContent = `
+                .notification-message {
+                    margin-top: 6px;
+                    padding: 6px 10px;
+                    background-color: #e3f2fd;
+                    border-left: 3px solid #2196f3;
+                    color: #0d47a1;
+                    font-size: 14px;
+                    border-radius: 2px;
+                    transition: all 0.3s ease;
+                }
+                .notification-message i {
+                    margin-right: 5px;
+                }
+            `;
+            document.head.appendChild(styleEl);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('head_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
         }
     },
 

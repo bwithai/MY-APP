@@ -20,7 +20,7 @@ var AddInflow = {
 
     render: function() {
         var modalHtml = '<div class="modal" id="addInflowModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Add Inflow</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -162,6 +162,12 @@ var AddInflow = {
         if (dateInput) {
             Utils.setCurrentDate(dateInput);
             Utils.initDatePicker(dateInput);
+        }
+        
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('fund_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
         }
     },
 

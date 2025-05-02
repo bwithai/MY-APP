@@ -61,6 +61,21 @@ var AssetsApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box pending-box"></span>' +
+                    '<span class="legend-text">Pending</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box disposed-box"></span>' +
+                    '<span class="legend-text">Disposed</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
                 '<table class="table">' +
                     '<thead>' +
@@ -68,6 +83,7 @@ var AssetsApp = {
                             '<th>Name</th>' +
                             '<th>Type</th>' +
                             '<th>Purchase Date</th>' +
+                            '<th>Quantity</th>' +
                             '<th>Purchased From</th>' +
                             '<th>Cost</th>' +
                             '<th>Salvage Value</th>' +
@@ -190,10 +206,15 @@ var AssetsApp = {
                 '<td title="' + (asset.status || '') + '">' + (asset.name || 'N/A') + '</td>' +
                 '<td>' + (asset.type || 'N/A') + '</td>' +
                 '<td title="' + (asset.purchase_date || '') + '">' + (asset.purchase_date ? Utils.formatDate(asset.purchase_date, true) : 'N/A') + '</td>' +
+                '<td class="' + (asset.quantity ? '' : 'text-muted') + '">' + (asset.quantity || 'N/A') + '</td>' +
                 '<td>' + (asset.purchased_from || 'N/A') + '</td>' +
-                '<td class="truncate-text" title="' + (asset.cost || 0) + '">' + Utils.formatNumber(Number(asset.cost)) + '</td>' +
+                '<td title="' + (asset.cost || 0) + '">' + Utils.formatNumber(Number(asset.cost)) + '</td>' +
                 '<td title="' + (asset.salvage_value || 0) + '">' + Utils.formatNumber(Number(asset.salvage_value)) + '</td>' +
-                '<td>' + (asset.head_details || 'N/A') + '</td>' +
+                '<td class="long-text">' +
+                    '<div class="truncate-text" title="' + (asset.head_details || '') + '">' +
+                        (asset.head_details || 'N/A') +
+                    '</div>' +
+                '</td>' +
                 '<td>' + (asset.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Asset', asset, {
                     delete: false
@@ -238,6 +259,7 @@ var AssetsApp = {
 // Add custom CSS for tooltips and status backgrounds
 (function() {
     var style = document.createElement('style');
+    style.id = 'asset-detail-styles';
     style.textContent = `
         .tooltip-container {
             position: relative;
@@ -268,6 +290,51 @@ var AssetsApp = {
         .tooltip-container:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
+        }
+        
+        .status-legend {
+            display: flex;
+            margin-bottom: 15px;
+            background-color: #f4f4f4;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 3px solid #2196f3;
+        }
+        
+        .status-legend > * {
+            margin-right: 20px;
+        }
+        
+        .status-legend > *:last-child {
+            margin-right: 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .color-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .pending-box {
+            background-color: rgba(185, 44, 44, 0.2);
+        }
+        
+        .disposed-box {
+            background-color: rgba(218, 194, 89, 0.2);
+        }
+        
+        .active-box {
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid #ddd;
         }
         
         .pending-row {

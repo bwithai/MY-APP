@@ -18,7 +18,7 @@ var AddInvestment = {
       
       var modalHtml =
         '<div class="modal" id="addInvestmentModal">' +
-          '<div class="modal-content">' +
+          '<div class="modal-content" style="max-width: 800px;">' +
             '<div class="modal-header">' +
               '<h2>Add Investment</h2>' +
               '<button type="button" class="close-btn">&times;</button>' +
@@ -69,7 +69,7 @@ var AddInvestment = {
                 // Asset Details field (full width)
                 '<div class="form-group full-width">' +
                   Utils.createLabel('asset_details', 'Asset Details', true) +
-                  '<textarea id="fund_details" name="fund_details" required placeholder="Enter details..." rows="3"></textarea>' +
+                  '<textarea id="asset_details" name="asset_details" required placeholder="Enter details..." rows="3"></textarea>' +
                 '</div>' +
               '</form>' +
             '</div>' +
@@ -168,6 +168,12 @@ var AddInvestment = {
       var dateInput = document.getElementById('date');
       if (dateInput) {
         Utils.initDatePicker(dateInput);
+      }
+
+      // Apply word limit to fund_details textarea
+      var fundDetailsTextarea = document.getElementById('asset_details');
+      if (fundDetailsTextarea) {
+        Utils.limitTextareaWords(fundDetailsTextarea, 800);
       }
     },
   

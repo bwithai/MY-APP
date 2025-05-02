@@ -697,6 +697,109 @@ var Utils = {
             loadDataFunction(searchValue);
         }, totalPages, paginationWrapper);
     },
+
+    // Limit textarea to a specific number of words
+    limitTextareaWords: function(textareaElement, maxWords, options) {
+        if (!textareaElement) return;
+        
+        // Default options
+        options = options || {};
+        var warningThreshold = options.warningThreshold || 0.5; // 50% of max by default
+        var countDisplay = options.countDisplay || null; // Element to show word count
+        var errorClass = options.errorClass || 'word-limit-error';
+        var warningClass = options.warningClass || 'word-limit-warning';
+        
+        // Create a count display if it doesn't exist and was not provided
+        if (!countDisplay) {
+            countDisplay = document.createElement('div');
+            countDisplay.className = 'word-count-display';
+            textareaElement.parentNode.insertBefore(countDisplay, textareaElement.nextSibling);
+        }
+        
+        // Add styles for the count display and warnings if they don't exist
+        if (!document.getElementById('word-limit-styles')) {
+            var style = document.createElement('style');
+            style.id = 'word-limit-styles';
+            style.textContent = `
+                .word-count-display {
+                    text-align: right;
+                    margin-top: 5px;
+                    font-size: 12px;
+                    color: #666;
+                }
+                .word-limit-warning {
+                    color: #f39c12;
+                }
+                .word-limit-error {
+                    color: #e74c3c;
+                }
+                textarea.word-limit-error {
+                    border-color: #e74c3c;
+                }
+                textarea.word-limit-warning {
+                    border-color: #f39c12;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Count words function
+        function countWords(text) {
+            // Trim whitespace and split by multiple spaces
+            return text.trim().split(/\s+/).filter(function(word) { 
+                return word.length > 0; 
+            }).length;
+        }
+        
+        // Update display and status
+        function updateWordCount() {
+            var text = textareaElement.value;
+            var wordCount = countWords(text);
+            var remaining = maxWords - wordCount;
+            
+            // Update display
+            countDisplay.textContent = wordCount + '/' + maxWords + ' words';
+            
+            // Add warning/error classes
+            textareaElement.classList.remove(errorClass, warningClass);
+            countDisplay.classList.remove(errorClass, warningClass);
+            
+            if (wordCount >= maxWords) {
+                textareaElement.classList.add(errorClass);
+                countDisplay.classList.add(errorClass);
+                
+                // Trim excess words
+                if (wordCount > maxWords) {
+                    var words = text.trim().split(/\s+/);
+                    textareaElement.value = words.slice(0, maxWords).join(' ');
+                }
+            } else if (wordCount >= (maxWords * warningThreshold)) {
+                textareaElement.classList.add(warningClass);
+                countDisplay.classList.add(warningClass);
+            }
+        }
+        
+        // Add event listeners
+        if (typeof textareaElement.addEventListener !== 'undefined') {
+            textareaElement.addEventListener('input', updateWordCount);
+            textareaElement.addEventListener('paste', function() {
+                // Use setTimeout to execute after paste is complete
+                setTimeout(updateWordCount, 10);
+            });
+        } else if (typeof textareaElement.attachEvent !== 'undefined') {
+            // For older IE browsers
+            textareaElement.attachEvent('oninput', updateWordCount);
+            textareaElement.attachEvent('onpaste', function() {
+                setTimeout(updateWordCount, 10);
+            });
+        }
+        
+        // Initialize
+        updateWordCount();
+        
+        // Return the update function for manual updates
+        return updateWordCount;
+    },
 };
 
 // Make Utils globally available

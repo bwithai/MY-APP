@@ -62,6 +62,21 @@ var LiabilityApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box paid-box"></span>' +
+                    '<span class="legend-text">Paid</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box deleted-box"></span>' +
+                    '<span class="legend-text">Deleted</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
                 '<table class="table">' +
                     '<thead>' +
@@ -276,3 +291,56 @@ var LiabilityApp = {
 
 // Make LiabilityApp globally available
 window.LiabilityApp = LiabilityApp; 
+
+// Add CSS for the status legend
+(function() {
+    var style = document.createElement('style');
+    style.id = 'liability-legend-styles';
+    style.textContent = `
+        .status-legend {
+            display: flex;
+            margin-bottom: 15px;
+            background-color: #f4f4f4;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 3px solid #2196f3;
+        }
+        
+        .status-legend > * {
+            margin-right: 20px;
+        }
+        
+        .status-legend > *:last-child {
+            margin-right: 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .color-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .paid-box {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+        
+        .deleted-box {
+            background-color: rgba(161, 83, 77, 0.5);
+        }
+        
+        .active-box {
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid #ddd;
+        }
+    `;
+    document.head.appendChild(style);
+})(); 

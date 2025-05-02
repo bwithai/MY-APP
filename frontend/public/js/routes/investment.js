@@ -62,6 +62,17 @@ var InvestmentApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box deleted-box"></span>' +
+                    '<span class="legend-text">Deleted</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
                 '<table class="table">' +
                     '<thead>' +
@@ -90,6 +101,39 @@ var InvestmentApp = {
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Add styles for the status legend
+        var style = document.createElement('style');
+        style.textContent = `
+            .status-legend {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 15px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            .color-box {
+                width: 15px;
+                height: 15px;
+                display: inline-block;
+                margin-right: 5px;
+                border-radius: 3px;
+            }
+            .deleted-box {
+                background-color: #ffcccc;
+            }
+            .active-box {
+                background-color: #ffffff;
+                border: 1px solid #dee2e6;
+            }
+            .deleted-row {
+                background-color: #ffcccc;
+            }
+        `;
+        document.head.appendChild(style);
         
         // Load investment data
         this.loadInvestmentData();

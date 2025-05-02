@@ -68,6 +68,12 @@ var EditAsset = {
                                 <input type="text" id="assetPlaceType" name="place_type" class="form-control" value="${this.asset.place_type || ''}" placeholder="Enter place type">
                                 <div class="error-message" id="placeTypeError"></div>
                             </div>
+                            
+                            <div class="form-group">
+                                ${Utils.createLabel('assetQuantity', 'Quantity', false)}
+                                <input type="number" id="assetQuantity" name="quantity" class="form-control" value="${this.asset.quantity || ''}" placeholder="Enter quantity">
+                                <div class="error-message" id="quantityError"></div>
+                            </div>
                         </div>
                     </form>
                 </div>
