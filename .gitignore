@@ -39,17 +39,5 @@ htmlcov/
 vtul_env
 .venv
 
-# Frontend
-frontend/node_modules
-frontend/dist
-frontend/build
-frontend/coverage
-
-# Backend
-backend/venv
-backend/vtul_env
-backend/docker-images
-backend/docker-images/*
-
 # S3 storage folder has its own .gitignore file
 # to keep the folder but ignore contents
