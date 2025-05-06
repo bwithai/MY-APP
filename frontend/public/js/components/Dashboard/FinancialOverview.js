@@ -116,7 +116,7 @@ var FinancialOverview = {
             }
             
             .total-balance-card {
-                background: linear-gradient(135deg, rgba(0, 102, 0, 0.95) 0%,rgba(1, 65, 28, 0.9) 100%);
+                background: #415540;
                 padding: 1rem;
                 border-radius: 0.5rem;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.12);
@@ -164,11 +164,11 @@ var FinancialOverview = {
             }
             
             .cash-balance {
-                background: linear-gradient(135deg,rgb(83, 153, 98) 20%, rgb(2, 75, 18) 60%);
+                background:rgb(56, 117, 131);
             }
             
             .bank-balance {
-                background: linear-gradient(135deg, rgb(2, 75, 18) 20%, rgb(83, 153, 98) 80%);
+                background: #17475c;
             }
             
             .investment-balance {
@@ -176,7 +176,7 @@ var FinancialOverview = {
             }
             
             .liability-balance {
-                background: linear-gradient(135deg,rgba(248, 3, 3, 0.8),rgba(248, 3, 3, 0.8));
+                background:rgb(175, 58, 49);
             }
             
             .clickable {
