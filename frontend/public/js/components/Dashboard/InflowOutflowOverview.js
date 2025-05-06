@@ -107,7 +107,7 @@ var InflowOutflowOverview = {
                 }
                 
                 .inflow-card {
-                    background: linear-gradient(135deg, rgba(56, 71, 56, 0.95) 0%,rgba(56, 71, 56, 0.9) 100%);
+                    background: linear-gradient(135deg, rgb(34, 122, 86) 0%,rgb(34, 122, 86) 100%);
                 }
                 .inflow-card .stat-label, .inflow-card i, .inflow-card .stat-number {
                     color: rgb(245, 232, 120);
