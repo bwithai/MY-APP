@@ -131,6 +131,9 @@ var FinancialOverview = {
                 position: relative;
                 z-index: 1;
             }
+            .total-balance-card .stat-label, .total-balance-card i, .total-balance-card .stat-number {
+                color: rgb(245, 232, 120);
+            }
             
             .total-balance-card i {
                 font-size: 3rem;
@@ -164,21 +167,47 @@ var FinancialOverview = {
             }
             
             .cash-balance {
-                background:rgb(56, 117, 131);
+                background: #accad1;
+            }
+            .cash-balance .stat-label, .cash-balance i, .cash-balance .stat-number {
+                color:rgb(65, 49, 49);
+            }
+            .cash-balance .divider {
+                border-color: rgb(65, 49, 49);
             }
             
             .bank-balance {
                 background: #17475c;
             }
+            .bank-balance .stat-label, .bank-balance i, .bank-balance .stat-number {
+                color:rgb(245, 232, 120)
+            }
+            .bank-balance .divider {
+                border-color: rgb(245, 232, 120);
+            }
             
+
             .investment-balance {
-                background: linear-gradient(135deg, rgb(167, 102, 50),rgb(177, 107, 51));
+                background: #f1976d;
+            }
+            .investment-balance .stat-label, .investment-balance i, .investment-balance .stat-number {
+                color:rgb(65, 49, 49);
+            }
+            .investment-balance .divider {
+                border-color: rgb(65, 49, 49);
             }
             
             .liability-balance {
-                background:rgb(175, 58, 49);
+                background: #a1534d;
+            }
+            .liability-balance .stat-label, .liability-balance i, .liability-balance .stat-number {
+                color: rgb(245, 232, 120)
+            }
+            .liability-balance .divider {
+                border-color: rgb(245, 232, 120);
             }
             
+
             .clickable {
                 cursor: pointer;
                 transition: transform 0.2s;
@@ -194,7 +223,6 @@ var FinancialOverview = {
             
             .stat-label {
                 font-size: 10px;
-                font-weight: bold;
             }
             
             .total-balance-card .stat-label {
@@ -209,6 +237,7 @@ var FinancialOverview = {
             
             .total-balance-card .divider {
                 border-top-width: 4px;
+                border-color: rgb(245, 232, 120);
                 width: 80%;
                 margin: 0.5rem auto;
             }
@@ -253,29 +282,6 @@ var FinancialOverview = {
                 border-top-color: rgba(0, 0, 0, 0.8);
                 margin-bottom: -0.25rem;
                 z-index: 10;
-            }
-            
-            /* Dark mode overrides */
-            @media (prefers-color-scheme: dark) {
-                .total-balance-card {
-                    background: linear-gradient(135deg, #388e3c, rgb(10, 95, 14));
-                }
-                
-                .cash-balance {
-                    background: linear-gradient(135deg, rgb(45, 109, 181), rgb(37, 150, 194));
-                }
-                
-                .bank-balance {
-                    background: linear-gradient(135deg, #006064, #004d40);
-                }
-                
-                .investment-balance {
-                    background: linear-gradient(135deg, #6d4c41, #8d6e63);
-                }
-                
-                .liability-balance {
-                    background: linear-gradient(135deg, rgb(183, 28, 137), #880e4f);
-                }
             }
         `;
     },

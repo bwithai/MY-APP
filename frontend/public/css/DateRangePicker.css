@@ -26,12 +26,13 @@
 
 /* Date Range Button */
 .date-range-button {
-    background: linear-gradient(135deg,rgb(110, 136, 101), rgb(113, 145, 101)); /* Green background */
+    background: #accad1;
     padding: 8px 16px;
     border-radius: 4px;
     text-align: center;
-    color: white;
+    color:rgb(65, 49, 49);
     border: 1px solid #4CAF50;
+
     cursor: pointer;
     position: relative;
     user-select: none;
@@ -40,14 +41,15 @@
 }
 
 .date-range-button:hover {
-    background: rgb(61, 85, 53);
+    background: #415540;
+    color: rgb(245, 232, 120);
 }
 
 /* Current Month Button */
 .current-month-button {
     width: 100%;
-    background: linear-gradient(135deg,rgb(110, 136, 101), rgb(113, 145, 101));
-    color: white;
+    background: #accad1;
+    color: rgb(65, 49, 49);
     padding: 8px 16px;
     border-radius: 4px;
     text-align: center;
@@ -58,7 +60,8 @@
 }
 
 .current-month-button:hover {
-    background: rgb(61, 85, 53);
+    background: #415540;
+    color: rgb(245, 232, 120);
 }
 
 /* Popover Styles */

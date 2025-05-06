@@ -107,11 +107,18 @@ var InflowOutflowOverview = {
                 }
                 
                 .inflow-card {
-                    background: linear-gradient(135deg, rgba(0, 102, 0, 0.95) 0%,rgba(1, 65, 28, 0.9) 100%);
+                    background: linear-gradient(135deg, rgba(56, 71, 56, 0.95) 0%,rgba(56, 71, 56, 0.9) 100%);
+                }
+                .inflow-card .stat-label, .inflow-card i, .inflow-card .stat-number {
+                    color: rgb(245, 232, 120);
                 }
                 
+
                 .outflow-card {
                     background: linear-gradient(135deg, rgb(143, 1, 1),rgb(143, 1, 1));
+                }
+                .outflow-card .stat-label, .outflow-card i, .outflow-card .stat-number {
+                    color: rgb(245, 232, 120);
                 }
                 
                 .card-icon {
@@ -136,7 +143,7 @@ var InflowOutflowOverview = {
                 .stat-divider {
                     width: 100%;
                     height: 1px;
-                    background-color: white;
+                    background-color: rgb(245, 232, 120);
                     margin: 4px auto;
                 }
                 
@@ -165,17 +172,6 @@ var InflowOutflowOverview = {
                     white-space: nowrap;
                     z-index: 10;
                     margin-bottom: 4px;
-                }
-                
-                /* Dark mode */
-                @media (prefers-color-scheme: dark) {
-                    .inflow-card {
-                        background: linear-gradient(135deg, #1e3c72, #2a5298);
-                    }
-                    
-                    .outflow-card {
-                        background: linear-gradient(135deg, #b71c1c, #880e4f);
-                    }
                 }
             `;
             document.head.appendChild(style);

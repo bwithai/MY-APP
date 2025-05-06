@@ -152,10 +152,10 @@ var DashboardApp = {
                     width: 100%;
                     margin-top: 16px;
                     padding: 8px;
-                    background: linear-gradient(135deg,rgb(110, 136, 101), rgb(113, 145, 101));
+                    background: #accad1;
                     border-radius: 4px;
                     text-align: center;
-                    color: white;
+                    color: rgb(65, 49, 49);
                     cursor: pointer;
                     border: none;
                     margin-top: -5px;
@@ -164,7 +164,8 @@ var DashboardApp = {
                 }
                 
                 .all-time-btn:hover {
-                    background: rgb(61, 85, 53);
+                    background: #415540;
+                    color: rgb(245, 232, 120);
                 }
                 
                 .search-container {
