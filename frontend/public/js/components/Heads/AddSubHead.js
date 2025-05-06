@@ -156,7 +156,7 @@ var AddSubHead = {
             }.bind(this))
             .catch(function(error) {
                 // Show error message
-                Utils.showMessage('error', 'Failed to create sub head: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error to create sub head'));
             })
             .finally(function() {
                 // Reset button state
