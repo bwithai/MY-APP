@@ -16,6 +16,26 @@ var OutflowApp = {
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'id',            // Column 0: ID
+            'head',          // Column 1: Head
+            'sub_heads',     // Column 2: Sub Head
+            'head_details',  // Column 3: Head Details
+            'type',          // Column 4: Type
+            'cost',          // Column 5: Amount
+            'payment_type',  // Column 6: Payment Type
+            'iban',          // Column 7: IBAN
+            'payment_to',    // Column 8: Payment To
+            'expense_date',  // Column 9: Expense Date
+            'user',          // Column 10: User
+            null             // Column 11: Actions (not sortable)
+        ];
+        
         // Mark that we're in outflow page
         sessionStorage.setItem('isOutflow', 'true');
         
@@ -74,7 +94,7 @@ var OutflowApp = {
             '</div>' +
             
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="outflowTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>ID</th>' +
@@ -88,7 +108,7 @@ var OutflowApp = {
                             '<th>Payment To</th>' +
                             '<th>Expense Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="outflowTableBody">' +
@@ -137,6 +157,9 @@ var OutflowApp = {
             }
         `;
         document.head.appendChild(style);
+        
+        // Initialize table sorting
+        Utils.initTableSorting('outflowTable', this, this.loadOutflowData.bind(this));
         
         // Load outflow data
         this.loadOutflowData();
@@ -191,7 +214,12 @@ var OutflowApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderOutflowTable(response.data);
+                // Store the data for sorting
+                self.outflowData = response.data;
+                
+                // Render the sorted data
+                self.renderOutflowTable(self.outflowData);
+                
                 // Update to use numbered pagination
                 Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
@@ -230,10 +258,17 @@ var OutflowApp = {
             return;
         }
 
+        // Sort the data if a sort column is selected
+        var sortedData = outflows;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(outflows, columnName, this.sortDirection);
+        }
+
         var self = this;
         tableBody.innerHTML = '';
         
-        outflows.forEach(function(outflow) {
+        sortedData.forEach(function(outflow) {
             // Add deleted-row class if is_deleted is true
             var rowClass = outflow.is_deleted ? 'deleted-row' : '';
             var row = document.createElement('tr');

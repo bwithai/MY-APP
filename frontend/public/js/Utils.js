@@ -800,6 +800,223 @@ var Utils = {
         // Return the update function for manual updates
         return updateWordCount;
     },
+
+    // Table sorting functionality
+    initTableSorting: function(tableId, component, renderFunction) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        
+        // Add CSS styles for sort indicators if not already present
+        if (!document.getElementById('table-sort-styles')) {
+            var style = document.createElement('style');
+            style.id = 'table-sort-styles';
+            style.innerHTML = `
+                .sort-indicator {
+                    display: inline-block;
+                    width: 12px;
+                    margin-left: 5px;
+                    font-size: 0.8em;
+                    color: rgba(255, 255, 255, 0.8);
+                }
+                th {
+                    position: relative;
+                }
+                th:not(.no-sort):hover:after {
+                    content: "▲ ▼";
+                    position: absolute;
+                    right: 8px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: rgba(255, 255, 255, 0.5);
+                    font-size: 0.7em;
+                    pointer-events: none;
+                }
+                th.asc-sort:hover:after {
+                    content: "▲ ▼";
+                    opacity: 0.5;
+                }
+                th.desc-sort:hover:after {
+                    content: "▲ ▼";
+                    opacity: 0.5;
+                }
+                th:hover .sort-indicator:empty:before {
+                    opacity: 0;
+                }
+                .sort-tooltip {
+                    position: absolute;
+                    display: none;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    bottom: -30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    white-space: nowrap;
+                    z-index: 10;
+                    pointer-events: none;
+                }
+                th:not(.no-sort):hover .sort-tooltip {
+                    display: block;
+                }
+                .sort-tooltip:after {
+                    content: "";
+                    position: absolute;
+                    top: -5px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    border-width: 0 5px 5px;
+                    border-style: solid;
+                    border-color: transparent transparent rgba(0, 0, 0, 0.8);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Store sorting state in the component
+        component.sortColumn = component.sortColumn || null;
+        component.sortDirection = component.sortDirection || 'asc';
+        
+        // Get all sortable headers (those without the 'no-sort' class)
+        var headers = table.querySelectorAll('th:not(.no-sort)');
+        
+        // Add click event listeners to headers
+        for (var i = 0; i < headers.length; i++) {
+            headers[i].style.cursor = 'pointer';
+            headers[i].style.userSelect = 'none';
+            
+            // Add sort indicator
+            var indicator = document.createElement('span');
+            indicator.className = 'sort-indicator';
+            indicator.innerHTML = '';
+            headers[i].appendChild(indicator);
+            
+            // Add tooltip
+            var tooltip = document.createElement('div');
+            tooltip.className = 'sort-tooltip';
+            tooltip.innerHTML = 'Click to sort';
+            headers[i].appendChild(tooltip);
+            
+            // Add click handler
+            this.addHeaderClickHandler(headers[i], i, component, renderFunction);
+        }
+        
+        // Update sort indicators based on initial state
+        this.updateSortIndicators(table, component);
+    },
+    
+    addHeaderClickHandler: function(header, columnIndex, component, renderFunction) {
+        var self = this;
+        
+        function clickHandler() {
+            // If clicking the same column, toggle direction
+            if (component.sortColumn === columnIndex) {
+                component.sortDirection = component.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                // New column, default to ascending
+                component.sortColumn = columnIndex;
+                component.sortDirection = 'asc';
+            }
+            
+            // Update visual indicators
+            self.updateSortIndicators(header.closest('table'), component);
+            
+            // Re-render the table with sorted data
+            if (typeof renderFunction === 'function') {
+                renderFunction();
+            }
+        }
+        
+        // Add event listener with proper cross-browser support
+        if (header.addEventListener) {
+            header.addEventListener('click', clickHandler);
+        } else if (header.attachEvent) {
+            header.attachEvent('onclick', clickHandler);
+        } else {
+            header.onclick = clickHandler;
+        }
+    },
+    
+    updateSortIndicators: function(table, component) {
+        if (!table) return;
+        
+        // Clear all indicators and classes
+        var indicators = table.querySelectorAll('.sort-indicator');
+        var headers = table.querySelectorAll('th:not(.no-sort)');
+        
+        // Remove sort classes from all headers
+        for (var i = 0; i < headers.length; i++) {
+            headers[i].classList.remove('asc-sort', 'desc-sort');
+            
+            // Reset tooltip text for inactive headers
+            var tooltip = headers[i].querySelector('.sort-tooltip');
+            if (tooltip) {
+                tooltip.innerHTML = 'Click to sort';
+            }
+        }
+        
+        // Clear indicator contents
+        for (var i = 0; i < indicators.length; i++) {
+            indicators[i].innerHTML = '';
+        }
+        
+        // Set indicator for currently sorted column
+        if (component.sortColumn !== null) {
+            var activeHeader = table.querySelectorAll('th:not(.no-sort)')[component.sortColumn];
+            var activeIndicator = activeHeader ? activeHeader.querySelector('.sort-indicator') : null;
+            
+            if (activeHeader) {
+                // Add appropriate class based on sort direction
+                activeHeader.classList.add(component.sortDirection === 'asc' ? 'asc-sort' : 'desc-sort');
+                
+                // Update tooltip for active header
+                var tooltip = activeHeader.querySelector('.sort-tooltip');
+                if (tooltip) {
+                    tooltip.innerHTML = 'Sort ' + (component.sortDirection === 'asc' ? 'descending' : 'ascending');
+                }
+                
+                if (activeIndicator) {
+                    activeIndicator.innerHTML = component.sortDirection === 'asc' ? ' ▲' : ' ▼';
+                }
+            }
+        }
+    },
+    
+    sortData: function(data, columnName, direction) {
+        if (!data || !data.length) return data;
+        
+        // Create a copy of the data to avoid modifying the original
+        var sortedData = data.slice();
+        
+        sortedData.sort(function(a, b) {
+            var valueA = a[columnName] !== undefined ? a[columnName] : '';
+            var valueB = b[columnName] !== undefined ? b[columnName] : '';
+            
+            // Convert to lowercase strings for string comparison
+            if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+            if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+            
+            // Check if values are dates (special handling)
+            if (columnName.indexOf('date') !== -1 || 
+                (valueA && typeof valueA === 'string' && valueA.match(/^\d{4}-\d{2}-\d{2}/)) || 
+                (valueB && typeof valueB === 'string' && valueB.match(/^\d{4}-\d{2}-\d{2}/))) {
+                valueA = new Date(valueA).getTime() || 0;
+                valueB = new Date(valueB).getTime() || 0;
+            }
+            
+            // Check if values are numbers (special handling)
+            if (typeof valueA === 'string' && !isNaN(parseFloat(valueA))) valueA = parseFloat(valueA);
+            if (typeof valueB === 'string' && !isNaN(parseFloat(valueB))) valueB = parseFloat(valueB);
+            
+            // Compare values
+            if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+            if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        
+        return sortedData;
+    },
 };
 
 // Make Utils globally available

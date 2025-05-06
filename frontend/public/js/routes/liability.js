@@ -15,6 +15,24 @@ var LiabilityApp = {
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'name',              // Column 0: Name
+            'fund_details',      // Column 1: Fund Details
+            'amount',            // Column 2: Amount
+            'remaining_balance', // Column 3: Remaining
+            'type',              // Column 4: Type
+            'payment_to',        // Column 5: Payment To
+            'payment_method',    // Column 6: Payment Method
+            'date',              // Column 7: Entry Date
+            'user',              // Column 8: User
+            null                 // Column 9: Actions (not sortable)
+        ];
+        
         // Mark that we're in liability page
         sessionStorage.setItem('isLiability', 'true');
         Utils.storeLastVisited('liability');
@@ -78,7 +96,7 @@ var LiabilityApp = {
             '</div>' +
             
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="liabilityTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>Name</th>' +
@@ -90,7 +108,7 @@ var LiabilityApp = {
                             '<th>Payment Method</th>' +
                             '<th>Entry Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="liabilityTableBody">' +
@@ -106,6 +124,9 @@ var LiabilityApp = {
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Initialize table sorting
+        Utils.initTableSorting('liabilityTable', this, this.loadLiabilityData.bind(this));
         
         // Load liability data
         this.loadLiabilityData();
@@ -153,7 +174,12 @@ var LiabilityApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderLiabilityTable(response.data);
+                // Store the data for sorting
+                self.liabilityData = response.data;
+                
+                // Render the sorted data
+                self.renderLiabilityTable(self.liabilityData);
+                
                 // Update to use numbered pagination
                 Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
@@ -177,8 +203,15 @@ var LiabilityApp = {
             return;
         }
         
+        // Sort the data if a sort column is selected
+        var sortedData = liabilities;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(liabilities, columnName, this.sortDirection);
+        }
+        
         var self = this;
-        liabilities.forEach(function(liability) {
+        sortedData.forEach(function(liability) {
             var row = document.createElement('tr');
             
             // Add appropriate class based on liability status

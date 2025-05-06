@@ -16,6 +16,24 @@ var AssetsApp = {
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         this.searchQuery = '';
         
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'name',            // Column 0: Name
+            'type',            // Column 1: Type
+            'purchase_date',   // Column 2: Purchase Date
+            'quantity',        // Column 3: Quantity
+            'purchased_from',  // Column 4: Purchased From
+            'cost',            // Column 5: Cost
+            'salvage_value',   // Column 6: Salvage Value
+            'head_details',    // Column 7: Details
+            'user',            // Column 8: User
+            null               // Column 9: Actions (not sortable)
+        ];
+        
         // Mark that we're in assets page
         sessionStorage.setItem('isAssets', 'true');
         Utils.storeLastVisited('assets');
@@ -77,7 +95,7 @@ var AssetsApp = {
             '</div>' +
             
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="assetsTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>Name</th>' +
@@ -89,7 +107,7 @@ var AssetsApp = {
                             '<th>Salvage Value</th>' +
                             '<th>Details</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="assetsTableBody">' +
@@ -105,6 +123,9 @@ var AssetsApp = {
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Initialize table sorting
+        Utils.initTableSorting('assetsTable', this, this.loadAssetsData.bind(this));
         
         // Load assets data
         this.loadAssetsData();
@@ -157,7 +178,12 @@ var AssetsApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderAssetsTable(response.data);
+                // Store the data for sorting
+                self.assetsData = response.data;
+                
+                // Render the sorted data
+                self.renderAssetsTable(self.assetsData);
+                
                 // Update to use numbered pagination
                 Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
@@ -191,8 +217,15 @@ var AssetsApp = {
             return;
         }
         
+        // Sort the data if a sort column is selected
+        var sortedData = assets;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(assets, columnName, this.sortDirection);
+        }
+        
         var self = this;
-        assets.forEach(function(asset) {
+        sortedData.forEach(function(asset) {
             var row = document.createElement('tr');
             
             // Add appropriate class based on asset status

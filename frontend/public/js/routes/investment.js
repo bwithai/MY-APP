@@ -15,6 +15,23 @@ var InvestmentApp = {
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'name',          // Column 0: Name
+            'asset_details', // Column 1: Details
+            'amount',        // Column 2: Amount
+            'type',          // Column 3: Type
+            'payment_method',// Column 4: Payment Method
+            'iban',          // Column 5: IBAN
+            'date',          // Column 6: Entry Date
+            'user',          // Column 7: User
+            null             // Column 8: Actions (not sortable)
+        ];
+        
         // Mark that we're in investment page
         sessionStorage.setItem('isInvestment', 'true');
         Utils.storeLastVisited('investment');
@@ -74,7 +91,7 @@ var InvestmentApp = {
             '</div>' +
             
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="investmentTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>Name</th>' +
@@ -85,7 +102,7 @@ var InvestmentApp = {
                             '<th>IBAN</th>' +
                             '<th>Entry Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="investmentTableBody">' +
@@ -134,6 +151,9 @@ var InvestmentApp = {
             }
         `;
         document.head.appendChild(style);
+        
+        // Initialize table sorting
+        Utils.initTableSorting('investmentTable', this, this.loadInvestmentData.bind(this));
         
         // Load investment data
         this.loadInvestmentData();
@@ -185,7 +205,12 @@ var InvestmentApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderInvestmentTable(response.data);
+                // Store the data for sorting
+                self.investmentData = response.data;
+                
+                // Render the sorted data
+                self.renderInvestmentTable(self.investmentData);
+                
                 // Update to use numbered pagination
                 Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
@@ -217,8 +242,15 @@ var InvestmentApp = {
             return;
         }
         
+        // Sort the data if a sort column is selected
+        var sortedData = investments;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(investments, columnName, this.sortDirection);
+        }
+        
         var self = this;
-        investments.forEach(function(investment) {
+        sortedData.forEach(function(investment) {
             var row = document.createElement('tr');
             if (investment.is_deleted) {
                 row.classList.add('deleted-row');

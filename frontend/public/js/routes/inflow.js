@@ -17,6 +17,24 @@ var InflowApp = {
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
         
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'id',           // Column 0: ID
+            'head',         // Column 1: Head
+            'sub_heads',    // Column 2: Sub Head
+            'fund_details', // Column 3: Fund Details
+            'amount',       // Column 4: Amount
+            'payment_method', // Column 5: Payment Method
+            'iban',         // Column 6: IBAN
+            'date',         // Column 7: Entry Date
+            'user',         // Column 8: User
+            null            // Column 9: Actions (not sortable)
+        ];
+        
         // Mark that we're in inflow page
         sessionStorage.setItem('isInflow', 'true');
         
@@ -75,7 +93,7 @@ var InflowApp = {
             '</div>' +
             
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="inflowTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>ID</th>' +
@@ -87,7 +105,7 @@ var InflowApp = {
                             '<th>IBAN</th>' +
                             '<th>Entry Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="inflowTableBody">' +
@@ -136,6 +154,9 @@ var InflowApp = {
             }
         `;
         document.head.appendChild(style);
+        
+        // Initialize table sorting
+        Utils.initTableSorting('inflowTable', this, this.loadInflowData.bind(this));
         
         // Load inflow data
         this.loadInflowData();
@@ -190,7 +211,12 @@ var InflowApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderInflowTable(response.data);
+                // Store the data for sorting
+                self.inflowData = response.data;
+                
+                // Render the sorted data
+                self.renderInflowTable(self.inflowData);
+                
                 // Update to use numbered pagination
                 Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
@@ -225,10 +251,17 @@ var InflowApp = {
             return;
         }
 
+        // Sort the data if a sort column is selected
+        var sortedData = inflows;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(inflows, columnName, this.sortDirection);
+        }
+
         var self = this;
         tableBody.innerHTML = '';
         
-        inflows.forEach(function(inflow) {
+        sortedData.forEach(function(inflow) {
             // Add deleted-row class if is_deleted is true
             var rowClass = inflow.is_deleted ? 'deleted-row' : '';
             var row = document.createElement('tr');
@@ -253,7 +286,6 @@ var InflowApp = {
                     '</div>' +
                 '</td>' +
                 '<td>' + self.formatDate(inflow.date) + '</td>' +
-                // '<td>' + self.formatDate(inflow.created_at) + '</td>' +
                 '<td>' + (inflow.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Inflow', inflow, {
                     delete: !inflow.is_deleted,
