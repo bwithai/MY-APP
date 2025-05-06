@@ -1,11 +1,13 @@
 import calendar
 from datetime import timedelta, datetime, date
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Query
 from sqlmodel import func, select
 from sqlalchemy.sql import expression
+from sqlalchemy import desc
+from sqlalchemy.orm import joinedload
 
 from app.api.deps import CurrentUser, SessionDep
 from app.cf_models.schemas import CommandFunds, Expenses, Balances, Investments, Liabilities
@@ -348,3 +350,153 @@ def get_weekly_balance(
     print(start_date, end_date)
     range_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
     return range_balance
+
+
+@router.get("/transactions/res/{user_id}")
+def recent_transactions(
+        session: SessionDep, current_user: CurrentUser, user_id: int):
+    """
+    Retrieve the 5 most recent entries for inflow, outflow, investment, and liability.
+    """
+    combined_transactions = []
+    print("----------->: ", user_id)
+
+    if current_user.is_superuser and user_id == current_user.id:
+        # Superuser wants to see all data
+        inflow_statement = (
+            select(CommandFunds)
+            .where(CommandFunds.is_deleted == expression.false())
+            .order_by(desc(CommandFunds.date))
+            .options(
+                joinedload(CommandFunds.heads),
+                joinedload(CommandFunds.sub_head)
+            )
+            .limit(5)
+        )
+
+        outflow_statement = (
+            select(Expenses)
+            .where(Expenses.is_deleted == expression.false())
+            .order_by(desc(Expenses.expense_date))
+            .options(
+                joinedload(Expenses.heads),
+                joinedload(Expenses.sub_head)
+            )
+            .limit(5)
+        )
+
+        investment_statement = (
+            select(Investments)
+            .where(Investments.is_deleted == expression.false())
+            .order_by(desc(Investments.date))
+            .limit(5)
+        )
+
+        liability_statement = (
+            select(Liabilities)
+            .where(Liabilities.is_deleted == expression.false())
+            .order_by(desc(Liabilities.date))
+            .limit(5)
+        )
+    else:
+        # Either regular user or superuser viewing specific user data
+        query_user_id = user_id if user_id else current_user.id
+
+        inflow_statement = (
+            select(CommandFunds)
+            .where(
+                CommandFunds.user_id == query_user_id,
+                CommandFunds.is_deleted == expression.false()
+            )
+            .order_by(desc(CommandFunds.date))
+            .options(
+                joinedload(CommandFunds.heads),
+                joinedload(CommandFunds.sub_head)
+            )
+            .limit(5)
+        )
+
+        outflow_statement = (
+            select(Expenses)
+            .where(
+                Expenses.user_id == query_user_id,
+                Expenses.is_deleted == expression.false()
+            )
+            .order_by(desc(Expenses.expense_date))
+            .options(
+                joinedload(Expenses.heads),
+                joinedload(Expenses.sub_head)
+            )
+            .limit(5)
+        )
+
+        investment_statement = (
+            select(Investments)
+            .where(
+                Investments.user_id == query_user_id,
+                Investments.is_deleted == expression.false()
+            )
+            .order_by(desc(Investments.date))
+            .limit(5)
+        )
+
+        liability_statement = (
+            select(Liabilities)
+            .where(
+                Liabilities.user_id == query_user_id,
+                Liabilities.is_deleted == expression.false()
+            )
+            .order_by(desc(Liabilities.date))
+            .limit(5)
+        )
+
+    # Execute the queries
+    inflows = session.exec(inflow_statement).all()
+    outflows = session.exec(outflow_statement).all()
+    investments = session.exec(investment_statement).all()
+    liabilities = session.exec(liability_statement).all()
+
+    # Format inflow entries
+    for inflow in inflows:
+        combined_transactions.append({
+            "type": "inflow",
+            "amount": f"{inflow.amount:,.2f}",
+            "date": inflow.date.strftime("%Y-%m-%d") if inflow.date else "",
+            "description": f"{inflow.heads.heads} - {inflow.sub_head.subheads}" if inflow.heads and inflow.sub_head else "Fund Details"
+        })
+
+    # Format outflow entries
+    for outflow in outflows:
+        combined_transactions.append({
+            "type": "outflow",
+            "amount": f"{outflow.cost:,.2f}",
+            "date": outflow.expense_date.strftime("%Y-%m-%d") if outflow.expense_date else "",
+            "description": f"{outflow.heads.heads} - {outflow.sub_head.subheads}" if outflow.heads and outflow.sub_head else "Head Details"
+        })
+
+    # Format investment entries
+    for investment in investments:
+        combined_transactions.append({
+            "type": "investment",
+            "amount": f"{investment.amount:,.2f}",
+            "date": investment.date.strftime("%Y-%m-%d") if investment.date else "",
+            "description": investment.name if investment.name else "Investment"
+        })
+
+    # Format liability entries
+    for liability in liabilities:
+        combined_transactions.append({
+            "type": "liability",
+            "amount": f"{liability.remaining_balance:,.2f}",
+            "date": liability.date.strftime("%Y-%m-%d") if liability.date else "",
+            "description": liability.name if liability.name else "Liability"
+        })
+
+    # Sort by date (most recent first)
+    combined_transactions.sort(
+        key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d") if x["date"] else datetime.min,
+        reverse=True
+    )
+
+    # Return only the top 5 transactions across all types
+    return {"response": "fetched successfully"}

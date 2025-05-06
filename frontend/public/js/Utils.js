@@ -704,7 +704,7 @@ var Utils = {
         
         // Default options
         options = options || {};
-        var warningThreshold = options.warningThreshold || 0.5; // 50% of max by default
+        var warningThreshold = options.warningThreshold || 0.7; // 70% of max by default
         var countDisplay = options.countDisplay || null; // Element to show word count
         var errorClass = options.errorClass || 'word-limit-error';
         var warningClass = options.warningClass || 'word-limit-warning';

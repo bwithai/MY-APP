@@ -863,10 +863,10 @@ var DashboardApp = {
                             <i class="fas ${icon}"></i>
                         </div>
                         <div class="transaction-details">
-                            <div class="transaction-description">${transaction.description}</div>
+                            <div style="color: rgb(245, 232, 120);" class="transaction-description">${transaction.description}</div>
                             <div class="transaction-date">${transaction.date}</div>
                         </div>
-                        <div class="transaction-amount" style="color: white;">${isInflow ? '+' : '-'} ₨ ${transaction.amount}</div>
+                        <div class="transaction-amount" style="color: rgb(245, 232, 120);">${isInflow ? '+' : '-'} ₨ ${transaction.amount}</div>
                     </div>
                 `;
             });
@@ -922,12 +922,12 @@ var DashboardApp = {
                 
                 .inflow-card .transaction-icon {
                     background-color: rgba(135, 196, 160, 0.2);
-                    color: white;
+                    color: rgb(245, 232, 120);
                 }
                 
                 .outflow-card .transaction-icon {
                     background-color: rgba(197, 136, 136, 0.2);
-                    color: white;
+                    color: rgb(245, 232, 120);
                 }
                 
                 .transaction-details {
@@ -960,22 +960,6 @@ var DashboardApp = {
                     text-align: center;
                     padding: 24px;
                     color: #718096;
-                }
-                
-                /* Dark mode styles */
-                @media (prefers-color-scheme: dark) {
-                    .transaction-card {
-                        background-color: #2D3748;
-                        color: white;
-                    }
-                    
-                    .transaction-date {
-                        color: #A0AEC0;
-                    }
-                    
-                    .no-transactions {
-                        color: #A0AEC0;
-                    }
                 }
             `;
             document.head.appendChild(style);
