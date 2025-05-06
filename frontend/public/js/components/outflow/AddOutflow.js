@@ -182,12 +182,26 @@ var AddOutflow = {
 
         if (paymentTypeSelect) {
             paymentTypeSelect.addEventListener('change', function() {
+                var dateInput = document.getElementById('date');
                 var ibanContainer = document.getElementById('ibanContainer');
+
+                // Handle IBAN container visibility
                 if (this.value === 'bank') {
                     ibanContainer.style.display = 'block';
                     Utils.loadIBANs();
                 } else {
                     ibanContainer.style.display = 'none';
+                }
+
+                 // Handle date input behavior
+                 if (this.value === 'prev_held') {
+                    // Allow manual date entry for previously held funds
+                    dateInput.removeAttribute('readonly');
+                } else {
+                    // For other payment methods, keep date readonly and use datepicker
+                    dateInput.setAttribute('readonly', true);
+                    Utils.setCurrentDate(dateInput);
+                    Utils.initDatePicker(dateInput);
                 }
             });
         }

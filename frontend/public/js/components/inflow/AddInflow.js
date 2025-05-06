@@ -74,8 +74,9 @@ var AddInflow = {
                             Utils.createLabel('payment_method', 'Payment Method', true) +
                             '<select id="payment_method" name="payment_method" required>' +
                                 '<option value="">Select payment method</option>' +
-                                '<option value="Bank Transfer">Bank Transfer</option>' +
-                                '<option value="Cash Transfer">Cash Transfer</option>' +
+                                '<option value="bank">Bank Transfer</option>' +
+                                '<option value="cash">Cash Transfer</option>' +
+                                '<option value="prev_held">Previously Held</option>' +
                             '</select>' +
                         '</div>' +
 
@@ -141,11 +142,25 @@ var AddInflow = {
         if (paymentMethodSelect) {
             paymentMethodSelect.addEventListener('change', function() {
                 var ibanContainer = document.getElementById('ibanContainer');
-                if (this.value === 'Bank Transfer') {
+                var dateInput = document.getElementById('date');
+                
+                // Handle IBAN container visibility
+                if (this.value === 'bank') {
                     ibanContainer.style.display = 'block';
                     Utils.loadIBANs();
                 } else {
                     ibanContainer.style.display = 'none';
+                }
+                
+                // Handle date input behavior
+                if (this.value === 'prev_held') {
+                    // Allow manual date entry for previously held funds
+                    dateInput.removeAttribute('readonly');
+                } else {
+                    // For other payment methods, keep date readonly and use datepicker
+                    dateInput.setAttribute('readonly', true);
+                    Utils.setCurrentDate(dateInput);
+                    Utils.initDatePicker(dateInput);
                 }
             });
         }
