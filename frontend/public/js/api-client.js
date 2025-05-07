@@ -176,6 +176,16 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
+    readTransactions: function(data) {
+        return fetch(this.baseUrl + 'dashboard/transactions/' + data.userId, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
 
     /*----------------------------------------------------------------------------------------------------
         [ All the Inflows API calls will be handled bellow this line ]

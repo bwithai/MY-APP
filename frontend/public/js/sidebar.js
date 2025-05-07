@@ -28,7 +28,7 @@ var Sidebar = {
         { icon: 'arrow-up', title: "Outflow", path: "/outflow" },
         { icon: 'hand-holding-usd', title: "Investment", path: "/investment" },
         { icon: 'minus-circle', title: "Liability", path: "/liability" },
-        { icon: 'coins', title: "Assets / Inventory", path: "/assets" },
+        { icon: 'coins', title: "Manage Inventory", path: "/assets" },
         { icon: 'cog', title: "User Profile", path: "/settings" }
     ],
 

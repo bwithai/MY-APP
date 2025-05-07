@@ -326,40 +326,12 @@ def financial_overview(
     }
 
 
-@router.get("/{year}/{user_id}")
-def get_yearly_balance(session: SessionDep, current_user: CurrentUser, year: int, user_id: int):
-    return format_yearly_data(session, current_user, year, user_id)
-
-
-@router.get("/{year}/{month}/{user_id}")
-def get_monthly_balance(session: SessionDep, current_user: CurrentUser, year: int, month: str, user_id: int):
-    print("----------->: ", year, month, user_id)
-    month_index = list(calendar.month_name).index(month)
-    start_date, end_date = get_month_range(year, month_index)
-    # Fetch monthly balance data
-    monthly_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
-    return monthly_balance
-
-
-@router.get("/range/{start_date}/{end_date}/{user_id}")
-def get_weekly_balance(
-        session: SessionDep, current_user: CurrentUser,
-        start_date: str, end_date: str, user_id: int):
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date, "%Y-%m-%d")
-    print(start_date, end_date)
-    range_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
-    return range_balance
-
-
-@router.get("/transactions/res/{user_id}")
-def recent_transactions(
-        session: SessionDep, current_user: CurrentUser, user_id: int):
+@router.get("/transactions/{user_id}")
+def get_transactions(session: SessionDep, current_user: CurrentUser, user_id: int):
     """
     Retrieve the 5 most recent entries for inflow, outflow, investment, and liability.
     """
     combined_transactions = []
-    print("----------->: ", user_id)
 
     if current_user.is_superuser and user_id == current_user.id:
         # Superuser wants to see all data
@@ -368,8 +340,8 @@ def recent_transactions(
             .where(CommandFunds.is_deleted == expression.false())
             .order_by(desc(CommandFunds.date))
             .options(
-                joinedload(CommandFunds.heads),
-                joinedload(CommandFunds.sub_head)
+                joinedload(CommandFunds.head),
+                joinedload(CommandFunds.sub_heads)
             )
             .limit(5)
         )
@@ -379,8 +351,8 @@ def recent_transactions(
             .where(Expenses.is_deleted == expression.false())
             .order_by(desc(Expenses.expense_date))
             .options(
-                joinedload(Expenses.heads),
-                joinedload(Expenses.sub_head)
+                joinedload(Expenses.head),
+                joinedload(Expenses.sub_heads)
             )
             .limit(5)
         )
@@ -410,8 +382,8 @@ def recent_transactions(
             )
             .order_by(desc(CommandFunds.date))
             .options(
-                joinedload(CommandFunds.heads),
-                joinedload(CommandFunds.sub_head)
+                joinedload(CommandFunds.head),
+                joinedload(CommandFunds.sub_heads)
             )
             .limit(5)
         )
@@ -424,8 +396,8 @@ def recent_transactions(
             )
             .order_by(desc(Expenses.expense_date))
             .options(
-                joinedload(Expenses.heads),
-                joinedload(Expenses.sub_head)
+                joinedload(Expenses.head),
+                joinedload(Expenses.sub_heads)
             )
             .limit(5)
         )
@@ -462,7 +434,7 @@ def recent_transactions(
             "type": "inflow",
             "amount": f"{inflow.amount:,.2f}",
             "date": inflow.date.strftime("%Y-%m-%d") if inflow.date else "",
-            "description": f"{inflow.heads.heads} - {inflow.sub_head.subheads}" if inflow.heads and inflow.sub_head else "Fund Details"
+            "description": inflow.fund_details
         })
 
     # Format outflow entries
@@ -471,7 +443,7 @@ def recent_transactions(
             "type": "outflow",
             "amount": f"{outflow.cost:,.2f}",
             "date": outflow.expense_date.strftime("%Y-%m-%d") if outflow.expense_date else "",
-            "description": f"{outflow.heads.heads} - {outflow.sub_head.subheads}" if outflow.heads and outflow.sub_head else "Head Details"
+            "description": outflow.head_details
         })
 
     # Format investment entries
@@ -480,7 +452,7 @@ def recent_transactions(
             "type": "investment",
             "amount": f"{investment.amount:,.2f}",
             "date": investment.date.strftime("%Y-%m-%d") if investment.date else "",
-            "description": investment.name if investment.name else "Investment"
+            "description": investment.name
         })
 
     # Format liability entries
@@ -489,7 +461,7 @@ def recent_transactions(
             "type": "liability",
             "amount": f"{liability.remaining_balance:,.2f}",
             "date": liability.date.strftime("%Y-%m-%d") if liability.date else "",
-            "description": liability.name if liability.name else "Liability"
+            "description": liability.fund_details
         })
 
     # Sort by date (most recent first)
@@ -499,4 +471,31 @@ def recent_transactions(
     )
 
     # Return only the top 5 transactions across all types
-    return {"response": "fetched successfully"}
+    return combined_transactions
+
+
+@router.get("/{year}/{user_id}")
+def get_yearly_balance(session: SessionDep, current_user: CurrentUser, year: int, user_id: int):
+    return format_yearly_data(session, current_user, year, user_id)
+
+
+@router.get("/{year}/{month}/{user_id}")
+def get_monthly_balance(session: SessionDep, current_user: CurrentUser, year: int, month: str, user_id: int):
+    print("----------->: ", year, month, user_id)
+    month_index = list(calendar.month_name).index(month)
+    start_date, end_date = get_month_range(year, month_index)
+    # Fetch monthly balance data
+    monthly_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
+    return monthly_balance
+
+
+@router.get("/range/{start_date}/{end_date}/{user_id}")
+def get_weekly_balance(
+        session: SessionDep, current_user: CurrentUser,
+        start_date: str, end_date: str, user_id: int):
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date, "%Y-%m-%d")
+    print(start_date, end_date)
+    range_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
+    return range_balance
+

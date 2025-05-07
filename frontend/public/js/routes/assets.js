@@ -69,7 +69,7 @@ var AssetsApp = {
         content.innerHTML = '<div class="container-fluid">' +
             '<div class="page-header">' +
                 '<div class="header-content">' +
-                    '<h1 class="page-title">' + Utils.getPageTitle('Assets', this.currentUser, this.storedUserName) + '</h1>' +
+                    '<h1 class="page-title">' + Utils.getPageTitle('Inventory', this.currentUser, this.storedUserName) + '</h1>' +
                     '<button class="btn btn-secondary" id="goBackBtn">' +
                         '<i class="fas fa-arrow-left"></i> Go back' +
                     '</button>' +
