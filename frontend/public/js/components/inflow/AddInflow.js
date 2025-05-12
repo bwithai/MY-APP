@@ -195,6 +195,9 @@ var AddInflow = {
         }
         submitButton.disabled = true;
 
+        // Clear any existing errors
+        Utils.clearFieldErrors(document.getElementById('addInflowForm'));
+
         var data = {};
         var entries = formData.entries();
         var entry;
@@ -205,10 +208,25 @@ var AddInflow = {
         var amountStr = data.amount.toString();
         var amount = Number(parseFloat(amountStr).toFixed(2));
 
+        // Validate amount
         if (amount <= 0) {
-            alert('Amount must be greater than 0');
             submitButton.disabled = false;
-            return;
+            return Utils.showFieldError(document.getElementById('amount'), 'Amount must be greater than 0');
+        }
+
+        // Validate payment method
+        var paymentMethod = data.payment_method;
+        if (!paymentMethod || paymentMethod === '') {
+            submitButton.disabled = false;
+            return Utils.showFieldError(document.getElementById('payment_method'), 'Please select a payment method');
+        }
+
+        // Validate IBAN if payment method is bank
+        if (paymentMethod === 'bank') {
+            if (!data.iban_id || data.iban_id === '') {
+                submitButton.disabled = false;
+                return Utils.showFieldError(document.getElementById('iban'), 'Please select an IBAN for bank transfers');
+            }
         }
 
         var formattedData = {
@@ -216,18 +234,20 @@ var AddInflow = {
             amount: amount,
             fund_details: data.fund_details,
             received_from: data.received_from,
-            payment_method: data.payment_method,
+            payment_method: paymentMethod,
             date: data.date
         };
 
         if (data.subhead_id) {
             formattedData.subhead_id = Number(data.subhead_id);
         }
-        if (data.payment_method === 'Bank Transfer') {
+        
+        // Only add IBAN if payment method is explicitly 'bank'
+        if (paymentMethod === 'bank' && data.iban_id) {
             formattedData.iban_id = Number(data.iban_id);
         }
 
-        console.log('Submitting formatted data:', formattedData);
+        console.log('Submitting inflow data:', formattedData);
 
         ApiClient.createInflow(formattedData)
             .then(function(response) {

@@ -75,7 +75,18 @@ var ApiClient = {
         .then(this.handleResponse)
         .catch(this.handleError);
     },
-
+    updateUser: function(id, data) {
+        return fetch(this.baseUrl + 'users/' + id, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(this.handleResponse)
+        .catch(this.handleError);
+    },
     createUser: function(data) {    
         return fetch(this.baseUrl + 'users/', {
             method: 'POST',

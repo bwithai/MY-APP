@@ -1017,6 +1017,100 @@ var Utils = {
         
         return sortedData;
     },
+
+    // Form validation utility to highlight fields and show error messages
+    showFieldError: function(field, message) {
+        if (!field) return;
+        
+        // Add error class to the field
+        field.classList.add('field-error');
+        
+        // Find or create error message container
+        var errorId = field.id + '-error';
+        var errorElement = document.getElementById(errorId);
+        
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.id = errorId;
+            errorElement.className = 'field-error-message';
+            
+            // Insert after the field
+            field.parentNode.insertBefore(errorElement, field.nextSibling);
+        }
+        
+        errorElement.textContent = message;
+        
+        // Add CSS if not already added
+        if (!document.getElementById('field-error-styles')) {
+            var style = document.createElement('style');
+            style.id = 'field-error-styles';
+            style.textContent = `
+                .field-error {
+                    border-color: #e74c3c !important;
+                    background-color: rgba(231, 76, 60, 0.05);
+                }
+                .field-error-message {
+                    color: #e74c3c;
+                    font-size: 12px;
+                    margin-top: 5px;
+                    font-weight: 500;
+                }
+                .field-error::placeholder {
+                    color: rgba(231, 76, 60, 0.7);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Focus on the field
+        field.focus();
+        
+        // Remove error on input
+        var clearError = function() {
+            field.classList.remove('field-error');
+            if (errorElement && errorElement.parentNode) {
+                errorElement.parentNode.removeChild(errorElement);
+            }
+            
+            // Remove event listeners
+            if (field.removeEventListener) {
+                field.removeEventListener('input', clearError);
+                field.removeEventListener('change', clearError);
+            } else if (field.detachEvent) {
+                field.detachEvent('oninput', clearError);
+                field.detachEvent('onchange', clearError);
+            }
+        };
+        
+        // Add event listeners with browser compatibility
+        if (field.addEventListener) {
+            field.addEventListener('input', clearError);
+            field.addEventListener('change', clearError);
+        } else if (field.attachEvent) {
+            field.attachEvent('oninput', clearError);
+            field.attachEvent('onchange', clearError);
+        }
+        
+        return false; // For easy chaining in validation functions
+    },
+    
+    clearFieldErrors: function(formElement) {
+        if (!formElement) return;
+        
+        // Remove error classes from all fields
+        var errorFields = formElement.querySelectorAll('.field-error');
+        for (var i = 0; i < errorFields.length; i++) {
+            errorFields[i].classList.remove('field-error');
+        }
+        
+        // Remove error messages
+        var errorMessages = document.querySelectorAll('.field-error-message');
+        for (var i = 0; i < errorMessages.length; i++) {
+            if (errorMessages[i].parentNode) {
+                errorMessages[i].parentNode.removeChild(errorMessages[i]);
+            }
+        }
+    }
 };
 
 // Make Utils globally available

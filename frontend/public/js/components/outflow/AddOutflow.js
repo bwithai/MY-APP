@@ -258,6 +258,9 @@ var AddOutflow = {
         }
         submitButton.disabled = true;
 
+        // Clear any existing errors
+        Utils.clearFieldErrors(document.getElementById('addOutflowForm'));
+
         var data = {};
         var entries = formData.entries();
         var entry;
@@ -268,10 +271,25 @@ var AddOutflow = {
         var amountStr = data.amount.toString();
         var amount = Number(parseFloat(amountStr).toFixed(2));
 
+        // Validate amount
         if (amount <= 0) {
-            alert('Amount must be greater than 0');
             submitButton.disabled = false;
-            return;
+            return Utils.showFieldError(document.getElementById('amount'), 'Amount must be greater than 0');
+        }
+
+        // Validate payment type
+        var paymentType = data.payment_type;
+        if (!paymentType || paymentType === '') {
+            submitButton.disabled = false;
+            return Utils.showFieldError(document.getElementById('payment_type'), 'Please select a payment type');
+        }
+
+        // Validate IBAN if payment type is bank
+        if (paymentType === 'bank') {
+            if (!data.iban_id || data.iban_id === '') {
+                submitButton.disabled = false;
+                return Utils.showFieldError(document.getElementById('iban'), 'Please select an IBAN for bank transfers');
+            }
         }
 
         var formattedData = {
@@ -281,14 +299,16 @@ var AddOutflow = {
             payment_to: data.payment_to,
             type: data.type,
             place_type: data.place_type,
-            payment_type: data.payment_type,
+            payment_type: paymentType,
             expense_date: data.date
         };
 
         if (data.subhead_id) {
             formattedData.subhead_id = parseInt(data.subhead_id);
         }
-        if (data.payment_type === 'bank') {
+        
+        // Only add IBAN if payment type is explicitly 'bank'
+        if (paymentType === 'bank' && data.iban_id) {
             formattedData.iban_id = parseInt(data.iban_id);
         }
 

@@ -215,6 +215,22 @@ var ActionsMenu = {
         var id = typeof idOrElement === 'object' ? idOrElement.id : idOrElement;
         
         switch (this.type) {
+            case 'User':
+                // For User type, we already have the full object in this.value
+                if (typeof EditUser === 'undefined') {
+                    console.error('EditUser component is not available');
+                    Utils.onSuccess('error', 'Cannot edit user: The required component is not loaded');
+                    return;
+                }
+                
+                // Initialize EditUser with the user object and callback to refresh users
+                EditUser.init(this.value, function() {
+                    // Refresh the users table after edit
+                    if (typeof UsersTabl !== 'undefined' && typeof UsersTabl.loadUsers === 'function') {
+                        UsersTabl.loadUsers();
+                    }
+                });
+                break;
             case 'Appt':
                 // Get the appointment data and open the EditAppt modal
                 if (typeof EditAppt === 'undefined') {
@@ -258,6 +274,23 @@ var ActionsMenu = {
 
     handleDelete: function(id) {
         switch (this.type) {
+            case 'User':
+                // For User, confirm deletion and call the API
+                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                    ApiClient.deleteUser(id)
+                        .then(function(response) {
+                            Utils.onSuccess('delete', 'User');
+                            // Refresh the users table
+                            if (typeof UsersTabl !== 'undefined' && typeof UsersTabl.loadUsers === 'function') {
+                                UsersTabl.loadUsers();
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to delete user:', error);
+                            Utils.onSuccess('error', (error.message || 'Unknown error to delete user'));
+                        });
+                }
+                break;
             case 'Appt':
                 // For Appointment, confirm deletion and call the API
                 if (confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
