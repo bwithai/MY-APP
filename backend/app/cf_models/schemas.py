@@ -88,6 +88,8 @@ class MultiIbnUser(SQLModel, table=True):
     user: Optional["Users"] = Relationship(back_populates="ibans")
     inflows: List["CommandFunds"] = Relationship(back_populates="iban")
     investments: List["Investments"] = Relationship(back_populates="iban")
+    expenses: List["Expenses"] = Relationship(back_populates="iban")
+    liability: List["Liabilities"] = Relationship(back_populates="iban")
 
 class CommandFunds(SQLModel, table=True):
     __tablename__ = "command_funds"
@@ -183,6 +185,7 @@ class Expenses(SQLModel, table=True):
     reciept: Optional[str] = None
     site_id: Optional[int] = None
     category_id: Optional[int] = None
+    iban_id: Optional[int] = Field(foreign_key="multi_ibn_user.id", nullable=True)
     corps_id: Optional[int] = Field(foreign_key="corps.id", nullable=True)
     div_id: Optional[int] = Field(foreign_key="divs.id", nullable=True)
     brigade_id: Optional[int] = Field(foreign_key="brigades.id", nullable=True)
@@ -214,7 +217,7 @@ class Expenses(SQLModel, table=True):
     divs: Optional["Divs"] = Relationship(back_populates="expenses")
     brigades: Optional["Brigades"] = Relationship(back_populates="expenses")
     units: Optional["Units"] = Relationship(back_populates="expenses")
-
+    iban: Optional["MultiIbnUser"] = Relationship(back_populates="expenses")
 
 class Assets(SQLModel, table=True):
     __tablename__ = "assets"
@@ -325,6 +328,7 @@ class Liabilities(SQLModel, table=True):
         sa_column_kwargs={"onupdate": get_pakistan_timestamp}
     )
     user_id: int = Field(foreign_key="users.id", nullable=False)  # Foreign key to Users table
+    iban_id: Optional[int] = Field(foreign_key="multi_ibn_user.id", nullable=True)
     payment_to: Optional[str] = None
     schedule: Optional[str] = None
     type: Optional[str] = None
@@ -343,7 +347,7 @@ class Liabilities(SQLModel, table=True):
     # )
     balances: List["LiabilityBalances"] = Relationship(back_populates="liability")
     expenses: List["Expenses"] = Relationship(back_populates="liability")
-
+    iban: Optional["MultiIbnUser"] = Relationship(back_populates="liability")
 
 class LiabilityBalances(SQLModel, table=True):
     __tablename__ = "liability_balances"
@@ -372,9 +376,9 @@ class LiabilityBalances(SQLModel, table=True):
 class Balances(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, nullable=False)
     user_id: int = Field(foreign_key="users.id", nullable=False)
-    cash_in_hand: Optional[Decimal] = Field(default=Decimal('0.00'), nullable=True)
-    cash_in_bank: Optional[Decimal] = Field(default=Decimal('0.00'), nullable=True)
-    balance: Optional[Decimal] = Field(default=Decimal('0.00'), nullable=True)
+    cash_in_hand: Optional[Decimal] = Field(default=Decimal('0.00'), sa_column=Column(DECIMAL(16, 2), nullable=True))
+    cash_in_bank: Optional[Decimal] = Field(default=Decimal('0.00'), sa_column=Column(DECIMAL(16, 2), nullable=True))
+    balance: Optional[Decimal] = Field(default=Decimal('0.00'), sa_column=Column(DECIMAL(16, 2), nullable=True))
     created_at: datetime = Field(default_factory=get_pakistan_timestamp)  # Use your custom function
     updated_at: datetime = Field(default_factory=get_pakistan_timestamp,
                                  sa_column_kwargs={"onupdate": get_pakistan_timestamp})

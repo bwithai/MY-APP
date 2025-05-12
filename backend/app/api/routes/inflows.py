@@ -205,7 +205,7 @@ def create_inflow(
     # Update user balance based on payment method
     user_balance = session.query(Balances).filter_by(user_id=current_user.id).first()
     if user_balance:
-        balance_field = 'cash_in_hand' if payment_method == "Cash Transfer" else 'cash_in_bank'
+        balance_field = 'cash_in_hand' if payment_method == "cash" else 'cash_in_bank'
         old_balance = getattr(user_balance, balance_field, Decimal('0.00'))
         new_balance = old_balance + amount
         setattr(user_balance, balance_field, new_balance)

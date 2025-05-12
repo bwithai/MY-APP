@@ -29,6 +29,7 @@ class LiabilityBase(SQLModel):
 
 # Properties to receive on item creation
 class LiabilityCreate(LiabilityBase):
+    iban_id: Optional[int] = None
     name: Optional[str] = None
     # head_id: Optional[int] = None
     remaining_balance: Optional[Decimal] = None

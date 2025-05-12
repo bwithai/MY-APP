@@ -16,6 +16,7 @@ class OutflowBase(SQLModel):
 
 # Properties to receive on item creation
 class OutflowCreate(OutflowBase):
+    iban_id: Optional[int] = None
     head_id: Optional[int] = None
     subhead_id: Optional[int] = None
     asset_id: Optional[int] = None
