@@ -222,7 +222,7 @@ var DashboardApp = {
                 
                 /* Make early-chart-container and admin-or-transactions-container equal height */
                 #early-chart-container, #admin-or-transactions-container {
-                    height: 500px;
+                    height: 600px;
                     overflow: hidden;
                     display: flex;
                     flex-direction: column;
@@ -235,7 +235,7 @@ var DashboardApp = {
                 /* Ensure chart container takes full height */
                 #early-chart-container .early-chart-canvas-container {
                     flex: 1;
-                    min-height: 300px;
+                    min-height: 330px;
                 }
                 
                 /* Make users table container take full height */
