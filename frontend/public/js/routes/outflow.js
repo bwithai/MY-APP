@@ -9,10 +9,32 @@ var OutflowApp = {
             this.currentPage = parseInt(sessionStorage.getItem('outflowCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'outflow'; // For use with pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
+        
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'id',            // Column 0: ID
+            'head',          // Column 1: Head
+            'sub_heads',     // Column 2: Sub Head
+            'head_details',  // Column 3: Head Details
+            'type',          // Column 4: Type
+            'cost',          // Column 5: Amount
+            'payment_type',  // Column 6: Payment Type
+            'iban',          // Column 7: IBAN
+            'payment_to',    // Column 8: Payment To
+            'expense_date',  // Column 9: Expense Date
+            'user',          // Column 10: User
+            null             // Column 11: Actions (not sortable)
+        ];
         
         // Mark that we're in outflow page
         sessionStorage.setItem('isOutflow', 'true');
@@ -60,8 +82,19 @@ var OutflowApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box deleted-box"></span>' +
+                    '<span class="legend-text">Deleted</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="outflowTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>ID</th>' +
@@ -69,14 +102,13 @@ var OutflowApp = {
                             '<th>Sub Head</th>' +
                             '<th>Head Details</th>' +
                             '<th>Type</th>' +
-                            '<th>Entity</th>' +
                             '<th>Amount</th>' +
                             '<th>Payment Type</th>' +
                             '<th>IBAN</th>' +
                             '<th>Payment To</th>' +
                             '<th>Expense Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="outflowTableBody">' +
@@ -87,15 +119,47 @@ var OutflowApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Add styles for the status legend
+        var style = document.createElement('style');
+        style.textContent = `
+            .status-legend {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 15px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            .color-box {
+                width: 15px;
+                height: 15px;
+                display: inline-block;
+                margin-right: 5px;
+                border-radius: 3px;
+            }
+            .deleted-box {
+                background-color: #ffcccc;
+            }
+            .active-box {
+                background-color: #ffffff;
+                border: 1px solid #dee2e6;
+            }
+            .deleted-row {
+                background-color: #ffcccc;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize table sorting
+        Utils.initTableSorting('outflowTable', this, this.loadOutflowData.bind(this));
         
         // Load outflow data
         this.loadOutflowData();
@@ -150,8 +214,14 @@ var OutflowApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderOutflowTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Store the data for sorting
+                self.outflowData = response.data;
+                
+                // Render the sorted data
+                self.renderOutflowTable(self.outflowData);
+                
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -188,10 +258,17 @@ var OutflowApp = {
             return;
         }
 
+        // Sort the data if a sort column is selected
+        var sortedData = outflows;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(outflows, columnName, this.sortDirection);
+        }
+
         var self = this;
         tableBody.innerHTML = '';
         
-        outflows.forEach(function(outflow) {
+        sortedData.forEach(function(outflow) {
             // Add deleted-row class if is_deleted is true
             var rowClass = outflow.is_deleted ? 'deleted-row' : '';
             var row = document.createElement('tr');
@@ -208,13 +285,16 @@ var OutflowApp = {
                         (outflow.head_details || 'N/A') +
                     '</div>' +
                 '</td>' +
-                '<td>' + (outflow.type || 'N/A') + '</td>' +
-                '<td class="' + (outflow.entity ? '' : 'text-muted') + '">' + (outflow.entity || 'N/A') + '</td>' +
+                '<td>' + (outflow.type.toLowerCase() || 'N/A') + '</td>' +
                 '<td title="' + (outflow.cost || 0) + '">' + self.formatNumber(outflow.cost) + '</td>' +
                 '<td>' + (outflow.payment_type || 'N/A') + '</td>' +
-                '<td class="' + (outflow.iban ? '' : 'text-muted') + '">' + (outflow.iban || 'N/A') + '</td>' +
+                '<td class="long-text ' + (outflow.iban ? '' : 'text-muted') + '">' +
+                    '<div class="truncate-text" title="' + (outflow.iban || '') + '">' +
+                        (outflow.iban ? ('••• ' + outflow.iban.slice(-4)) : 'N/A') +
+                    '</div>' +
+                '</td>' +
                 '<td class="' + (outflow.payment_to ? '' : 'text-muted') + '">' + (outflow.payment_to || 'N/A') + '</td>' +
-                '<td>' + self.formatDate(outflow.expense_date, true) + '</td>' +
+                '<td>' + self.formatDate(outflow.expense_date, false) + '</td>' +
                 '<td>' + (outflow.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Outflow', outflow, {
                     delete: !outflow.is_deleted,
@@ -235,37 +315,11 @@ var OutflowApp = {
                 clearTimeout(self.searchTimeout);
                 self.searchTimeout = setTimeout(function() {
                     self.currentPage = 1;
-                    sessionStorage.setItem('inflowCurrentPage', '1');
+                    sessionStorage.setItem('outflowCurrentPage', '1');
                     self.loadOutflowData(searchInput.value);
                 }, 300);
             };
             searchInput.addEventListener('input', this.searchHandler);
-        }
-
-        // Pagination
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
-
-        if (prevPage) {
-            this.prevPageHandler = function(e) {
-                e.preventDefault();
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
-                    self.loadOutflowData(searchInput ? searchInput.value : '');
-                }
-            };
-            prevPage.addEventListener('click', this.prevPageHandler);
-        }
-
-        if (nextPage) {
-            this.nextPageHandler = function(e) {
-                e.preventDefault();
-                self.currentPage++;
-                sessionStorage.setItem('outflowCurrentPage', self.currentPage.toString());
-                self.loadOutflowData(searchInput ? searchInput.value : '');
-            };
-            nextPage.addEventListener('click', this.nextPageHandler);
         }
 
         // Add new outflow
@@ -277,10 +331,6 @@ var OutflowApp = {
                 });
             });
         }
-    },
-
-    updatePagination: function(hasNextPage) {
-        Utils.updatePagination(this, hasNextPage);
     },
 
     formatDate: function(dateString, includeTime = false) {

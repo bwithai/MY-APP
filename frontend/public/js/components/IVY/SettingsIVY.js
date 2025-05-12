@@ -16,6 +16,12 @@ var SettingsIVY = {
         this.isLoadingCorps = false;
         this.isCorpsError = false;
         
+        // Form submission states
+        this.isSubmittingCorp = false;
+        this.isSubmittingDiv = false;
+        this.isSubmittingBrig = false;
+        this.isSubmittingUnit = false;
+        
         // Initialize the component
         this.loadCorps();
         this.setupEventListeners();
@@ -161,7 +167,7 @@ var SettingsIVY = {
         }
 
         var html = 
-            '<table class="table">' +
+            '<table class="table" id="settingsIVYCorpsList">' +
                 '<thead>' +
                     '<tr>' +
                         '<th>Name</th>' +
@@ -176,8 +182,8 @@ var SettingsIVY = {
                 '<tr>' +
                     '<td>' +
                         '<input type="radio" name="corp" value="' + corp.id + '"' + 
-                            (this.selectedCorpId === corp.id ? ' checked' : '') + '>' +
-                        '<span>' + corp.name + '</span>' +
+                            (this.selectedCorpId === corp.id ? ' checked' : '') + ' id="corp_' + corp.id + '">' +
+                        '<label title="' + corp.name + '" for="corp_' + corp.id + '" class="entity-name">' + corp.name + '</label>' +
                     '</td>' +
                     '<td>' + this.renderActionsMenu('Corp', corp) + '</td>' +
                 '</tr>';
@@ -199,7 +205,7 @@ var SettingsIVY = {
         if (!selectedCorp || !selectedCorp.divs) return '';
 
         var html = 
-            '<table class="table">' +
+            '<table class="table" id="settingsIVYDivisionsList">' +
                 '<thead>' +
                     '<tr>' +
                         '<th>Name</th>' +
@@ -214,8 +220,8 @@ var SettingsIVY = {
                 '<tr>' +
                     '<td>' +
                         '<input type="radio" name="div" value="' + div.id + '"' + 
-                            (this.selectedDivId === div.id ? ' checked' : '') + '>' +
-                        '<span>' + div.name + '</span>' +
+                            (this.selectedDivId === div.id ? ' checked' : '') + ' id="div_' + div.id + '">' +
+                        '<label title="' + div.name + '" for="div_' + div.id + '" class="entity-name">' + div.name + '</label>' +
                     '</td>' +
                     '<td>' + this.renderActionsMenu('Division', div) + '</td>' +
                 '</tr>';
@@ -247,7 +253,7 @@ var SettingsIVY = {
         if (!selectedDiv || !selectedDiv.brigades) return '';
 
         var html = 
-            '<table class="table">' +
+            '<table class="table" id="settingsIVYBrigadesList">' +
                 '<thead>' +
                     '<tr>' +
                         '<th>Name</th>' +
@@ -262,8 +268,8 @@ var SettingsIVY = {
                 '<tr>' +
                     '<td>' +
                         '<input type="radio" name="brigade" value="' + brigade.id + '"' + 
-                            (this.selectedBrigadeId === brigade.id ? ' checked' : '') + '>' +
-                        '<span>' + brigade.name + '</span>' +
+                            (this.selectedBrigadeId === brigade.id ? ' checked' : '') + ' id="brigade_' + brigade.id + '">' +
+                        '<label title="' + brigade.name + '" for="brigade_' + brigade.id + '" class="entity-name">' + brigade.name + '</label>' +
                     '</td>' +
                     '<td>' + this.renderActionsMenu('Brigade', brigade) + '</td>' +
                 '</tr>';
@@ -305,7 +311,7 @@ var SettingsIVY = {
         if (!selectedBrigade || !selectedBrigade.units) return '';
 
         var html = 
-            '<table class="table">' +
+            '<table class="table" id="settingsIVYUnitsList">' +
                 '<thead>' +
                     '<tr>' +
                         '<th>Name</th>' +
@@ -320,8 +326,8 @@ var SettingsIVY = {
                 '<tr>' +
                     '<td>' +
                         '<input type="radio" name="unit" value="' + unit.id + '"' + 
-                            (this.selectedUnitId === unit.id ? ' checked' : '') + '>' +
-                        '<span>' + unit.name + '</span>' +
+                            (this.selectedUnitId === unit.id ? ' checked' : '') + ' id="unit_' + unit.id + '">' +
+                        '<label title="' + unit.name + '" for="unit_' + unit.id + '" class="entity-name">' + unit.name + '</label>' +
                     '</td>' +
                     '<td>' + this.renderActionsMenu('Unit', unit) + '</td>' +
                 '</tr>';
@@ -332,10 +338,22 @@ var SettingsIVY = {
     },
 
     renderActionsMenu: function(type, value) {
-        if (typeof ActionsMenu !== 'undefined') {
-            return ActionsMenu.init(type, value);
+        console.log('Rendering actions menu for:', type, value);
+        
+        // Create a copy of the value with a type-specific id to ensure unique menu IDs
+        var valueWithUniqueId = Object.assign({}, value);
+        
+        // Set a type-specific ID to ensure uniqueness across different entity types
+        // This prevents conflicts between different entity types with the same ID
+        if (!valueWithUniqueId.originalId) {
+            valueWithUniqueId.originalId = valueWithUniqueId.id;
+            valueWithUniqueId.id = type.toLowerCase() + '_' + valueWithUniqueId.id;
         }
-        return '<div class="actions-menu" data-type="' + type + '" data-value=\'' + JSON.stringify(value) + '\'></div>';
+        
+        if (typeof ActionsMenu !== 'undefined' && ActionsMenu !== null) {
+            return ActionsMenu.init(type, valueWithUniqueId);
+        }
+        return '<div class="actions-menu" data-type="' + type + '" data-value=\'' + JSON.stringify(valueWithUniqueId) + '\'></div>';
     },
 
     setupEventListeners: function() {
@@ -400,6 +418,14 @@ var SettingsIVY = {
                     return;
                 }
 
+                // Set loading state
+                self.isSubmittingCorp = true;
+                var addCorpBtn = self.container.querySelector('#addCorpBtn');
+                if (addCorpBtn) {
+                    addCorpBtn.disabled = true;
+                    addCorpBtn.innerHTML = '<span class="spinner-sm"></span> Adding...';
+                }
+
                 self.addCorp({ name: name });
             });
         }
@@ -413,6 +439,14 @@ var SettingsIVY = {
                 if (!name) {
                     self.showError('divError', 'Division name is required');
                     return;
+                }
+
+                // Set loading state
+                self.isSubmittingDiv = true;
+                var addDivBtn = self.container.querySelector('#addDivBtn');
+                if (addDivBtn) {
+                    addDivBtn.disabled = true;
+                    addDivBtn.innerHTML = '<span class="spinner-sm"></span> Adding...';
                 }
 
                 self.addDivision({ name: name, corp_id: self.selectedCorpId });
@@ -430,6 +464,14 @@ var SettingsIVY = {
                     return;
                 }
 
+                // Set loading state
+                self.isSubmittingBrig = true;
+                var addBrigBtn = self.container.querySelector('#addBrigBtn');
+                if (addBrigBtn) {
+                    addBrigBtn.disabled = true;
+                    addBrigBtn.innerHTML = '<span class="spinner-sm"></span> Adding...';
+                }
+
                 self.addBrigade({ name: name, div_id: self.selectedDivId });
             });
         }
@@ -445,6 +487,14 @@ var SettingsIVY = {
                     return;
                 }
 
+                // Set loading state
+                self.isSubmittingUnit = true;
+                var addUnitBtn = self.container.querySelector('#addUnitBtn');
+                if (addUnitBtn) {
+                    addUnitBtn.disabled = true;
+                    addUnitBtn.innerHTML = '<span class="spinner-sm"></span> Adding...';
+                }
+
                 self.addUnit({ name: name, brigade_id: self.selectedBrigadeId });
             });
         }
@@ -453,56 +503,104 @@ var SettingsIVY = {
     addCorp: function(data) {
         var self = this; // Store 'this' context for use in callbacks
         console.log('Adding corps with data:', data);
-        ApiClient.createCorp({ requestBody: data })
+        ApiClient.createCorp(data)
             .then(function() {
-                Utils.showMessage('success', 'Corps added successfully');
+                Utils.onSuccess('add', 'Corps');
+                // Reset the form input
+                var corpInput = self.container.querySelector('#add_corps');
+                if (corpInput) corpInput.value = '';
                 self.loadCorps();
             })
             .catch(function(error) {
                 console.error('Error adding corps:', error);
-                Utils.showMessage('error', 'Failed to add corps');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create corps'));
+            })
+            .finally(function() {
+                // Reset loading state
+                self.isSubmittingCorp = false;
+                var addCorpBtn = self.container.querySelector('#addCorpBtn');
+                if (addCorpBtn) {
+                    addCorpBtn.disabled = false;
+                    addCorpBtn.innerHTML = '+ Add';
+                }
             });
     },
 
     addDivision: function(data) {
         var self = this; // Store 'this' context for use in callbacks
         console.log('Adding division with data:', data);
-        ApiClient.createDiv({ requestBody: data })
+        ApiClient.createDiv(data)
             .then(function() {
-                Utils.showMessage('success', 'Division added successfully');
+                Utils.onSuccess('add', 'Division');
+                // Reset the form input
+                var divInput = self.container.querySelector('#add_div');
+                if (divInput) divInput.value = '';
                 self.loadCorps();
             })
             .catch(function(error) {
                 console.error('Error adding division:', error);
-                Utils.showMessage('error', 'Failed to add division');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create division'));
+            })
+            .finally(function() {
+                // Reset loading state
+                self.isSubmittingDiv = false;
+                var addDivBtn = self.container.querySelector('#addDivBtn');
+                if (addDivBtn) {
+                    addDivBtn.disabled = false;
+                    addDivBtn.innerHTML = '+ Add';
+                }
             });
     },
 
     addBrigade: function(data) {
         var self = this; // Store 'this' context for use in callbacks
         console.log('Adding brigade with data:', data);
-        ApiClient.createBrig({ requestBody: data })
+        ApiClient.createBrig(data)
             .then(function() {
-                Utils.showMessage('success', 'Brigade added successfully');
+                Utils.onSuccess('add', 'Brigade');
+                // Reset the form input
+                var brigInput = self.container.querySelector('#add_brigade');
+                if (brigInput) brigInput.value = '';
                 self.loadCorps();
             })
             .catch(function(error) {
                 console.error('Error adding brigade:', error);
-                Utils.showMessage('error', 'Failed to add brigade');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create brigade'));
+            })
+            .finally(function() {
+                // Reset loading state
+                self.isSubmittingBrig = false;
+                var addBrigBtn = self.container.querySelector('#addBrigBtn');
+                if (addBrigBtn) {
+                    addBrigBtn.disabled = false;
+                    addBrigBtn.innerHTML = '+ Add';
+                }
             });
     },
 
     addUnit: function(data) {
         var self = this; // Store 'this' context for use in callbacks
         console.log('Adding unit with data:', data);
-        ApiClient.createUnit({ requestBody: data })
+        ApiClient.createUnit(data)
             .then(function() {
-                Utils.showMessage('success', 'Unit added successfully');
+                Utils.onSuccess('add', 'Unit');
+                // Reset the form input
+                var unitInput = self.container.querySelector('#add_unit');
+                if (unitInput) unitInput.value = '';
                 self.loadCorps();
             })
             .catch(function(error) {
                 console.error('Error adding unit:', error);
-                Utils.showMessage('error', 'Failed to add unit');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create unit'));
+            })
+            .finally(function() {
+                // Reset loading state
+                self.isSubmittingUnit = false;
+                var addUnitBtn = self.container.querySelector('#addUnitBtn');
+                if (addUnitBtn) {
+                    addUnitBtn.disabled = false;
+                    addUnitBtn.innerHTML = '+ Add';
+                }
             });
     },
 

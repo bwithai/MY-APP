@@ -173,10 +173,10 @@ var AddIban = {
         Utils.showLoading(true);
         
         // Call API to create IBAN
-        ApiClient.createIban(ibanData)
+        ApiClient.createIBAN(ibanData)
             .then(function(response) {
                 // Show success message
-                Utils.showMessage('success', 'IBAN created successfully!');
+                Utils.onSuccess('add', 'IBAN');
                 
                 // Reset form and close modal
                 var ibanForm = document.getElementById('ibanForm');
@@ -191,8 +191,9 @@ var AddIban = {
                 }
             }.bind(this))
             .catch(function(error) {
+                console.error('Failed to create IBAN:', error);
                 // Show error message
-                Utils.showMessage('error', 'Failed to create IBAN: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error to create iban'));
             })
             .finally(function() {
                 // Hide loading state

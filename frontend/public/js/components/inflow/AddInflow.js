@@ -20,7 +20,7 @@ var AddInflow = {
 
     render: function() {
         var modalHtml = '<div class="modal" id="addInflowModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Add Inflow</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -74,8 +74,9 @@ var AddInflow = {
                             Utils.createLabel('payment_method', 'Payment Method', true) +
                             '<select id="payment_method" name="payment_method" required>' +
                                 '<option value="">Select payment method</option>' +
-                                '<option value="Bank Transfer">Bank Transfer</option>' +
-                                '<option value="Cash Transfer">Cash Transfer</option>' +
+                                '<option value="bank">Bank Transfer</option>' +
+                                '<option value="cash">Cash Transfer</option>' +
+                                '<option value="prev_held">Previously Held</option>' +
                             '</select>' +
                         '</div>' +
 
@@ -141,11 +142,25 @@ var AddInflow = {
         if (paymentMethodSelect) {
             paymentMethodSelect.addEventListener('change', function() {
                 var ibanContainer = document.getElementById('ibanContainer');
-                if (this.value === 'Bank Transfer') {
+                var dateInput = document.getElementById('date');
+                
+                // Handle IBAN container visibility
+                if (this.value === 'bank') {
                     ibanContainer.style.display = 'block';
                     Utils.loadIBANs();
                 } else {
                     ibanContainer.style.display = 'none';
+                }
+                
+                // Handle date input behavior
+                if (this.value === 'prev_held') {
+                    // Allow manual date entry for previously held funds
+                    dateInput.removeAttribute('readonly');
+                } else {
+                    // For other payment methods, keep date readonly and use datepicker
+                    dateInput.setAttribute('readonly', true);
+                    Utils.setCurrentDate(dateInput);
+                    Utils.initDatePicker(dateInput);
                 }
             });
         }
@@ -163,6 +178,12 @@ var AddInflow = {
             Utils.setCurrentDate(dateInput);
             Utils.initDatePicker(dateInput);
         }
+        
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('fund_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
+        }
     },
 
     handleSubmit: function(formData) {
@@ -174,6 +195,9 @@ var AddInflow = {
         }
         submitButton.disabled = true;
 
+        // Clear any existing errors
+        Utils.clearFieldErrors(document.getElementById('addInflowForm'));
+
         var data = {};
         var entries = formData.entries();
         var entry;
@@ -184,10 +208,25 @@ var AddInflow = {
         var amountStr = data.amount.toString();
         var amount = Number(parseFloat(amountStr).toFixed(2));
 
+        // Validate amount
         if (amount <= 0) {
-            alert('Amount must be greater than 0');
             submitButton.disabled = false;
-            return;
+            return Utils.showFieldError(document.getElementById('amount'), 'Amount must be greater than 0');
+        }
+
+        // Validate payment method
+        var paymentMethod = data.payment_method;
+        if (!paymentMethod || paymentMethod === '') {
+            submitButton.disabled = false;
+            return Utils.showFieldError(document.getElementById('payment_method'), 'Please select a payment method');
+        }
+
+        // Validate IBAN if payment method is bank
+        if (paymentMethod === 'bank') {
+            if (!data.iban_id || data.iban_id === '') {
+                submitButton.disabled = false;
+                return Utils.showFieldError(document.getElementById('iban'), 'Please select an IBAN for bank transfers');
+            }
         }
 
         var formattedData = {
@@ -195,18 +234,20 @@ var AddInflow = {
             amount: amount,
             fund_details: data.fund_details,
             received_from: data.received_from,
-            payment_method: data.payment_method,
+            payment_method: paymentMethod,
             date: data.date
         };
 
         if (data.subhead_id) {
             formattedData.subhead_id = Number(data.subhead_id);
         }
-        if (data.payment_method === 'Bank Transfer') {
+        
+        // Only add IBAN if payment method is explicitly 'bank'
+        if (paymentMethod === 'bank' && data.iban_id) {
             formattedData.iban_id = Number(data.iban_id);
         }
 
-        console.log('Submitting formatted data:', formattedData);
+        console.log('Submitting inflow data:', formattedData);
 
         ApiClient.createInflow(formattedData)
             .then(function(response) {
@@ -219,7 +260,7 @@ var AddInflow = {
             })
             .catch(function(error) {
                 console.error('Failed to create inflow:', error);
-                Utils.onSuccess('error', 'Inflow');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create inflow'));
             })
             .finally(function() {
                 submitButton.disabled = false;

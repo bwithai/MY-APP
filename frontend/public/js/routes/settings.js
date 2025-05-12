@@ -9,7 +9,6 @@ var SettingsApp = {
         // Define tabs configuration
         this.tabsConfig = [
             { title: "My profile", component: "UserInformation" },
-            { title: "Password", component: "ChangePassword" },
             { title: "Heads Management", component: "HeadsManagement" },
             { title: "Settings", component: "SettingsIVY" },
             { title: "Appointment", component: "UserAppoint" }
@@ -18,7 +17,7 @@ var SettingsApp = {
         // Filter tabs based on user permissions
         this.finalTabs = this.currentUser.is_superuser 
             ? this.tabsConfig 
-            : this.tabsConfig.slice(0, 3);
+            : this.tabsConfig.slice(0, 2);
         
         // Show settings page with first tab active
         this.showSettingsPage();
@@ -36,6 +35,9 @@ var SettingsApp = {
             console.error('Content element not found');
             return;
         }
+        
+        // Add styles for the grid layout
+        this.addGridStyles();
         
         // Create the settings page structure
         var html = `
@@ -62,6 +64,33 @@ var SettingsApp = {
         
         // Setup event listeners
         this.setupEventListeners();
+    },
+    
+    addGridStyles: function() {
+        // Check if styles already exist
+        if (document.getElementById('settings-grid-styles')) {
+            return;
+        }
+        
+        // Create and add custom styles for grid layout
+        var styleElement = document.createElement('style');
+        styleElement.id = 'settings-grid-styles';
+        styleElement.textContent = `
+            .settings-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-gap: 20px;
+                margin-bottom: 20px;
+            }
+            
+            @media (max-width: 768px) {
+                .settings-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        `;
+        
+        document.head.appendChild(styleElement);
     },
     
     renderTabsList: function() {
@@ -95,21 +124,35 @@ var SettingsApp = {
         // Render the appropriate content based on the selected tab
         switch(componentName) {
             case 'UserInformation':
-                // Use the UserInformation component
+                // Create a grid container for UserInformation and ChangePassword
+                var gridContainer = document.createElement('div');
+                gridContainer.className = 'settings-grid';
+                contentContainer.appendChild(gridContainer);
+                
+                // Create left container for UserInformation
+                var leftContainer = document.createElement('div');
+                leftContainer.className = 'user-info-container';
+                gridContainer.appendChild(leftContainer);
+                
+                // Create right container for ChangePassword
+                var rightContainer = document.createElement('div');
+                rightContainer.className = 'password-container';
+                gridContainer.appendChild(rightContainer);
+                
+                // Initialize UserInformation in left container
                 if (typeof UserInformation !== 'undefined') {
-                    UserInformation.init(contentContainer, this.currentUser);
+                    UserInformation.init(leftContainer, this.currentUser);
                 } else {
                     console.error('UserInformation component not found');
-                    contentContainer.innerHTML = '<div class="settings-panel"><p>User Information component not loaded.</p></div>';
+                    leftContainer.innerHTML = '<div class="settings-panel"><p>User Information component not loaded.</p></div>';
                 }
-                break;
-            case 'ChangePassword':
-                // Use the ChangePassword component
+                
+                // Initialize ChangePassword in right container
                 if (typeof ChangePassword !== 'undefined') {
-                    ChangePassword.init(contentContainer);
+                    ChangePassword.init(rightContainer);
                 } else {
                     console.error('ChangePassword component not found');
-                    contentContainer.innerHTML = '<div class="settings-panel"><p>Change Password component not loaded.</p></div>';
+                    rightContainer.innerHTML = '<div class="settings-panel"><p>Change Password component not loaded.</p></div>';
                 }
                 break;
             case 'HeadsManagement':
@@ -183,109 +226,44 @@ var SettingsApp = {
     },
     
     renderUserAppoint: function(container) {
-        container.innerHTML = `
-            <div class="settings-panel">
-                <h2>Appointment Management</h2>
-                <div class="appointment-controls">
-                    <button id="scheduleAppointment" class="btn btn-secondary">Schedule New Appointment</button>
-                    <div class="date-filter">
-                        <label>Filter by Date:</label>
-                        <input type="date" id="appointmentDateFilter" class="form-control">
-                    </div>
-                </div>
-                
-                <div class="appointments-list" id="appointmentsList">
-                    <div class="loading-indicator">Loading appointments...</div>
-                </div>
-            </div>
-        `;
-        
-        // Setup event listeners
-        var scheduleBtn = document.getElementById('scheduleAppointment');
-        if (scheduleBtn) {
-            scheduleBtn.addEventListener('click', this.showScheduleAppointmentModal.bind(this));
+        // Initialize the AppointmentList component if it exists
+        if (typeof AppointmentList !== 'undefined') {
+            AppointmentList.init(container);
+        } else {
+            // Try to load the AppointmentList component dynamically
+            this.loadAppointmentComponents(container);
         }
-        
-        var dateFilter = document.getElementById('appointmentDateFilter');
-        if (dateFilter) {
-            dateFilter.addEventListener('change', this.handleAppointmentDateFilter.bind(this));
-        }
-        
-        // Load appointments
-        this.loadAppointments();
     },
     
-    loadAppointments: function() {
-        var appointmentsContainer = document.getElementById('appointmentsList');
-        if (!appointmentsContainer) return;
+    loadAppointmentComponents: function(container) {
+        container.innerHTML = '<div class="loading-indicator">Loading appointment management...</div>';
         
-        appointmentsContainer.innerHTML = '<div class="loading-indicator">Loading appointments...</div>';
+        var self = this;
+        var scripts = [
+            '/js/components/Appointment/AddAppt.js',
+            '/js/components/Appointment/AppointmentList.js'
+        ];
         
-        // Simulate API call to load appointments
-        setTimeout(function() {
-            var mockAppointments = [
-                { id: 1, title: 'Budget Review', date: '2023-11-25', time: '10:00 AM', with: 'Finance Team' },
-                { id: 2, title: 'Investment Planning', date: '2023-11-30', time: '2:00 PM', with: 'Investment Advisor' },
-                { id: 3, title: 'Tax Consultation', date: '2023-12-05', time: '11:30 AM', with: 'Tax Consultant' }
-            ];
-            
-            this.renderAppointmentsList(mockAppointments, appointmentsContainer);
-        }.bind(this), 500);
-    },
-    
-    renderAppointmentsList: function(appointments, container) {
-        if (appointments.length === 0) {
-            container.innerHTML = '<div class="empty-state">No appointments found. Schedule one to get started.</div>';
-            return;
-        }
+        var loadedCount = 0;
         
-        var html = '<div class="appointments-table">';
-        html += `
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>With</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        appointments.forEach(function(appointment) {
-            html += `
-                <tr>
-                    <td>${appointment.title}</td>
-                    <td>${appointment.date}</td>
-                    <td>${appointment.time}</td>
-                    <td>${appointment.with}</td>
-                    <td>
-                        <button class="btn-icon edit-appointment" data-id="${appointment.id}"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete-appointment" data-id="${appointment.id}"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
+        scripts.forEach(function(src) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = function() {
+                loadedCount++;
+                if (loadedCount === scripts.length) {
+                    if (typeof AppointmentList !== 'undefined') {
+                        AppointmentList.init(container);
+                    } else {
+                        container.innerHTML = '<div class="error-message">Failed to load appointment components.</div>';
+                    }
+                }
+            };
+            script.onerror = function() {
+                container.innerHTML = '<div class="error-message">Failed to load appointment components.</div>';
+            };
+            document.body.appendChild(script);
         });
-        
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
-        
-        // Attach event listeners to buttons
-        var editButtons = container.querySelectorAll('.edit-appointment');
-        editButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.handleEditAppointment(btn.dataset.id);
-            }.bind(this));
-        }.bind(this));
-        
-        var deleteButtons = container.querySelectorAll('.delete-appointment');
-        deleteButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.handleDeleteAppointment(btn.dataset.id);
-            }.bind(this));
-        }.bind(this));
     },
     
     setupEventListeners: function() {

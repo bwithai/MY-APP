@@ -25,14 +25,14 @@ def parse_search_query(search: str, is_superuser: bool) -> dict:
         "payment_method": None,
         "date": None,
         "amount_range": None,
-        "head": None,
-        "subhead": None,
+        "h": None,
+        "sh": None,
         "from": None,
         "general": [],
     }
 
     # Define recognized prefixes
-    known_prefixes = ["head:", "subhead:", "from:"]
+    known_prefixes = ["h:", "sh:", "from:"]
 
     words = search.split()
     i = 0
@@ -122,10 +122,10 @@ def read_inflows(
             min_amount, max_amount = search_filters["amount_range"]
             conditions.append(CommandFunds.amount.between(min_amount, max_amount))
 
-        if search_filters['head']:
-            conditions.append(CommandFunds.head.has(Heads.heads.ilike(f"%{search_filters['head']}%")))
-        if search_filters['subhead']:
-            conditions.append(CommandFunds.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['subhead']}%")))
+        if search_filters['h']:
+            conditions.append(CommandFunds.head.has(Heads.heads.ilike(f"%{search_filters['h']}%")))
+        if search_filters['sh']:
+            conditions.append(CommandFunds.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['sh']}%")))
 
         if search_filters["general"]:
             general_conditions = []
@@ -205,7 +205,7 @@ def create_inflow(
     # Update user balance based on payment method
     user_balance = session.query(Balances).filter_by(user_id=current_user.id).first()
     if user_balance:
-        balance_field = 'cash_in_hand' if payment_method == "Cash Transfer" else 'cash_in_bank'
+        balance_field = 'cash_in_hand' if payment_method == "cash" else 'cash_in_bank'
         old_balance = getattr(user_balance, balance_field, Decimal('0.00'))
         new_balance = old_balance + amount
         setattr(user_balance, balance_field, new_balance)
@@ -249,6 +249,12 @@ def update_inflow(
     item = session.get(CommandFunds, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+
+    if current_user.is_superuser and item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Administrators cannot modify user inflow records. This restriction is in place to maintain data integrity."
+        )
 
     if not current_user.is_superuser and (item.user_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")

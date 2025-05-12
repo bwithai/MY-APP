@@ -30,7 +30,7 @@ docker-compose exec -it <image_name> sh
 
 ```bash
 sudo docker compose down -v  # Remove volumes (clears database)
-sudo docker compose up --build
+sudo docker compose up -d --build  
 docker save -o my_image.tar my_image:latest
 docker load -i my_image.tar
 # ________________________________

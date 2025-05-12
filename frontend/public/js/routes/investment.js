@@ -8,11 +8,29 @@ var InvestmentApp = {
             this.currentPage = parseInt(sessionStorage.getItem('investmentCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'investment'; // For use with common pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
-        this.storageKey = 'investment'; // For use with common pagination functions
+        
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'name',          // Column 0: Name
+            'asset_details', // Column 1: Details
+            'amount',        // Column 2: Amount
+            'type',          // Column 3: Type
+            'payment_method',// Column 4: Payment Method
+            'iban',          // Column 5: IBAN
+            'date',          // Column 6: Entry Date
+            'user',          // Column 7: User
+            null             // Column 8: Actions (not sortable)
+        ];
         
         // Mark that we're in investment page
         sessionStorage.setItem('isInvestment', 'true');
@@ -61,8 +79,19 @@ var InvestmentApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box deleted-box"></span>' +
+                    '<span class="legend-text">Deleted</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="investmentTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>Name</th>' +
@@ -71,9 +100,9 @@ var InvestmentApp = {
                             '<th>Type</th>' +
                             '<th>Payment Method</th>' +
                             '<th>IBAN</th>' +
-                            '<th>Date of Entry</th>' +
+                            '<th>Entry Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="investmentTableBody">' +
@@ -84,15 +113,47 @@ var InvestmentApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Add styles for the status legend
+        var style = document.createElement('style');
+        style.textContent = `
+            .status-legend {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 15px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            .color-box {
+                width: 15px;
+                height: 15px;
+                display: inline-block;
+                margin-right: 5px;
+                border-radius: 3px;
+            }
+            .deleted-box {
+                background-color: #ffcccc;
+            }
+            .active-box {
+                background-color: #ffffff;
+                border: 1px solid #dee2e6;
+            }
+            .deleted-row {
+                background-color: #ffcccc;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize table sorting
+        Utils.initTableSorting('investmentTable', this, this.loadInvestmentData.bind(this));
         
         // Load investment data
         this.loadInvestmentData();
@@ -144,8 +205,14 @@ var InvestmentApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderInvestmentTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Store the data for sorting
+                self.investmentData = response.data;
+                
+                // Render the sorted data
+                self.renderInvestmentTable(self.investmentData);
+                
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -175,15 +242,22 @@ var InvestmentApp = {
             return;
         }
         
+        // Sort the data if a sort column is selected
+        var sortedData = investments;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(investments, columnName, this.sortDirection);
+        }
+        
         var self = this;
-        investments.forEach(function(investment) {
+        sortedData.forEach(function(investment) {
             var row = document.createElement('tr');
             if (investment.is_deleted) {
                 row.classList.add('deleted-row');
             }
             
             row.innerHTML = 
-                '<td class="truncate-text" title="' + (investment.name || '') + '">' + (investment.name || 'N/A') + '</td>' +
+                '<td title="' + (investment.name || '') + '">' + (investment.name || 'N/A') + '</td>' +
                 '<td class="long-text ' + (investment.asset_details ? '' : 'text-muted') + '">' +
                     '<div class="truncate-text" title="' + (investment.asset_details || '') + '">' +
                         (investment.asset_details || 'N/A') +
@@ -192,8 +266,12 @@ var InvestmentApp = {
                 '<td title="' + (investment.amount || 0) + '">' + self.formatNumber(investment.amount) + '</td>' +
                 '<td>' + (investment.type || 'N/A') + '</td>' +
                 '<td>' + (investment.payment_method || 'N/A') + '</td>' +
-                '<td class="' + (investment.iban ? '' : 'text-muted') + '">' + (investment.iban || 'N/A') + '</td>' +
-                '<td>' + self.formatDate(investment.date, true) + '</td>' +
+                '<td class="long-text ' + (investment.iban ? '' : 'text-muted') + '">' +
+                    '<div class="truncate-text" title="' + (investment.iban || '') + '">' +
+                        (investment.iban ? ('••• ' + investment.iban.slice(-4)) : 'N/A') +
+                    '</div>' +
+                '</td>' +
+                '<td>' + self.formatDate(investment.date) + '</td>' +
                 '<td>' + (investment.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Investment', investment, {
                     delete: !investment.is_deleted,
@@ -223,11 +301,11 @@ var InvestmentApp = {
             };
         }
         
-        // Use common pagination initialization with compatibility fixes
-        Utils.initPagination(this, function(searchTerm) {
-            var searchInput = document.getElementById('searchInput');
-            self.loadInvestmentData(searchTerm || (searchInput ? searchInput.value : ''));
-        });
+        // Search functionality
+        var searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.oninput = this.searchDebounced();
+        }
     },
 
     searchDebounced: function() {

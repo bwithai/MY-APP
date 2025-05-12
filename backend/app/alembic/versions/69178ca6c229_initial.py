@@ -1,8 +1,8 @@
-"""Initial migration
+"""initial
 
-Revision ID: 237104ab5d52
+Revision ID: 69178ca6c229
 Revises: 
-Create Date: 2025-02-11 11:47:40.669486
+Create Date: 2025-05-12 12:34:47.029129
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision = '237104ab5d52'
+revision = '69178ca6c229'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -97,7 +97,7 @@ def upgrade():
     op.create_table('activity_log',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('log_name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('description', sa.TEXT(), nullable=True),
     sa.Column('subject_type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('event', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('subject_id', sa.Integer(), nullable=True),
@@ -117,6 +117,7 @@ def upgrade():
     op.create_table('assets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('subhead', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('purchase_date', sa.DateTime(), nullable=True),
     sa.Column('model', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
@@ -124,7 +125,7 @@ def upgrade():
     sa.Column('purchased_from', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('brand', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('serial_number', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('cost', sa.Numeric(), nullable=True),
+    sa.Column('cost', sa.DECIMAL(precision=16, scale=2), nullable=True),
     sa.Column('site_id', sa.Integer(), nullable=True),
     sa.Column('location_id', sa.Integer(), nullable=True),
     sa.Column('category_id', sa.Integer(), nullable=True),
@@ -151,35 +152,19 @@ def upgrade():
     sa.Column('gift_to', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('disposed_reason', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('disposed_date', sa.DateTime(), nullable=True),
-    sa.Column('head_detaills', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('head_details', sa.TEXT(), nullable=True),
+    sa.Column('quantity', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('balances',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('cash_in_hand', sa.Numeric(), nullable=True),
-    sa.Column('cash_in_bank', sa.Numeric(), nullable=True),
-    sa.Column('balance', sa.Numeric(), nullable=True),
+    sa.Column('cash_in_hand', sa.DECIMAL(precision=16, scale=2), nullable=True),
+    sa.Column('cash_in_bank', sa.DECIMAL(precision=16, scale=2), nullable=True),
+    sa.Column('balance', sa.DECIMAL(precision=16, scale=2), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('fixed_assets',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('asset_details', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('amount', sa.Numeric(), nullable=True),
-    sa.Column('payment_method', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('iban_id', sa.Integer(), nullable=True),
-    sa.Column('date', sa.DateTime(), nullable=True),
-    sa.Column('type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('is_deleted', sa.Boolean(), nullable=False),
-    sa.Column('deleted_at', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -204,18 +189,45 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('investment_balance_histories',
+    op.create_table('fixed_assets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('investment_id', sa.Integer(), nullable=True),
-    sa.Column('first_balance', sa.Numeric(), nullable=False),
-    sa.Column('last_balance', sa.Numeric(), nullable=False),
-    sa.Column('date', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('status', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('asset_details', sa.TEXT(), nullable=True),
+    sa.Column('amount', sa.DECIMAL(precision=16, scale=2), nullable=True),
+    sa.Column('payment_method', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('iban_id', sa.Integer(), nullable=True),
+    sa.Column('date', sa.DateTime(), nullable=True),
+    sa.Column('type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('is_deleted', sa.Boolean(), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['investment_id'], ['fixed_assets.id'], ),
+    sa.ForeignKeyConstraint(['iban_id'], ['multi_ibn_user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('liabilities',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('subhead', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('fund_details', sa.TEXT(), nullable=True),
+    sa.Column('amount', sa.DECIMAL(precision=16, scale=2), nullable=True),
+    sa.Column('payment_method', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('date', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('iban_id', sa.Integer(), nullable=True),
+    sa.Column('payment_to', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('schedule', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('is_deleted', sa.Boolean(), nullable=False),
+    sa.Column('is_new_entry_created', sa.Boolean(), nullable=True),
+    sa.Column('is_paid', sa.Boolean(), nullable=False),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('remaining_balance', sa.Numeric(), nullable=False),
+    sa.ForeignKeyConstraint(['iban_id'], ['multi_ibn_user.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -233,8 +245,8 @@ def upgrade():
     )
     op.create_table('command_funds',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('fund_details', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('amount', sa.Numeric(), nullable=True),
+    sa.Column('fund_details', sa.TEXT(), nullable=True),
+    sa.Column('amount', sa.DECIMAL(precision=16, scale=2), nullable=True),
     sa.Column('payment_method', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('iban_id', sa.Integer(), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=True),
@@ -259,7 +271,7 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('expense_id', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('cost', sa.Numeric(), nullable=True),
+    sa.Column('cost', sa.DECIMAL(precision=16, scale=2), nullable=True),
     sa.Column('payment_type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('payment_to', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('expense_date', sa.DateTime(), nullable=True),
@@ -267,47 +279,47 @@ def upgrade():
     sa.Column('reciept', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('site_id', sa.Integer(), nullable=True),
     sa.Column('category_id', sa.Integer(), nullable=True),
+    sa.Column('iban_id', sa.Integer(), nullable=True),
     sa.Column('corps_id', sa.Integer(), nullable=True),
     sa.Column('div_id', sa.Integer(), nullable=True),
     sa.Column('brigade_id', sa.Integer(), nullable=True),
     sa.Column('unit_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.Column('asset_id', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('asset_id', sa.Integer(), nullable=True),
     sa.Column('liability_id', sa.Integer(), nullable=True),
     sa.Column('fixed_asset_id', sa.Integer(), nullable=True),
     sa.Column('head_id', sa.Integer(), nullable=True),
     sa.Column('subhead_id', sa.Integer(), nullable=True),
     sa.Column('is_deleted', sa.Boolean(), nullable=False),
     sa.Column('deleted_at', sa.DateTime(), nullable=True),
-    sa.Column('head_details', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('head_details', sa.TEXT(), nullable=True),
     sa.Column('place_type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.ForeignKeyConstraint(['asset_id'], ['assets.id'], ),
+    sa.ForeignKeyConstraint(['brigade_id'], ['brigades.id'], ),
+    sa.ForeignKeyConstraint(['corps_id'], ['corps.id'], ),
+    sa.ForeignKeyConstraint(['div_id'], ['divs.id'], ),
+    sa.ForeignKeyConstraint(['fixed_asset_id'], ['fixed_assets.id'], ),
     sa.ForeignKeyConstraint(['head_id'], ['heads.id'], ),
+    sa.ForeignKeyConstraint(['iban_id'], ['multi_ibn_user.id'], ),
+    sa.ForeignKeyConstraint(['liability_id'], ['liabilities.id'], ),
     sa.ForeignKeyConstraint(['subhead_id'], ['sub_heads.id'], ),
+    sa.ForeignKeyConstraint(['unit_id'], ['units.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('liabilities',
+    op.create_table('investment_balance_histories',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('head_id', sa.Integer(), nullable=True),
-    sa.Column('subhead_id', sa.Integer(), nullable=True),
-    sa.Column('fund_details', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('amount', sa.Numeric(), nullable=True),
-    sa.Column('payment_method', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('date', sa.DateTime(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('investment_id', sa.Integer(), nullable=True),
+    sa.Column('first_balance', sa.Numeric(), nullable=False),
+    sa.Column('last_balance', sa.Numeric(), nullable=False),
+    sa.Column('date', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('status', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('description', sa.TEXT(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('payment_to', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('schedule', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('type', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('is_deleted', sa.Boolean(), nullable=False),
-    sa.Column('is_new_entry_created', sa.Boolean(), nullable=True),
-    sa.Column('is_paid', sa.Boolean(), nullable=False),
-    sa.Column('deleted_at', sa.DateTime(), nullable=True),
-    sa.Column('remaining_balance', sa.Numeric(), nullable=False),
-    sa.ForeignKeyConstraint(['head_id'], ['heads.id'], ),
-    sa.ForeignKeyConstraint(['subhead_id'], ['sub_heads.id'], ),
+    sa.ForeignKeyConstraint(['investment_id'], ['fixed_assets.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -320,11 +332,11 @@ def upgrade():
     sa.Column('payment_type', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('date', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('status', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('description', sa.TEXT(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('payment_to', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
-    sa.Column('current_amount', sa.Numeric(), nullable=True),
+    sa.Column('current_amount', sa.DECIMAL(precision=16, scale=2), nullable=True),
     sa.ForeignKeyConstraint(['liability_id'], ['liabilities.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -335,14 +347,14 @@ def upgrade():
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('liability_balances')
-    op.drop_table('liabilities')
+    op.drop_table('investment_balance_histories')
     op.drop_table('expenses')
     op.drop_table('command_funds')
     op.drop_table('sub_heads')
-    op.drop_table('investment_balance_histories')
+    op.drop_table('liabilities')
+    op.drop_table('fixed_assets')
     op.drop_table('multi_ibn_user')
     op.drop_table('heads')
-    op.drop_table('fixed_assets')
     op.drop_table('balances')
     op.drop_table('assets')
     op.drop_index(op.f('ix_activity_log_subject_type'), table_name='activity_log')

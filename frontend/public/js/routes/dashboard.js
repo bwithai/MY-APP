@@ -146,16 +146,18 @@ var DashboardApp = {
                     border-radius: 8px;
                     box-shadow: 0 10px 15px rgba(0,0,0,0.1);
                     height: 100%;
+                    display: flex;
+                    flex-direction: column;
                 }
                 
                 .all-time-btn {
                     width: 100%;
                     margin-top: 16px;
                     padding: 8px;
-                    background: linear-gradient(135deg,rgb(110, 136, 101), rgb(113, 145, 101));
+                    background: #accad1;
                     border-radius: 4px;
                     text-align: center;
-                    color: white;
+                    color: rgb(65, 49, 49);
                     cursor: pointer;
                     border: none;
                     margin-top: -5px;
@@ -164,7 +166,8 @@ var DashboardApp = {
                 }
                 
                 .all-time-btn:hover {
-                    background: rgb(61, 85, 53);
+                    background: #415540;
+                    color: rgb(245, 232, 120);
                 }
                 
                 .search-container {
@@ -215,6 +218,165 @@ var DashboardApp = {
                     font-size: 1.5rem;
                     font-weight: bold;
                     margin-bottom: 15px;
+                }
+                
+                /* Make early-chart-container and admin-or-transactions-container equal height */
+                #early-chart-container, #admin-or-transactions-container {
+                    height: 600px;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                #admin-or-transactions-container {
+                    overflow-y: auto;
+                }
+                
+                /* Ensure chart container takes full height */
+                #early-chart-container .early-chart-canvas-container {
+                    flex: 1;
+                    min-height: 330px;
+                }
+                
+                /* Make users table container take full height */
+                #users-table-container {
+                    height: calc(100% - 60px); /* Account for search input */
+                    overflow-y: auto;
+                }
+                
+                /* Transaction list styles */
+                .transactions-list {
+                    padding: 16px 0;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .transactions-title {
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    margin-bottom: 16px;
+                    flex-shrink: 0;
+                }
+                
+                .transaction-cards {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    overflow-y: auto;
+                    padding-right: 8px;
+                }
+                
+                .transaction-card {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px;
+                    border-radius: 8px;
+                    background-color: white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    margin-bottom: 12px;
+                    color: white;
+                    flex-shrink: 0;
+                }
+                
+                .transaction-icon {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    margin-right: 12px;
+                }
+                
+                .inflow-card {
+                    background-color: rgba(135, 196, 160, 1);
+                }
+                
+                .outflow-card {
+                    background-color: rgba(197, 136, 136, 1);
+                }
+                
+                .inflow-card .transaction-icon, .inflow-card .transaction-amount, .inflow-card .truncate-text, .inflow-card .transaction-date {
+                    color: rgb(245, 232, 120);
+                }
+                
+                .outflow-card .transaction-icon, .outflow-card .transaction-amount, .outflow-card .truncate-text, .outflow-card .transaction-date {
+                    color: rgb(245, 232, 120);
+                }
+                
+                .investment-card {
+                    background-color: #f1976d;
+                }
+                .investment-card .transaction-icon, .investment-card .transaction-amount, .investment-card .truncate-text, .investment-card .transaction-date {
+                    background-color: rgba(241, 151, 109, 0.2);
+                    color:rgb(65, 49, 49);
+                }
+                
+                .liability-card {
+                    background-color: #a1534d;
+                }
+                .liability-card .transaction-icon, .liability-card .transaction-amount, .liability-card .truncate-text, .liability-card .transaction-date {
+                    background-color: rgba(161, 83, 77, 0.2);
+                    color: rgb(245, 232, 120);
+                }
+                
+                .transaction-details {
+                    flex: 1;
+                }
+                
+                .transaction-description {
+                    font-weight: bold;
+                    margin-bottom: 4px;
+                }
+                
+                .transaction-date {
+                    font-size: 0.875rem;
+                }
+                
+                .transaction-amount {
+                    font-weight: bold;
+                }
+                
+                .no-transactions {
+                    text-align: center;
+                    padding: 24px;
+                    color: #718096;
+                }
+                
+                /* Custom scrollbar for better visibility */
+                .transaction-cards::-webkit-scrollbar {
+                    width: 6px;
+                }
+                
+                .transaction-cards::-webkit-scrollbar-track {
+                    background: rgba(0,0,0,0.05);
+                    border-radius: 10px;
+                }
+                
+                .transaction-cards::-webkit-scrollbar-thumb {
+                    background: rgba(0,0,0,0.2);
+                    border-radius: 10px;
+                }
+                
+                .transaction-cards::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0,0,0,0.3);
+                }
+                
+                .loading-state {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px;
+                    text-align: center;
+                    color: #718096;
+                }
+                
+                .loading-state i {
+                    font-size: 2em;
+                    margin-bottom: 10px;
+                    color: #4A90E2;
                 }
                 
                 .chart-loading {
@@ -494,11 +656,42 @@ var DashboardApp = {
         if (adminContainer) {
             // Add search input for users
             adminContainer.innerHTML = `
-                <div class="search-container">
-                    <input type="text" id="user-search-input" class="search-input" placeholder="Search users...">
+                <div class="admin-content">
+                    <div class="search-container">
+                        <input type="text" id="user-search-input" class="search-input" placeholder="Search users...">
+                    </div>
+                    <div id="users-table-container"></div>
                 </div>
-                <div id="users-table-container"></div>
             `;
+            
+            // Add container styles
+            if (!document.getElementById('admin-container-styles')) {
+                var style = document.createElement('style');
+                style.id = 'admin-container-styles';
+                style.textContent = `
+                    .admin-content {
+                        display: flex;
+                        flex-direction: column;
+                        height: 100%;
+                    }
+                    
+                    .search-container {
+                        margin-bottom: 16px;
+                        flex-shrink: 0;
+                    }
+                    
+                    #users-table-container {
+                        flex: 1;
+                        overflow-y: auto;
+                        padding-right: 5px;
+                    }
+                    
+                    #users-table-container table {
+                        width: 100%;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             
             // Initialize UsersTable component in ivy mode
             if (typeof UsersTabl !== 'undefined') {
@@ -831,30 +1024,96 @@ var DashboardApp = {
             return;
         }
         
-        // If no transactions provided, use sample transactions as in React version
-        if (!transactions || transactions.length === 0) {
-            transactions = [
-                { type: 'inflow', amount: '1,200', date: 'Dec 18, 2024', description: 'Salary' },
-                { type: 'outflow', amount: '80', date: 'Dec 14, 2024', description: 'Electricity Bill' },
-                { type: 'outflow', amount: '200', date: 'Dec 17, 2024', description: 'Grocery' },
-                { type: 'outflow', amount: '80', date: 'Dec 14, 2024', description: 'Electricity Bill' },
-                { type: 'inflow', amount: '50', date: 'Dec 15, 2024', description: 'Gift' },
-                { type: 'outflow', amount: '80', date: 'Dec 14, 2024', description: 'Electricity Bill' }
+        var self = this;
+        
+        // Show loading state first
+        transactionsContainer.innerHTML = `
+            <div class="transactions-list">
+                <h2 class="transactions-title">Recent Transactions</h2>
+                <div class="transaction-cards">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading recent transactions...</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Get transactions from the API
+        ApiClient.readTransactions({
+            userId: this.selectedUserId
+        }).then(function(response) {
+            // Process received transactions
+            var apiTransactions = Array.isArray(response) ? response : 
+                (response && response.data ? response.data : []);
+            
+            self.renderTransactionsContent(apiTransactions);
+        }).catch(function(error) {
+            console.error("Failed to load transactions:", error);
+            
+            // Use sample transactions if API call fails
+            var sampleTransactions = [
+                { type: 'inflow', amount: '1,200', date: '2025-05-06', description: 'Salary' },
+                { type: 'investment', amount: '80', date: '2025-05-02', description: 'Stock Purchase' },
+                { type: 'outflow', amount: '80', date: '2025-05-01', description: 'Electricity Bill' },
+                { type: 'outflow', amount: '200', date: '2025-04-28', description: 'Grocery' },
+                { type: 'investment', amount: '80', date: '2025-04-25', description: 'Treasury Bonds' },
+                { type: 'outflow', amount: '80', date: '2025-04-22', description: 'Internet Bill' },
+                { type: 'liability', amount: '50', date: '2025-04-20', description: 'Loan Payment' }
             ];
+            
+            self.renderTransactionsContent(sampleTransactions);
+        });
+    },
+    
+    // Helper method to render transaction content from API or sample data
+    renderTransactionsContent: function(transactions) {
+        var transactionsContainer = document.getElementById('admin-or-transactions-container');
+        if (!transactionsContainer) {
+            return;
         }
         
         var html = '<div class="transactions-list">' +
-            '<h2 class="transactions-title">Recent Transactions</h2>';
+            '<h2 class="transactions-title">Recent Transactions</h2>' +
+            '<div class="transaction-cards">';
         
-        if (transactions.length === 0) {
+        if (!transactions || transactions.length === 0) {
             html += '<p class="no-transactions">No recent transactions found.</p>';
         } else {
-            html += '<div class="transaction-cards">';
-            
+            var self = this;
             transactions.forEach(function(transaction) {
-                var isInflow = transaction.type === 'inflow';
-                var cardClass = isInflow ? 'inflow-card' : 'outflow-card';
-                var icon = isInflow ? 'fa-arrow-down' : 'fa-arrow-up';
+                var cardClass, icon, prefix;
+                
+                // Determine the card class, icon and prefix based on transaction type
+                switch(transaction.type) {
+                    case 'inflow':
+                        cardClass = 'inflow-card';
+                        icon = 'fa-arrow-down';
+                        prefix = '+';
+                        break;
+                    case 'outflow':
+                        cardClass = 'outflow-card';
+                        icon = 'fa-arrow-up';
+                        prefix = '-';
+                        break;
+                    case 'investment':
+                        cardClass = 'investment-card';
+                        icon = 'fas fa-hand-holding-usd';
+                        prefix = '-';
+                        break;
+                    case 'liability':
+                        cardClass = 'liability-card';
+                        icon = 'fas fa-minus-circle';
+                        prefix = '-';
+                        break;
+                    default:
+                        cardClass = 'outflow-card';
+                        icon = 'fa-arrow-up';
+                        prefix = '-';
+                }
+                
+                // Format date from YYYY-MM-DD to more readable format
+                var formattedDate = Utils.formatDate(transaction.date);
                 
                 html += `
                     <div class="transaction-card ${cardClass}">
@@ -862,123 +1121,23 @@ var DashboardApp = {
                             <i class="fas ${icon}"></i>
                         </div>
                         <div class="transaction-details">
-                            <div class="transaction-description">${transaction.description}</div>
-                            <div class="transaction-date">${transaction.date}</div>
+                            <div class='long-text' (${transaction.description} ? '' : 'text-muted')}>
+                                <div class="truncate-text" title="${transaction.description || ''}">
+                                    ${transaction.description ? transaction.description : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="transaction-date">${formattedDate}</div>
                         </div>
-                        <div class="transaction-amount" style="color: white;">${isInflow ? '+' : '-'} ₨ ${transaction.amount}</div>
+                        <div class="transaction-amount">${prefix} ₨ ${transaction.amount}</div>
                     </div>
                 `;
             });
-            
-            html += '</div>';
         }
         
-        html += '</div>';
+        html += '</div></div>';
         
-        // Set the HTML and add styles
+        // Set the HTML
         transactionsContainer.innerHTML = html;
-        
-        // Add transaction list styles if they don't exist
-        if (!document.getElementById('transaction-list-styles')) {
-            var style = document.createElement('style');
-            style.id = 'transaction-list-styles';
-            style.textContent = `
-                .transactions-list {
-                    padding: 16px 0;
-                }
-                
-                .transactions-title {
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    margin-bottom: 16px;
-                }
-                
-                .transaction-cards {
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .transaction-card {
-                    display: flex;
-                    align-items: center;
-                    padding: 12px;
-                    border-radius: 8px;
-                    background-color: white;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    margin-bottom: 12px;
-                    color: white;
-                }
-                
-                .transaction-icon {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    margin-right: 12px;
-                }
-                
-                .inflow-card .transaction-icon {
-                    background-color: rgba(135, 196, 160, 0.2);
-                    color: white;
-                }
-                
-                .outflow-card .transaction-icon {
-                    background-color: rgba(197, 136, 136, 0.2);
-                    color: white;
-                }
-                
-                .transaction-details {
-                    flex: 1;
-                }
-                
-                .transaction-description {
-                    font-weight: bold;
-                    margin-bottom: 4px;
-                }
-                
-                .transaction-date {
-                    font-size: 0.875rem;
-                    color: white;
-                }
-                
-                .transaction-amount {
-                    font-weight: bold;
-                }
-                
-                .inflow-card .transaction-amount {
-                    color: #38A169;
-                }
-                
-                .outflow-card .transaction-amount {
-                    color: #E53E3E;
-                }
-                
-                .no-transactions {
-                    text-align: center;
-                    padding: 24px;
-                    color: #718096;
-                }
-                
-                /* Dark mode styles */
-                @media (prefers-color-scheme: dark) {
-                    .transaction-card {
-                        background-color: #2D3748;
-                        color: white;
-                    }
-                    
-                    .transaction-date {
-                        color: #A0AEC0;
-                    }
-                    
-                    .no-transactions {
-                        color: #A0AEC0;
-                    }
-                }
-            `;
-            document.head.appendChild(style);
-        }
     },
     
     formatCurrency: function(amount) {

@@ -40,7 +40,7 @@ var EditLiability = {
         }
         
         var modalHtml = '<div class="modal" id="editLiabilityModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Edit Liability</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -130,6 +130,15 @@ var EditLiability = {
                             '</select>' +
                         '</div>' +
                         
+                        // IBAN field (initially hidden or shown based on payment method)
+                        '<div class="form-group" id="ibanContainer" style="display: ' + 
+                            (this.liability && this.liability.payment_method === 'Bank Transfer' ? 'block' : 'none') + ';">' +
+                            Utils.createLabel('iban', 'IBAN', true) +
+                            '<select id="iban" name="iban_id">' +
+                                '<option value="">Select IBAN</option>' +
+                            '</select>' +
+                        '</div>' +
+                        
                         // Date field
                         '<div class="form-group">' +
                             Utils.createLabel('date', 'Date of Entry', true) +
@@ -161,6 +170,7 @@ var EditLiability = {
         var modal = document.getElementById('editLiabilityModal');
         var form = document.getElementById('editLiabilityForm');
         var dateInput = document.getElementById('date');
+        var paymentMethodSelect = document.getElementById('payment_method');
         
         // Close button event handlers
         var closeButtons = modal.querySelectorAll('.close-btn');
@@ -180,9 +190,35 @@ var EditLiability = {
             };
         }
         
+        // Payment method change handler
+        if (paymentMethodSelect) {
+            paymentMethodSelect.addEventListener('change', function() {
+                var ibanContainer = document.getElementById('ibanContainer');
+                
+                // Show IBAN selection when Bank Transfer is selected
+                if (this.value === 'Bank Transfer') {
+                    ibanContainer.style.display = 'block';
+                    Utils.loadIBANs(self.liability && self.liability.iban_id);
+                } else {
+                    ibanContainer.style.display = 'none';
+                }
+            });
+            
+            // Initial loading of IBAN data if payment method is Bank Transfer
+            if (paymentMethodSelect.value === 'Bank Transfer') {
+                Utils.loadIBANs(self.liability && self.liability.iban_id);
+            }
+        }
+        
         // Initialize datepicker on date input
         if (dateInput) {
             Utils.initDatePicker(dateInput);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('fund_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
         }
     },
   
@@ -226,6 +262,29 @@ var EditLiability = {
             return;
         }
 
+        // Validate payment method
+        var paymentMethod = data.payment_method;
+        if (!paymentMethod || paymentMethod === '') {
+            if (submitButton) submitButton.disabled = false;
+            return Utils.showFieldError(document.getElementById('payment_method'), 'Please select a payment method');
+        }
+
+        // Validate IBAN if payment method is Bank Transfer
+        if (paymentMethod === 'Bank Transfer') {
+            if (!data.iban_id || data.iban_id === '') {
+                if (submitButton) submitButton.disabled = false;
+                return Utils.showFieldError(document.getElementById('iban'), 'Please select an IBAN for bank transfers');
+            }
+        }
+        
+        // Add IBAN ID if payment method is Bank Transfer and IBAN is selected
+        if (data.payment_method === 'Bank Transfer' && data.iban_id) {
+            data.iban_id = Number(data.iban_id);
+        } else {
+            // Remove iban_id if not using Bank Transfer
+            delete data.iban_id;
+        }
+
         ApiClient.updateLiability(this.liabilityId, data)
             .then(function() {
                 self.close();
@@ -233,7 +292,7 @@ var EditLiability = {
             })
             .catch(function(error) {
                 console.error('Failed to update liability:', error);
-                alert('Failed to update liability: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update liability'));
             })
             .finally(function() {
                 if (submitButton) {

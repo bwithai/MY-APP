@@ -29,7 +29,7 @@ var EditOutflow = {
 
     render: function () {
         var modalHtml = '<div class="modal" id="editOutflowModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Edit Outflow</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -63,6 +63,9 @@ var EditOutflow = {
                                 '<option value="EXPANDABLE">Expandable</option>' +
                                 '<option value="NONEXPANDABLE">Non Expandable</option>' +
                             '</select>' +
+                            '<div id="assetNotification" class="notification-message" style="display: none;">' +
+                                '<i class="fas fa-info-circle"></i> This will be added to Assets' +
+                            '</div>' +
                         '</div>' +
                         '<div class="form-group" id="entityContainer" style="display: none;">' +
                             Utils.createLabel('place_type', 'Entity', false) +
@@ -155,13 +158,17 @@ var EditOutflow = {
 
         if (typeSelect) {
             typeSelect.addEventListener('change', function() {
-                if (this.value === 'NONEXPADABLE') {
+                var assetNotification = document.getElementById('assetNotification');
+                
+                if (this.value === 'NONEXPANDABLE') {
                     entityContainer.style.display = 'block';
                     placeTypeSelect.setAttribute('required', 'required');
+                    assetNotification.style.display = 'block';
                 } else {
                     entityContainer.style.display = 'none';
                     placeTypeSelect.removeAttribute('required');
                     placeTypeSelect.value = '';
+                    assetNotification.style.display = 'none';
                 }
             });
         }
@@ -200,6 +207,34 @@ var EditOutflow = {
         if (dateInput) {
             Utils.initDatePicker(dateInput);
         }
+
+        // Add CSS for notification message
+        if (!document.getElementById('notification-styles')) {
+            var styleEl = document.createElement('style');
+            styleEl.id = 'notification-styles';
+            styleEl.textContent = `
+                .notification-message {
+                    margin-top: 6px;
+                    padding: 6px 10px;
+                    background-color: #e3f2fd;
+                    border-left: 3px solid #2196f3;
+                    color: #0d47a1;
+                    font-size: 14px;
+                    border-radius: 2px;
+                    transition: all 0.3s ease;
+                }
+                .notification-message i {
+                    margin-right: 5px;
+                }
+            `;
+            document.head.appendChild(styleEl);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('head_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
+        }
     },
 
     populateForm: function (outflow) {
@@ -221,6 +256,12 @@ var EditOutflow = {
             
             if (validTypeOptions.indexOf(outflow.type) !== -1) {
                 typeSelect.value = outflow.type;
+                
+                // Show asset notification if NONEXPANDABLE
+                if (outflow.type === 'NONEXPANDABLE') {
+                    document.getElementById('entityContainer').style.display = 'block';
+                    document.getElementById('assetNotification').style.display = 'block';
+                }
             }
         }
 
@@ -339,8 +380,7 @@ var EditOutflow = {
             })
             .catch(function(error) {
                 // Display error in alert
-                var errorMessage = error.message || 'An unknown error occurred';
-                alert('Error updating outflow: ' + errorMessage);
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update outflow'));
                 console.error(error);
                 // Re-enable the submit button
                 submitButton.disabled = true;

@@ -206,7 +206,7 @@ var ActionsMenu = {
                 return;
             } catch (error) {
                 console.error('Error parsing asset data:', error);
-                alert('Failed to edit asset: ' + error.message);
+                Utils.onSuccess('error', (error.message || 'Unknown error to edit asset'));
                 return;
             }
         }
@@ -215,6 +215,38 @@ var ActionsMenu = {
         var id = typeof idOrElement === 'object' ? idOrElement.id : idOrElement;
         
         switch (this.type) {
+            case 'User':
+                // For User type, we already have the full object in this.value
+                if (typeof EditUser === 'undefined') {
+                    console.error('EditUser component is not available');
+                    Utils.onSuccess('error', 'Cannot edit user: The required component is not loaded');
+                    return;
+                }
+                
+                // Initialize EditUser with the user object and callback to refresh users
+                EditUser.init(this.value, function() {
+                    // Refresh the users table after edit
+                    if (typeof UsersTabl !== 'undefined' && typeof UsersTabl.loadUsers === 'function') {
+                        UsersTabl.loadUsers();
+                    }
+                });
+                break;
+            case 'Appt':
+                // Get the appointment data and open the EditAppt modal
+                if (typeof EditAppt === 'undefined') {
+                    console.error('EditAppt component is not available');
+                    Utils.onSuccess('error', 'Cannot edit appointment: The required component is not loaded');
+                    return;
+                }
+                
+                // For Appt type, we already have the full object in this.value
+                EditAppt.open(this.value, function() {
+                    // Refresh the appointments list after edit
+                    if (window.AppointmentList && typeof window.AppointmentList.loadAppointments === 'function') {
+                        window.AppointmentList.loadAppointments();
+                    }
+                });
+                break;
             case 'Inflow':
                 EditInflow.init('Inflow', id, function() {
                     InflowApp.loadInflowData();
@@ -242,6 +274,40 @@ var ActionsMenu = {
 
     handleDelete: function(id) {
         switch (this.type) {
+            case 'User':
+                // For User, confirm deletion and call the API
+                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                    ApiClient.deleteUser(id)
+                        .then(function(response) {
+                            Utils.onSuccess('delete', 'User');
+                            // Refresh the users table
+                            if (typeof UsersTabl !== 'undefined' && typeof UsersTabl.loadUsers === 'function') {
+                                UsersTabl.loadUsers();
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to delete user:', error);
+                            Utils.onSuccess('error', (error.message || 'Unknown error to delete user'));
+                        });
+                }
+                break;
+            case 'Appt':
+                // For Appointment, confirm deletion and call the API
+                if (confirm('Are you sure you want to delete this appointment? This action cannot be undone.')) {
+                    ApiClient.deleteAppt({ id: this.value.id })
+                        .then(function(response) {
+                            Utils.onSuccess('delete', 'Appointment');
+                            // Refresh the appointments list
+                            if (window.AppointmentList && typeof window.AppointmentList.loadAppointments === 'function') {
+                                window.AppointmentList.loadAppointments();
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Failed to delete appointment:', error);
+                            Utils.onSuccess('error', (error.message || 'Unknown error to delete appointment'));
+                        });
+                }
+                break;
             case 'Inflow':
                 DeleteAlert.init('Inflow', id, function() {
                     InflowApp.loadInflowData();
@@ -263,7 +329,7 @@ var ActionsMenu = {
                 });
                 break;
             default:
-                console.error('Unknown type:', type);
+                console.error('Unknown type:', this.type);
         }
     },
 
@@ -277,7 +343,7 @@ var ActionsMenu = {
             })
             .catch(function(error) {
                 console.error('Failed to load liability for payment:', error);
-                alert('Failed to load liability details: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error to load liability for payment'));
             });
     },
 
@@ -292,7 +358,7 @@ var ActionsMenu = {
                 })
                 .catch(function(error) {
                     console.error('Failed to load liability for history view:', error);
-                    alert('Failed to load liability details: ' + (error.message || 'Unknown error'));
+                    Utils.onSuccess('error', (error.message || 'Unknown error to load liability for history view'));
                 });
         } else if (this.type === 'Investment') {
             ApiClient.getInvestment(id)
@@ -303,7 +369,7 @@ var ActionsMenu = {
                 })
                 .catch(function(error) {
                     console.error('Failed to load investment for history view:', error);
-                    alert('Failed to load investment details: ' + (error.message || 'Unknown error'));
+                    Utils.onSuccess('error', (error.message || 'Unknown error to load investment for history view'));
                 });
         }
     },
@@ -329,7 +395,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error viewing asset:', error);
-            alert('Failed to view asset details: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to view asset details'));
         }
     },
 
@@ -355,7 +421,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error preparing asset disposal:', error);
-            alert('Failed to prepare asset disposal: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to prepare asset disposal'));
         }
     },
 
@@ -363,9 +429,25 @@ var ActionsMenu = {
     handleChangeDiv: function(element) {
         try {
             var div = JSON.parse(element.dataset.entity);
+            // Use originalId if it exists
+            if (div.originalId) div.id = div.originalId;
+            
+            // Check if ChangeDiv component exists
+            if (typeof ChangeDiv === 'undefined' || ChangeDiv === null) {
+                console.error('ChangeDiv component is not defined');
+                Utils.onSuccess('error', 'Cannot change division: The required component is not loaded');
+                return;
+            }
+            
             // Create a container to hold the modal
             var modalContainer = document.createElement('div');
             modalContainer.id = 'changeDivContainer';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.zIndex = '10000';
             document.body.appendChild(modalContainer);
             
             // Initialize the ChangeDiv component
@@ -378,16 +460,32 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error handling div change:', error);
-            alert('Failed to change division: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to change division'));
         }
     },
 
     handleChangeBrigade: function(element) {
         try {
             var brigade = JSON.parse(element.dataset.entity);
+            // Use originalId if it exists
+            if (brigade.originalId) brigade.id = brigade.originalId;
+            
+            // Check if ChangeBrigade component exists
+            if (typeof ChangeBrigade === 'undefined' || ChangeBrigade === null) {
+                console.error('ChangeBrigade component is not defined');
+                Utils.onSuccess('error', 'Cannot change brigade: The required component is not loaded');
+                return;
+            }
+            
             // Create a container to hold the modal
             var modalContainer = document.createElement('div');
             modalContainer.id = 'changeBrigadeContainer';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.zIndex = '10000';
             document.body.appendChild(modalContainer);
             
             // Initialize the ChangeBrigade component
@@ -400,16 +498,32 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error handling brigade change:', error);
-            alert('Failed to change brigade: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to change brigade'));
         }
     },
 
     handleChangeUnit: function(element) {
         try {
             var unit = JSON.parse(element.dataset.entity);
+            // Use originalId if it exists
+            if (unit.originalId) unit.id = unit.originalId;
+            
+            // Check if ChangeUnit component exists
+            if (typeof ChangeUnit === 'undefined' || ChangeUnit === null) {
+                console.error('ChangeUnit component is not defined');
+                Utils.onSuccess('error', 'Cannot change unit: The required component is not loaded');
+                return;
+            }
+            
             // Create a container to hold the modal
             var modalContainer = document.createElement('div');
             modalContainer.id = 'changeUnitContainer';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.zIndex = '10000';
             document.body.appendChild(modalContainer);
             
             // Initialize the ChangeUnit component
@@ -422,7 +536,7 @@ var ActionsMenu = {
             });
         } catch (error) {
             console.error('Error handling unit change:', error);
-            alert('Failed to change unit: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to change unit'));
         }
     },
 
@@ -431,20 +545,28 @@ var ActionsMenu = {
             var entity = JSON.parse(element.dataset.entity);
             var type = element.dataset.type;
             
+            console.log('Deleting IVY entity:', type, entity);
+            
             // Map type to flag value for API
             var flag;
             switch (type) {
-                case 'Corp': flag = 'corp'; break;
-                case 'Division': flag = 'div'; break;
-                case 'Brigade': flag = 'brigade'; break;
-                case 'Unit': flag = 'unit'; break;
+                case 'Corp': flag = 'Corp'; break;
+                case 'Division': flag = 'Division'; break;
+                case 'Brigade': flag = 'Brigade'; break;
+                case 'Unit': flag = 'Unit'; break;
                 default: throw new Error('Unknown entity type: ' + type);
             }
             
+            // Use originalId if it exists (for modified IDs by SettingsIVY)
+            var entityId = entity.originalId || entity.id;
+            
             if (confirm(`Are you sure you want to delete this ${type.toLowerCase()}? This action cannot be undone.`)) {
-                ApiClient.deleteIVY({ flag: flag, id: entity.id })
-                    .then(function() {
-                        Utils.showMessage('success', `${type} deleted successfully`);
+                console.log('Sending delete request with flag:', flag, 'and id:', entityId);
+                
+                ApiClient.deleteIVY({ flag: flag, id: entityId })
+                    .then(function(response) {
+                        console.log('Delete successful:', response);
+                        Utils.onSuccess('delete', type);
                         // Refresh the IVY data
                         if (window.SettingsIVY) {
                             SettingsIVY.loadCorps();
@@ -452,12 +574,12 @@ var ActionsMenu = {
                     })
                     .catch(function(error) {
                         console.error(`Failed to delete ${type.toLowerCase()}:`, error);
-                        alert(`Failed to delete ${type.toLowerCase()}: ` + (error.message || 'Unknown error'));
+                        Utils.onSuccess('error', (error.message || 'Unknown error to delete IVY entity'));
                     });
             }
         } catch (error) {
             console.error('Error handling IVY deletion:', error);
-            alert('Failed to process deletion: ' + error.message);
+            Utils.onSuccess('error', (error.message || 'Unknown error to process deletion'));
         }
     }
 };

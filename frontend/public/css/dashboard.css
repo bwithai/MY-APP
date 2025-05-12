@@ -387,7 +387,7 @@
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, #859c85 0%, #195c17 100%);
+    background: var(--office-green);
     color: white;
     box-shadow: 0 4px 12px rgba(1, 65, 28, 0.2);
 }
@@ -510,9 +510,10 @@
 }
 
 .table th {
-    background: linear-gradient(135deg, #e3e3e4 0%, #b6d4b5 100%);
+    background: #415540;
+    color: white;
+    font-weight: 510;
     padding: 1rem;
-    font-weight: 500;
     text-align: left;
     white-space: nowrap;
 }
@@ -880,11 +881,12 @@
 
 /* Text truncation styles */
 .truncate-text {
-    max-width: 200px;
+    max-width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: help; /* Shows help cursor on hover */
+    display: inline-block;
 }
 
 /* Table cell with long text */
@@ -895,12 +897,12 @@ td.long-text {
 
 /* Add this to your existing CSS */
 .deleted-row {
-    background-color: rgba(255, 0, 0, 0.1) !important;
+    background-color: rgba(161, 83, 77, 0.5) !important;
     color: #666;
     text-decoration: line-through;
 }
 .deleted-row:hover {
-    background-color: rgba(255, 0, 0, 0.15) !important;
+    background-color: rgba(161, 83, 77, 0.2) !important;
 }
 
 /* Style for paid liabilities */
@@ -1835,14 +1837,6 @@ button:disabled {
 .badge-success {
     color: #fff;
     background-color: #38a169;
-}
-
-/* Make sure truncate-text works for all tables */
-.truncate-text {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Style for the user table in ivy mode */

@@ -29,7 +29,7 @@ var EditInflow = {
 
     render: function () {
         var modalHtml = '<div class="modal" id="editInflowModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Edit Inflow</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -135,6 +135,12 @@ var EditInflow = {
         var dateInput = document.getElementById('date');
         if (dateInput) {
             Utils.initDatePicker(dateInput);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('fund_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
         }
     },
 
@@ -258,8 +264,7 @@ var EditInflow = {
             })
             .catch(function(error) {
                 // Display error in alert
-                var errorMessage = error.message || 'An unknown error occurred';
-                alert('Error updating inflow: ' + errorMessage);
+                Utils.onSuccess('error', (error.message || 'Unknown error: Failed to update inflow'));
                 console.error(error);
                 // Re-enable the submit button
                 submitButton.disabled = true;

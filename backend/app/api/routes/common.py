@@ -123,7 +123,7 @@ def create_head(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Type must be 1: Inflow or 2: Outflow"
         )
-    is_head_in_db = session.exec(select(Heads).where(Heads.heads == item_in.heads)).first()
+    is_head_in_db = session.exec(select(Heads).where(Heads.heads == item_in.heads, Heads.type == item_in.type)).first()
     if is_head_in_db:
         log_activity(
             session=session,
@@ -179,6 +179,35 @@ def create_subhead(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Type must be 1: Inflow or 2: Outflow"
         )
+    
+    # Check if a subhead with the same name already exists for this head and user
+    existing_subhead = session.exec(
+        select(SubHeads)
+        .where(
+            and_(
+                SubHeads.head_id == item_in.head_id,
+                SubHeads.user_id == current_user.id,
+                func.lower(SubHeads.subheads) == func.lower(item_in.subheads)
+            )
+        )
+    ).first()
+    
+    if existing_subhead:
+        log_activity(
+            session=session,
+            log_name="Duplicate SubHead",
+            description=f"User {current_user.username} tried to create a duplicate subhead '{item_in.subheads}' in same head.",
+            event="duplicate_subhead_attempt",
+            user_id=current_user.id,
+            router_prefix="sub-heads",
+            subject_type="User",
+            subject_id=current_user.id
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"A subhead with the name '{item_in.subheads}' already exists in same head"
+        )
+    
     head = SubHeads.model_validate(item_in)
     session.add(head)
     session.commit()
@@ -186,7 +215,7 @@ def create_subhead(
     log_activity(
         session=session,
         log_name="SubHead Created",
-        description=f"SubHead {head.head} (ID: {head.id}) created by {current_user.username} with type {head.type}.",
+        description=f"SubHead {head.subheads} (ID: {head.id}) created by {current_user.username} with type {head.type}.",
         event="subhead_created",
         user_id=current_user.id,
         router_prefix="sub-heads",
@@ -294,7 +323,7 @@ def update_head(
 
 
 @router.delete("/heads/{id}")
-def delete_head(
+def delete_head_by_id(
         session: SessionDep, current_user: CurrentUser, id: int
 ) -> Message:
     """
@@ -355,7 +384,7 @@ def delete_head(
 
 
 @router.delete("/ivy-deletion/{flag}/{id}")
-def delete_head(
+def delete_head_by_flag(
         session: SessionDep, current_user: CurrentUser, flag: str, id: int
 ) -> Message:
     """
@@ -470,7 +499,7 @@ def delete_head(
 
 
 @router.delete("/sub-heads/{id}")
-def delete_head(
+def delete_subhead(
         session: SessionDep, current_user: CurrentUser, id: int
 ) -> Message:
     """

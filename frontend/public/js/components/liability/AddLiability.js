@@ -17,7 +17,7 @@ var AddLiability = {
     render: function() {
         var modalHtml =
             '<div class="modal" id="addLiabilityModal">' +
-                '<div class="modal-content">' +
+                '<div class="modal-content" style="max-width: 800px;">' +
                     '<div class="modal-header">' +
                         '<h2>Add Liability</h2>' +
                         '<button type="button" class="close-btn">&times;</button>' +
@@ -69,6 +69,14 @@ var AddLiability = {
                                 '</select>' +
                             '</div>' +
                             
+                            // IBAN field - initially hidden
+                            '<div class="form-group" id="ibanContainer" style="display: none;">' +
+                                Utils.createLabel('iban', 'IBAN', true) +
+                                '<select id="iban" name="iban_id">' +
+                                    '<option value="">Select IBAN</option>' +
+                                '</select>' +
+                            '</div>' +
+                            
                             // Date of Entry field
                             '<div class="form-group">' +
                                 Utils.createLabel('date', 'Date of Entry', true) +
@@ -111,6 +119,7 @@ var AddLiability = {
         var form = document.getElementById('addLiabilityForm');
         var closeBtn = modal.querySelector('.close-btn');
         var cancelBtn = modal.querySelector('[data-dismiss="modal"]');
+        var paymentMethodSelect = document.getElementById('payment_method');
   
         if (closeBtn) {
             closeBtn.onclick = function(e) {
@@ -135,11 +144,32 @@ var AddLiability = {
                 self.handleSubmit(formData);
             };
         }
+        
+        // Add payment method change handler for IBAN section
+        if (paymentMethodSelect) {
+            paymentMethodSelect.addEventListener('change', function() {
+                var ibanContainer = document.getElementById('ibanContainer');
+                
+                // Show IBAN selection when Bank Transfer is selected
+                if (this.value === 'Bank Transfer') {
+                    ibanContainer.style.display = 'block';
+                    Utils.loadIBANs(); // Load IBANs into select element
+                } else {
+                    ibanContainer.style.display = 'none';
+                }
+            });
+        }
   
         // Initialize the datepicker component on the date input using Utils
         var dateInput = document.getElementById('date');
         if (dateInput) {
             Utils.initDatePicker(dateInput);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('fund_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
         }
     },
   
@@ -173,11 +203,26 @@ var AddLiability = {
         var amount = Number(parseFloat(data.amount).toFixed(2));
         
         if (isNaN(amount) || amount <= 0) {
-            alert('Amount must be greater than 0');
+            Utils.onSuccess('error', 'Amount must be greater than 0');
             if (submitButton) {
                 submitButton.disabled = false;
             }
             return;
+        }
+
+        // Validate payment method
+        var paymentMethod = data.payment_method;
+        if (!paymentMethod || paymentMethod === '') {
+            if (submitButton) submitButton.disabled = false;
+            return Utils.showFieldError(document.getElementById('payment_method'), 'Please select a payment method');
+        }
+
+        // Validate IBAN if payment method is Bank Transfer
+        if (paymentMethod === 'Bank Transfer') {
+            if (!data.iban_id || data.iban_id === '') {
+                if (submitButton) submitButton.disabled = false;
+                return Utils.showFieldError(document.getElementById('iban'), 'Please select an IBAN for bank transfers');
+            }
         }
   
         var formattedData = {
@@ -189,6 +234,11 @@ var AddLiability = {
             payment_method: data.payment_method,
             date: data.date
         };
+        
+        // Add IBAN ID if payment method is Bank Transfer and IBAN is selected
+        if (data.payment_method === 'Bank Transfer' && data.iban_id) {
+            formattedData.iban_id = Number(data.iban_id);
+        }
   
         ApiClient.createLiability(formattedData)
             .then(function(response) {
@@ -200,12 +250,10 @@ var AddLiability = {
             })
             .catch(function(error) {
                 console.error('Failed to create liability:', error);
-                alert('Failed to create liability: ' + (error.message || 'Unknown error'));
+                Utils.onSuccess('error', (error.message || 'Unknown error to create liability'));
             })
             .finally(function() {
-                if (submitButton) {
-                    submitButton.disabled = false;
-                }
+                submitButton.disabled = false;
             });
     }
 };

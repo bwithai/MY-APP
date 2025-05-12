@@ -17,7 +17,7 @@ class InvestBase(SQLModel):
 
 # Properties to receive on item creation
 class InvestCreate(InvestBase):
-    pass
+    iban_id: int = None
 
 
 # Properties to receive on item update

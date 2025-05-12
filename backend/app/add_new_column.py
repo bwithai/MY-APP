@@ -50,7 +50,8 @@ table_modifications = {
             Column('sold_to', VARCHAR(255)),
             Column('gift_to', VARCHAR(255)),
             Column('disposed_reason', VARCHAR(255)),
-            Column('disposed_date', DateTime)
+            Column('disposed_date', DateTime),
+            Column('quantity', Integer)
         ]
     }
 }

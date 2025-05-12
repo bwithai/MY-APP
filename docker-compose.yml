@@ -56,6 +56,9 @@ services:
     command: bash scripts/prestart.sh
     env_file:
       - .env
+    volumes:
+      - ./backend/app:/app/app  # Only mount the app directory
+      - ./media/storage:/app/media/storage  # Mount for asset images and QR codes
     environment:
       - DOMAIN=${DOMAIN}
       - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
@@ -108,6 +111,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
     volumes:
       - ./backend/app:/app/app  # Only mount the app directory
+      - ./media/storage:/app/media/storage  # Mount for asset images and QR codes
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]

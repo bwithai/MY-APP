@@ -10,10 +10,30 @@ var InflowApp = {
             this.currentPage = parseInt(sessionStorage.getItem('inflowCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'inflow'; // For use with pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
+        
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'id',           // Column 0: ID
+            'head',         // Column 1: Head
+            'sub_heads',    // Column 2: Sub Head
+            'fund_details', // Column 3: Fund Details
+            'amount',       // Column 4: Amount
+            'payment_method', // Column 5: Payment Method
+            'iban',         // Column 6: IBAN
+            'date',         // Column 7: Entry Date
+            'user',         // Column 8: User
+            null            // Column 9: Actions (not sortable)
+        ];
         
         // Mark that we're in inflow page
         sessionStorage.setItem('isInflow', 'true');
@@ -61,8 +81,19 @@ var InflowApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box deleted-box"></span>' +
+                    '<span class="legend-text">Deleted</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="inflowTable">' +
                     '<thead>' +
                         '<tr>' +
                             '<th>ID</th>' +
@@ -72,10 +103,9 @@ var InflowApp = {
                             '<th>Amount</th>' +
                             '<th>Payment Method</th>' +
                             '<th>IBAN</th>' +
-                            '<th>Date of Entry</th>' +
-                            '<th>Created At</th>' +
+                            '<th>Entry Date</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="inflowTableBody">' +
@@ -86,15 +116,47 @@ var InflowApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Add styles for the status legend
+        var style = document.createElement('style');
+        style.textContent = `
+            .status-legend {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 15px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            .color-box {
+                width: 15px;
+                height: 15px;
+                display: inline-block;
+                margin-right: 5px;
+                border-radius: 3px;
+            }
+            .deleted-box {
+                background-color: #ffcccc;
+            }
+            .active-box {
+                background-color: #ffffff;
+                border: 1px solid #dee2e6;
+            }
+            .deleted-row {
+                background-color: #ffcccc;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize table sorting
+        Utils.initTableSorting('inflowTable', this, this.loadInflowData.bind(this));
         
         // Load inflow data
         this.loadInflowData();
@@ -149,8 +211,14 @@ var InflowApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderInflowTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Store the data for sorting
+                self.inflowData = response.data;
+                
+                // Render the sorted data
+                self.renderInflowTable(self.inflowData);
+                
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -183,10 +251,17 @@ var InflowApp = {
             return;
         }
 
+        // Sort the data if a sort column is selected
+        var sortedData = inflows;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(inflows, columnName, this.sortDirection);
+        }
+
         var self = this;
         tableBody.innerHTML = '';
         
-        inflows.forEach(function(inflow) {
+        sortedData.forEach(function(inflow) {
             // Add deleted-row class if is_deleted is true
             var rowClass = inflow.is_deleted ? 'deleted-row' : '';
             var row = document.createElement('tr');
@@ -205,9 +280,12 @@ var InflowApp = {
                 '</td>' +
                 '<td title="' + (inflow.amount || 0) + '">' + self.formatNumber(inflow.amount) + '</td>' +
                 '<td>' + (inflow.payment_method || 'N/A') + '</td>' +
-                '<td class="' + (inflow.iban ? '' : 'text-muted') + '">' + (inflow.iban || 'N/A') + '</td>' +
-                '<td>' + self.formatDate(inflow.date, true) + '</td>' +
-                '<td>' + self.formatDate(inflow.created_at) + '</td>' +
+                '<td class="long-text ' + (inflow.iban ? '' : 'text-muted') + '">' +
+                    '<div class="truncate-text" title="' + (inflow.iban || '') + '">' +
+                        (inflow.iban ? ('••• ' + inflow.iban.slice(-4)) : 'N/A') +
+                    '</div>' +
+                '</td>' +
+                '<td>' + self.formatDate(inflow.date) + '</td>' +
                 '<td>' + (inflow.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Inflow', inflow, {
                     delete: !inflow.is_deleted,
@@ -235,32 +313,6 @@ var InflowApp = {
             searchInput.addEventListener('input', this.searchHandler);
         }
 
-        // Pagination
-        var prevPage = document.getElementById('prevPage');
-        var nextPage = document.getElementById('nextPage');
-
-        if (prevPage) {
-            this.prevPageHandler = function(e) {
-                e.preventDefault();
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
-                    self.loadInflowData(searchInput ? searchInput.value : '');
-                }
-            };
-            prevPage.addEventListener('click', this.prevPageHandler);
-        }
-
-        if (nextPage) {
-            this.nextPageHandler = function(e) {
-                e.preventDefault();
-                self.currentPage++;
-                sessionStorage.setItem('inflowCurrentPage', self.currentPage.toString());
-                self.loadInflowData(searchInput ? searchInput.value : '');
-            };
-            nextPage.addEventListener('click', this.nextPageHandler);
-        }
-
         // Add new inflow
         var addButton = document.getElementById('addInflowBtn');
         if (addButton) {
@@ -270,10 +322,6 @@ var InflowApp = {
                 });
             });
         }
-    },
-
-    updatePagination: function(hasNextPage) {
-        Utils.updatePagination(this, hasNextPage);
     },
 
     formatNumber: function(value) {

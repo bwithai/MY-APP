@@ -1,11 +1,13 @@
 import calendar
 from datetime import timedelta, datetime, date
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Query
 from sqlmodel import func, select
 from sqlalchemy.sql import expression
+from sqlalchemy import desc
+from sqlalchemy.orm import joinedload
 
 from app.api.deps import CurrentUser, SessionDep
 from app.cf_models.schemas import CommandFunds, Expenses, Balances, Investments, Liabilities
@@ -37,39 +39,43 @@ def format_yearly_data(session, current_user, year: int, user_id) -> Dict[int, D
             weekly_invest.append(weekly_balance.get("investment", 0))
             weekly_liability.append(weekly_balance.get("liability", 0))
 
-            # Fetch daily data for the week
-            daily_inflow = []
-            daily_outflow = []
-            daily_invest = []
-            daily_liability = []
-            daily_labels = []  # To store the actual day names for this week
-
+            # Prepare empty arrays for daily data
+            daily_data = {
+                "inflow": [0] * 7,
+                "outflow": [0] * 7,
+                "investment": [0] * 7,
+                "liability": [0] * 7
+            }
+            
+            # Map of actual days in this week
+            days_present = []
+            
+            # Process each day in the week
             for day in range((week_end - week_start).days + 1):
                 day_date = week_start + timedelta(days=day)
-                daily_labels.append(days_of_week[day_date.weekday()])  # Get the day's name
+                weekday_index = day_date.weekday()  # 0 = Monday, 6 = Sunday
+                # Convert to Sunday-first index (0 = Sunday, 1 = Monday, etc.)
+                sunday_first_index = (weekday_index + 1) % 7
+                
+                # Add this day to our days present list
+                days_present.append(days_of_week[sunday_first_index])
+                
                 # Fetch balance data for the specific day
                 daily_balance = get_balance_data(session, current_user, day_date, day_date, user_id)
-                daily_inflow.append(daily_balance.get("inflow", 0))
-                daily_outflow.append(daily_balance.get("outflow", 0))
-                daily_invest.append(daily_balance.get("investment", 0))
-                daily_liability.append(daily_balance.get("liability", 0))
+                
+                # Assign data to the correct day position
+                daily_data["inflow"][sunday_first_index] = daily_balance.get("inflow", 0)
+                daily_data["outflow"][sunday_first_index] = daily_balance.get("outflow", 0)
+                daily_data["investment"][sunday_first_index] = daily_balance.get("investment", 0)
+                daily_data["liability"][sunday_first_index] = daily_balance.get("liability", 0)
 
-            # Adjust the day names for the last week if it's a partial week
-            if week_end.month != week_start.month or (week_end - week_start).days < 6:
-                days_present = [
-                    days_of_week[(week_start + timedelta(days=offset)).weekday()]
-                    for offset in range((week_end - week_start).days + 1)
-                ]
-            else:
-                days_present = days_of_week
-
-            # Store week data
+            # Store week data with proper day alignment
             week_data[week_index] = {
-                "days": days_present,
-                "inflow": daily_inflow,
-                "outflow": daily_outflow,
-                "investment": daily_invest,
-                "liability": daily_liability
+                "days": days_of_week,
+                "inflow": daily_data["inflow"],
+                "outflow": daily_data["outflow"],
+                "investment": daily_data["investment"],
+                "liability": daily_data["liability"]
             }
             weekly_labels.append(f"Week {week_index}")
 
@@ -320,6 +326,154 @@ def financial_overview(
     }
 
 
+@router.get("/transactions/{user_id}")
+def get_transactions(session: SessionDep, current_user: CurrentUser, user_id: int):
+    """
+    Retrieve the 5 most recent entries for inflow, outflow, investment, and liability.
+    """
+    combined_transactions = []
+
+    if current_user.is_superuser and user_id == current_user.id:
+        # Superuser wants to see all data
+        inflow_statement = (
+            select(CommandFunds)
+            .where(CommandFunds.is_deleted == expression.false())
+            .order_by(desc(CommandFunds.date))
+            .options(
+                joinedload(CommandFunds.head),
+                joinedload(CommandFunds.sub_heads)
+            )
+            .limit(5)
+        )
+
+        outflow_statement = (
+            select(Expenses)
+            .where(Expenses.is_deleted == expression.false())
+            .order_by(desc(Expenses.expense_date))
+            .options(
+                joinedload(Expenses.head),
+                joinedload(Expenses.sub_heads)
+            )
+            .limit(5)
+        )
+
+        investment_statement = (
+            select(Investments)
+            .where(Investments.is_deleted == expression.false())
+            .order_by(desc(Investments.date))
+            .limit(5)
+        )
+
+        liability_statement = (
+            select(Liabilities)
+            .where(Liabilities.is_deleted == expression.false())
+            .order_by(desc(Liabilities.date))
+            .limit(5)
+        )
+    else:
+        # Either regular user or superuser viewing specific user data
+        query_user_id = user_id if user_id else current_user.id
+
+        inflow_statement = (
+            select(CommandFunds)
+            .where(
+                CommandFunds.user_id == query_user_id,
+                CommandFunds.is_deleted == expression.false()
+            )
+            .order_by(desc(CommandFunds.date))
+            .options(
+                joinedload(CommandFunds.head),
+                joinedload(CommandFunds.sub_heads)
+            )
+            .limit(5)
+        )
+
+        outflow_statement = (
+            select(Expenses)
+            .where(
+                Expenses.user_id == query_user_id,
+                Expenses.is_deleted == expression.false()
+            )
+            .order_by(desc(Expenses.expense_date))
+            .options(
+                joinedload(Expenses.head),
+                joinedload(Expenses.sub_heads)
+            )
+            .limit(5)
+        )
+
+        investment_statement = (
+            select(Investments)
+            .where(
+                Investments.user_id == query_user_id,
+                Investments.is_deleted == expression.false()
+            )
+            .order_by(desc(Investments.date))
+            .limit(5)
+        )
+
+        liability_statement = (
+            select(Liabilities)
+            .where(
+                Liabilities.user_id == query_user_id,
+                Liabilities.is_deleted == expression.false()
+            )
+            .order_by(desc(Liabilities.date))
+            .limit(5)
+        )
+
+    # Execute the queries
+    inflows = session.exec(inflow_statement).all()
+    outflows = session.exec(outflow_statement).all()
+    investments = session.exec(investment_statement).all()
+    liabilities = session.exec(liability_statement).all()
+
+    # Format inflow entries
+    for inflow in inflows:
+        combined_transactions.append({
+            "type": "inflow",
+            "amount": f"{inflow.amount:,.2f}",
+            "date": inflow.date.strftime("%Y-%m-%d") if inflow.date else "",
+            "description": inflow.fund_details
+        })
+
+    # Format outflow entries
+    for outflow in outflows:
+        combined_transactions.append({
+            "type": "outflow",
+            "amount": f"{outflow.cost:,.2f}",
+            "date": outflow.expense_date.strftime("%Y-%m-%d") if outflow.expense_date else "",
+            "description": outflow.head_details
+        })
+
+    # Format investment entries
+    for investment in investments:
+        combined_transactions.append({
+            "type": "investment",
+            "amount": f"{investment.amount:,.2f}",
+            "date": investment.date.strftime("%Y-%m-%d") if investment.date else "",
+            "description": investment.name
+        })
+
+    # Format liability entries
+    for liability in liabilities:
+        combined_transactions.append({
+            "type": "liability",
+            "amount": f"{liability.remaining_balance:,.2f}",
+            "date": liability.date.strftime("%Y-%m-%d") if liability.date else "",
+            "description": liability.fund_details
+        })
+
+    # Sort by date (most recent first)
+    combined_transactions.sort(
+        key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d") if x["date"] else datetime.min,
+        reverse=True
+    )
+
+    # Return only the top 5 transactions across all types
+    return combined_transactions
+
+
 @router.get("/{year}/{user_id}")
 def get_yearly_balance(session: SessionDep, current_user: CurrentUser, year: int, user_id: int):
     return format_yearly_data(session, current_user, year, user_id)
@@ -344,3 +498,4 @@ def get_weekly_balance(
     print(start_date, end_date)
     range_balance = get_balance_data(session, current_user, start_date, end_date, user_id)
     return range_balance
+

@@ -1,8 +1,8 @@
 /**
  * RestrictedDatePicker attaches a calendar to the given input.
  * Allowed dates are:
- *   - For the previous month: only the last 10 days.
- *   - For the current month: only the current day.
+ *   - If the current day of the month is <= 10: Show all days of the previous month and current month up to current date.
+ *   - If the current day of the month is > 10: Show only the current month up to current date.
  */
 function RestrictedDatePicker(input) {
     // Determine allowed dates based on today
@@ -11,6 +11,9 @@ function RestrictedDatePicker(input) {
     var currentMonth = today.getMonth();
     var currentDay = today.getDate();
 
+    // Determine if previous month is allowed based on current day of month
+    var showPreviousMonth = currentDay <= 10;
+    
     var previousMonth, previousMonthYear;
     if (currentMonth === 0) {
         previousMonth = 11;
@@ -19,10 +22,6 @@ function RestrictedDatePicker(input) {
         previousMonth = currentMonth - 1;
         previousMonthYear = currentYear;
     }
-
-    // Calculate the last day of the previous month and the start of the allowed period (last 10 days)
-    var daysInPreviousMonth = new Date(previousMonthYear, previousMonth + 1, 0).getDate();
-    var allowedPreviousStart = daysInPreviousMonth - 9; // e.g. for 31 days: allowed from 22 to 31
 
     // Create the datepicker container
     var datePickerDiv = document.createElement('div');
@@ -41,11 +40,11 @@ function RestrictedDatePicker(input) {
         var header = document.createElement('div');
         header.className = 'datepicker-header';
 
-        // Allow navigation only between the two allowed months:
-        // If showing the current month, allow going back to previous month.
-        // If showing the previous month, allow going forward to the current month.
-        var canGoPrev = isAllowedCurrent; // from current month you can go to previous
-        var canGoNext = isAllowedPrevious; // from previous month you can go to current
+        // Navigation rules:
+        // - If showing current month and previous month is allowed, enable previous button
+        // - If showing previous month, enable next button to current month
+        var canGoPrev = isAllowedCurrent && showPreviousMonth;
+        var canGoNext = isAllowedPrevious;
 
         var prev = document.createElement('span');
         prev.innerHTML = '&#9664;'; // left arrow
@@ -109,14 +108,16 @@ function RestrictedDatePicker(input) {
                 } else {
                     cell.textContent = date;
                     var enableDate = false;
-                    // If this is the allowed previous month, only enable dates in the last 10 days
-                    if (isAllowedPrevious && date >= allowedPreviousStart) {
+                    
+                    // If this is the previous month, enable all dates if previous month is allowed
+                    if (isAllowedPrevious && showPreviousMonth) {
                         enableDate = true;
                     }
-                    // If this is the allowed current month, only enable the current day
+                    // If this is the current month, enable dates up to and including the current day
                     else if (isAllowedCurrent && date <= currentDay) {
                         enableDate = true;
                     }
+                    
                     if (enableDate) {
                         cell.style.cursor = 'pointer';
                         cell.onclick = (function(d) {
@@ -161,12 +162,18 @@ function RestrictedDatePicker(input) {
                 defaultMonth = parseInt(parts[1], 10) - 1;
             }
         }
-        if (typeof defaultYear === 'undefined' || typeof defaultMonth === 'undefined' ||
-           !((defaultYear === previousMonthYear && defaultMonth === previousMonth) ||
-             (defaultYear === currentYear && defaultMonth === currentMonth))) {
+        
+        // Check if the selected month/year is allowed
+        var isAllowedMonth = (
+            (defaultYear === currentYear && defaultMonth === currentMonth) || 
+            (showPreviousMonth && defaultYear === previousMonthYear && defaultMonth === previousMonth)
+        );
+        
+        if (!isAllowedMonth) {
             defaultYear = currentYear;
             defaultMonth = currentMonth;
         }
+        
         renderCalendar(defaultYear, defaultMonth);
         datePickerDiv.style.display = 'block';
     });

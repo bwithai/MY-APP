@@ -8,12 +8,31 @@ var AssetsApp = {
             this.currentPage = parseInt(sessionStorage.getItem('assetsCurrentPage')) || 1;
         }
         
-        this.perPage = 10;
+        // Get per-page setting from sessionStorage or default to 10
+        this.storageKey = 'assets'; // For use with common pagination functions
+        this.perPage = parseInt(sessionStorage.getItem(this.storageKey + 'PerPage')) || 10;
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.storedUserId = sessionStorage.getItem('selectedUserId');
         this.storedUserName = sessionStorage.getItem('selectedUserName');
-        this.storageKey = 'assets'; // For use with common pagination functions
         this.searchQuery = '';
+        
+        // Initialize sorting state (defaults will be set in initTableSorting)
+        this.sortColumn = null;
+        this.sortDirection = 'asc';
+        
+        // Column to property mapping for sorting
+        this.columnMap = [
+            'name',            // Column 0: Name
+            'type',            // Column 1: Type
+            'purchase_date',   // Column 2: Purchase Date
+            'quantity',        // Column 3: Quantity
+            'purchased_from',  // Column 4: Purchased From
+            'cost',            // Column 5: Cost
+            'salvage_value',   // Column 6: Salvage Value
+            'head_details',    // Column 7: Details
+            'user',            // Column 8: User
+            null               // Column 9: Actions (not sortable)
+        ];
         
         // Mark that we're in assets page
         sessionStorage.setItem('isAssets', 'true');
@@ -50,7 +69,7 @@ var AssetsApp = {
         content.innerHTML = '<div class="container-fluid">' +
             '<div class="page-header">' +
                 '<div class="header-content">' +
-                    '<h1 class="page-title">' + Utils.getPageTitle('Assets', this.currentUser, this.storedUserName) + '</h1>' +
+                    '<h1 class="page-title">' + Utils.getPageTitle('Inventory', this.currentUser, this.storedUserName) + '</h1>' +
                     '<button class="btn btn-secondary" id="goBackBtn">' +
                         '<i class="fas fa-arrow-left"></i> Go back' +
                     '</button>' +
@@ -60,20 +79,35 @@ var AssetsApp = {
                 '</div>' +
             '</div>' +
             
+            '<div class="status-legend">' +
+                '<div class="legend-item">' +
+                    '<span class="color-box pending-box"></span>' +
+                    '<span class="legend-text">Pending</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box disposed-box"></span>' +
+                    '<span class="legend-text">Disposed</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<span class="color-box active-box"></span>' +
+                    '<span class="legend-text">Active</span>' +
+                '</div>' +
+            '</div>' +
+            
             '<div class="table-responsive horizontal-scroll">' +
-                '<table class="table">' +
+                '<table class="table" id="assetsTable">' +
                     '<thead>' +
                         '<tr>' +
-                            '<th>ID</th>' +
                             '<th>Name</th>' +
                             '<th>Type</th>' +
                             '<th>Purchase Date</th>' +
+                            '<th>Quantity</th>' +
                             '<th>Purchased From</th>' +
                             '<th>Cost</th>' +
                             '<th>Salvage Value</th>' +
                             '<th>Details</th>' +
                             '<th>User</th>' +
-                            '<th>Actions</th>' +
+                            '<th class="no-sort">Actions</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody id="assetsTableBody">' +
@@ -84,15 +118,14 @@ var AssetsApp = {
                 '</table>' +
             '</div>' +
             
-            '<div class="pagination-footer">' +
-                '<button id="prevPage" class="btn btn-secondary" disabled>Previous</button>' +
-                '<span class="page-info">Page <span id="currentPage">1</span></span>' +
-                '<button id="nextPage" class="btn btn-secondary">Next</button>' +
-            '</div>' +
+            '<div class="pagination-footer"></div>' +
         '</div>';
 
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Initialize table sorting
+        Utils.initTableSorting('assetsTable', this, this.loadAssetsData.bind(this));
         
         // Load assets data
         this.loadAssetsData();
@@ -145,8 +178,14 @@ var AssetsApp = {
         })
         .then(function(response) {
             if (response && response.data) {
-                self.renderAssetsTable(response.data);
-                self.updatePagination(response.count > (skip + self.perPage));
+                // Store the data for sorting
+                self.assetsData = response.data;
+                
+                // Render the sorted data
+                self.renderAssetsTable(self.assetsData);
+                
+                // Update to use numbered pagination
+                Utils.updateNumberedPagination(self, response.count, response.count > (skip + self.perPage));
                 self.updateUrl();
             } else {
                 throw new Error('Invalid response format');
@@ -178,8 +217,15 @@ var AssetsApp = {
             return;
         }
         
+        // Sort the data if a sort column is selected
+        var sortedData = assets;
+        if (this.sortColumn !== null && this.columnMap[this.sortColumn]) {
+            var columnName = this.columnMap[this.sortColumn];
+            sortedData = Utils.sortData(assets, columnName, this.sortDirection);
+        }
+        
         var self = this;
-        assets.forEach(function(asset) {
+        sortedData.forEach(function(asset) {
             var row = document.createElement('tr');
             
             // Add appropriate class based on asset status
@@ -190,14 +236,18 @@ var AssetsApp = {
             
             // Build row using direct HTML like liability.js
             row.innerHTML = 
-                '<td title="' + (asset.status || '') + '">' + (asset.asset_id || 'N/A') + '</td>' +
-                '<td>' + (asset.name || 'N/A') + '</td>' +
+                '<td title="' + (asset.status || '') + '">' + (asset.name || 'N/A') + '</td>' +
                 '<td>' + (asset.type || 'N/A') + '</td>' +
                 '<td title="' + (asset.purchase_date || '') + '">' + (asset.purchase_date ? Utils.formatDate(asset.purchase_date, true) : 'N/A') + '</td>' +
+                '<td class="' + (asset.quantity ? '' : 'text-muted') + '">' + (asset.quantity || 'N/A') + '</td>' +
                 '<td>' + (asset.purchased_from || 'N/A') + '</td>' +
-                '<td class="truncate-text" title="' + (asset.cost || 0) + '">' + Utils.formatNumber(Number(asset.cost)) + '</td>' +
+                '<td title="' + (asset.cost || 0) + '">' + Utils.formatNumber(Number(asset.cost)) + '</td>' +
                 '<td title="' + (asset.salvage_value || 0) + '">' + Utils.formatNumber(Number(asset.salvage_value)) + '</td>' +
-                '<td>' + (asset.head_details || 'N/A') + '</td>' +
+                '<td class="long-text">' +
+                    '<div class="truncate-text" title="' + (asset.head_details || '') + '">' +
+                        (asset.head_details || 'N/A') +
+                    '</div>' +
+                '</td>' +
                 '<td>' + (asset.user || 'N/A') + '</td>' +
                 '<td>' + ActionsMenu.init('Asset', asset, {
                     delete: false
@@ -205,10 +255,6 @@ var AssetsApp = {
             
             tableBody.appendChild(row);
         });
-    },
-
-    updatePagination: function(hasMore) {
-        Utils.updatePagination(this, hasMore);
     },
 
     setupEventListeners: function() {
@@ -240,36 +286,13 @@ var AssetsApp = {
                 }, 500); // Debounce for 500ms
             });
         }
-        
-        // Pagination buttons
-        var prevPageBtn = document.getElementById('prevPage');
-        var nextPageBtn = document.getElementById('nextPage');
-        
-        if (prevPageBtn) {
-            this.prevPageHandler = function() {
-                if (self.currentPage > 1) {
-                    self.currentPage--;
-                    sessionStorage.setItem('assetsCurrentPage', self.currentPage.toString());
-                    self.loadAssetsData();
-                }
-            };
-            prevPageBtn.addEventListener('click', this.prevPageHandler);
-        }
-        
-        if (nextPageBtn) {
-            this.nextPageHandler = function() {
-                self.currentPage++;
-                sessionStorage.setItem('assetsCurrentPage', self.currentPage.toString());
-                self.loadAssetsData();
-            };
-            nextPageBtn.addEventListener('click', this.nextPageHandler);
-        }
     }
 };
 
 // Add custom CSS for tooltips and status backgrounds
 (function() {
     var style = document.createElement('style');
+    style.id = 'asset-detail-styles';
     style.textContent = `
         .tooltip-container {
             position: relative;
@@ -302,16 +325,69 @@ var AssetsApp = {
             opacity: 1;
         }
         
+        .status-legend {
+            display: flex;
+            margin-bottom: 15px;
+            background-color: #f4f4f4;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 3px solid #2196f3;
+        }
+        
+        .status-legend > * {
+            margin-right: 20px;
+        }
+        
+        .status-legend > *:last-child {
+            margin-right: 0;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .color-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .pending-box {
+            background-color: rgba(185, 44, 44, 0.2);
+        }
+        
+        .disposed-box {
+            background-color: rgba(218, 194, 89, 0.2);
+        }
+        
+        .active-box {
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid #ddd;
+        }
+        
         .pending-row {
-            background-color: rgba(226, 100, 136, 0.2);
+            background-color: rgba(185, 44, 44, 0.2);
+        }
+        
+        .pending-row:hover {
+            background-color: rgba(185, 44, 44, 0.4) !important;
         }
         
         .disposed-row {
             background-color: rgba(218, 194, 89, 0.2);
         }
         
-        tr:hover {
-            background-color: rgba(240, 240, 240, 0.5) !important;
+        .disposed-row:hover {
+            background-color: rgba(218, 194, 89, 0.4) !important;
+        }
+        
+        tr:not(.pending-row):not(.disposed-row):hover {
+            background-color: #f0f0f0 !important;
         }
     `;
     document.head.appendChild(style);

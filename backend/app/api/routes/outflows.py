@@ -24,14 +24,14 @@ def parse_search_query(search: str, is_superuser: bool) -> dict:
         "payment_type": None,
         "date": None,
         "amount_range": None,
-        "head": None,
-        "subhead": None,
+        "h": None,
+        "sh": None,
         "pay_to": None,
         "general": [],
     }
 
     # Define recognized prefixes
-    known_prefixes = ["head:", "subhead:", "pay_to:"]
+    known_prefixes = ["h:", "sh:", "pay_to:"]
 
     words = search.split()
     i = 0
@@ -122,10 +122,10 @@ def read_expenses(
             min_amount, max_amount = search_filters["amount_range"]
             conditions.append(Expenses.cost.between(min_amount, max_amount))
 
-        if search_filters['head']:
-            conditions.append(Expenses.head.has(Heads.heads.ilike(f"%{search_filters['head']}%")))
-        if search_filters['subhead']:
-            conditions.append(Expenses.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['subhead']}%")))
+        if search_filters['h']:
+            conditions.append(Expenses.head.has(Heads.heads.ilike(f"%{search_filters['h']}%")))
+        if search_filters['sh']:
+            conditions.append(Expenses.sub_heads.has(SubHeads.subheads.ilike(f"%{search_filters['sh']}%")))
 
         if search_filters["general"]:
             for term in search_filters["general"]:
@@ -186,12 +186,13 @@ def create_outflow(
             name=item.head_details, type="PURCHASED", purchase_date=item.expense_date,
             asset_id=asset_serial_id, purchased_from=item.payment_to, serial_number=asset_serial_id,
             cost=amount, status="Pending", salvage_value=salvage, user_id=current_user.id,
-            head_detaills=item.head_details, payment_type=item.payment_type
-
+            head_details=item.head_details, payment_type=item.payment_type
         )
         session.add(asset)
         session.commit()
         session.refresh(asset)
+        # Assign the asset.id (integer) to item.asset_id
+        item.asset_id = asset.id
 
     # Get user balance
     user_balance = session.query(Balances).filter_by(user_id=current_user.id).first()
@@ -262,6 +263,13 @@ def update_outflow(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    # Check if admin is trying to update another user's record
+    if current_user.is_superuser and item.user_id != current_user.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Administrators cannot modify user outflow records. This restriction is in place to maintain data integrity."
+        )
+
     # Check if the user has permission to update
     if not current_user.is_superuser and (item.user_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
@@ -270,6 +278,7 @@ def update_outflow(
     old_amount = item.cost
     new_payment_method = item_in.payment_type
     new_amount = item_in.cost
+    is_asset = True if item.type == "NONEXPANDABLE" else False
 
     # Find the user's balance record
     user_balance = session.query(Balances).filter_by(user_id=current_user.id).first()
@@ -300,6 +309,46 @@ def update_outflow(
     # Apply the updates to the outflow item
     update_dict = item_in.model_dump(exclude_unset=True)
     item.sqlmodel_update(update_dict)
+
+    # If this is a non-expandable asset, update the corresponding asset record
+    if is_asset:
+        # Try to find the asset based on the id reference in asset_id
+        asset = None
+        if item.asset_id:
+            asset = session.query(Assets).filter_by(id=item.asset_id).first()
+        else:
+            raise HTTPException(status_code=400, detail=f"Asset Update Failed due to asset_id: {item.asset_id} not found")
+        
+        # If an asset record was found, update it
+        if asset:
+            salvage = get_salvage(item.cost)
+            # Update asset details to match the updated outflow
+            asset.head_details = item.head_details
+            asset.cost = item.cost
+            asset.payment_type = item.payment_type
+            asset.purchased_from = item.payment_to
+            asset.purchase_date = item.expense_date
+            asset.salvage_value = salvage
+            # If cost changed, recalculate salvage value
+            if old_amount != new_amount:
+                asset.salvage_value = get_salvage(new_amount)
+                
+            session.add(asset)
+            
+            # Log the asset update
+            log_activity(
+                session=session,
+                log_name="Asset Updated",
+                description=(
+                    f"Asset {asset.asset_id} updated via outflow update. "
+                    f"Original cost: {old_amount}, New cost: {new_amount}"
+                ),
+                event="asset_updated",
+                user_id=current_user.id,
+                router_prefix="outflow",
+                subject_type="Assets",
+                subject_id=asset.id
+            )
 
     # Commit changes to balances and outflow in a single transaction
     session.commit()

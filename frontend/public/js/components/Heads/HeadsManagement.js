@@ -387,7 +387,7 @@ var HeadsManagement = {
                     this.loadAllHeads();
                 }.bind(this))
                 .catch(function(error) {
-                    Utils.onSuccess('error', 'Failed to delete head: ' + error.message);
+                    Utils.onSuccess('error', (error.message || 'Unknown error to delete head'));
                 });
         }
     },
@@ -403,7 +403,7 @@ var HeadsManagement = {
                     this.loadAllHeads();
                 }.bind(this))
                 .catch(function(error) {
-                    Utils.onSuccess('error', 'Failed to delete head: ' + error.message);
+                    Utils.onSuccess('error', (error.message || 'Unknown error to delete subhead'));
                 });
         }
     },

@@ -27,6 +27,7 @@ var MainApp = {
             '/assets': this.showAssets,
             '/settings': this.showSettings,
             '/admin': this.showAdmin,
+            '/activity': this.showActivity,
         };
     },
 
@@ -54,6 +55,9 @@ var MainApp = {
     showAdmin: function() {
         AdminApp.init();
     },
+    showActivity: function() {
+        ActivityApp.init();
+    },
     handleNavigation: function() {
     var path = window.location.pathname;
     console.log('Handling navigation for path:', path);
@@ -76,6 +80,8 @@ var MainApp = {
         SettingsApp.init();
     } else if (path === '/admin') {
         AdminApp.init();
+    } else if (path === '/activity') {
+        ActivityApp.init();
     } else {
         content.innerHTML = `
             <div class="content-wrapper text-center">

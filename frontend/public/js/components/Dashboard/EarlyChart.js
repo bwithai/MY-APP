@@ -218,6 +218,7 @@
         // Canvas container
         var canvasContainer = document.createElement('div');
         canvasContainer.className = 'early-chart-canvas-container';
+        canvasContainer.style.height = '400px'; // Increased height from 300px to 400px
         
         // Loading indicator
         var loadingIndicator = document.createElement('div');
@@ -230,11 +231,11 @@
         canvas.id = this.containerId + '-canvas';
         canvas.style.display = 'none'; // Hide initially until data is loaded
         canvas.width = canvasContainer.clientWidth || 300;
-        canvas.height = 300; // Default height
+        canvas.height = 400; // Increased from 300 to 400 to match container
 
         // For older browsers, explicitly set style dimensions as well
         canvas.style.width = '100%';
-        canvas.style.height = '300px';
+        canvas.style.height = '400px'; // Increased from 300px to 400px
 
         // Add fallback text for older browsers that don't support canvas
         var fallbackText = document.createElement('div');
@@ -250,11 +251,12 @@
         // Legend
         var legend = document.createElement('div');
         legend.className = 'chart-legend';
+        legend.style.marginTop = '-20px';
         
         var legendItems = [
             { label: 'Inflow', colorClass: 'legend-inflow', color: 'rgba(31, 107, 1, 0.8)' },
             { label: 'Outflow', colorClass: 'legend-outflow', color: 'rgba(143, 1, 1, 0.8)' },
-            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(211, 153, 106, 0.8)' },
+            { label: 'Investment', colorClass: 'legend-investment', color: 'rgba(177, 107, 51, 0.8)' },
             { label: 'Liability', colorClass: 'legend-liability', color: 'rgba(248, 3, 3, 0.8)' }
         ];
         
@@ -735,10 +737,10 @@
                         {
                             label: "Investment",
                             data: weekData.investment,
-                            backgroundColor: "rgba(224, 183, 36, 0.7)",
-                            borderColor: "rgba(224, 183, 36, 1)",
+                            backgroundColor: "rgba(177, 107, 51, 0.7)",
+                            borderColor: "rgb(172, 137, 14)",
                             borderWidth: 2,
-                            hoverBackgroundColor: "rgba(224, 183, 36, 0.9)"
+                            hoverBackgroundColor: "rgba(177, 107, 51, 0.9)"
                         },
                         {
                             label: "Liability",
@@ -1043,8 +1045,14 @@
             label.className = 'chart-legend-label';
             label.textContent = legendItems[i].label;
             
+            // Add visible toggle indicator
+            var toggle = document.createElement('span');
+            toggle.className = 'chart-legend-toggle';
+            toggle.innerHTML = '<i class="fas fa-eye"></i>';
+            
             item.appendChild(color);
             item.appendChild(label);
+            item.appendChild(toggle);
             
             // Add click event to toggle dataset visibility
             var clickHandler = function(idx) {
@@ -1058,9 +1066,13 @@
                         if (meta.hidden) {
                             this.classList.add('inactive');
                             this.setAttribute('aria-pressed', 'false');
+                            var toggleIcon = this.querySelector('.chart-legend-toggle i');
+                            if (toggleIcon) toggleIcon.className = 'fas fa-eye-slash';
                         } else {
                             this.classList.remove('inactive');
                             this.setAttribute('aria-pressed', 'true');
+                            var toggleIcon = this.querySelector('.chart-legend-toggle i');
+                            if (toggleIcon) toggleIcon.className = 'fas fa-eye';
                         }
                     }
                 };
@@ -1096,48 +1108,84 @@
                 .chart-legend {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 10px;
-                    margin-top: 15px;
+                    justify-content: center;
+                    gap: 12px;
+                    margin-top: 20px;
                 }
                 
                 .chart-legend-item {
                     display: flex;
                     align-items: center;
-                    gap: 5px;
-                    padding: 5px 10px;
-                    border-radius: 4px;
+                    gap: 8px;
+                    padding: 8px 15px;
+                    border-radius: 50px;
                     cursor: pointer;
                     user-select: none;
-                    transition: opacity 0.2s;
+                    transition: all 0.2s ease;
+                    background-color: #f5f5f5;
+                    border: 1px solid #e0e0e0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                 }
                 
                 .chart-legend-item:hover {
-                    background-color: rgba(0, 0, 0, 0.05);
+                    background-color: #efefef;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
                 
                 .chart-legend-item.inactive {
-                    opacity: 0.5;
+                    opacity: 0.6;
+                    background-color: #e0e0e0;
                 }
                 
                 .chart-legend-color {
-                    width: 12px;
-                    height: 12px;
-                    border-radius: 3px;
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 50%;
+                    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
                 }
                 
                 .chart-legend-label {
-                    font-size: 12px;
+                    font-size: 13px;
+                    font-weight: 500;
                     color: #333;
+                }
+                
+                .chart-legend-toggle {
+                    margin-left: 5px;
+                    font-size: 12px;
+                    color: #555;
+                }
+                
+                .chart-legend-item.inactive .chart-legend-toggle {
+                    color: #999;
                 }
                 
                 /* Dark mode support */
                 @media (prefers-color-scheme: dark) {
+                    .chart-legend-item {
+                        background-color: #2d3748;
+                        border-color: #4a5568;
+                    }
+                    
                     .chart-legend-item:hover {
-                        background-color: rgba(255, 255, 255, 0.1);
+                        background-color: #3a4a63;
+                    }
+                    
+                    .chart-legend-item.inactive {
+                        background-color: #1a202c;
                     }
                     
                     .chart-legend-label {
-                        color: #fff;
+                        color: #e2e8f0;
+                    }
+                    
+                    .chart-legend-toggle {
+                        color: #a0aec0;
+                    }
+                    
+                    .chart-legend-item.inactive .chart-legend-toggle {
+                        color: #718096;
                     }
                 }
             `;

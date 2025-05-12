@@ -1,5 +1,6 @@
 import pprint
 import re
+import os
 from decimal import Decimal
 from typing import Any
 
@@ -8,12 +9,15 @@ from sqlmodel import func, select
 from sqlalchemy.sql import expression
 from sqlalchemy import desc, or_, and_
 from sqlalchemy.orm import joinedload
+import qrcode
+from PIL import Image
 
 from app.api.deps import CurrentUser, SessionDep
 from app.cf_models.assets import AssetsPublic, AssetPublic, AssetUpdate, AssetDispose
 from app.cf_models.schemas import Message, Balances, Assets, Users
 from app.cf_models.utils import log_activity
 from app.utils import get_pakistan_timestamp, get_asset_id
+from app.core.config import settings
 
 router = APIRouter(prefix="/assets", tags=["assets"])
 
@@ -146,6 +150,7 @@ def read_assets(
             **item.dict(),
             "user": item.user.name if item.user else None,  # Transform user field
             "user_id": item.user_id or 0,  # Provide a fallback for user_id
+            "QR_path": f"http://localhost:8000/media/{item.asset_id}.png" if item.asset_id else None,
         }
         for item in session.exec(base_query).all()
     ]
@@ -204,6 +209,56 @@ def update_item(
     asset_serial_id = get_asset_id(current_user.username, item.name)
     if item.status == "Pending":
         item.asset_id = asset_serial_id
+        
+        # Generate QR code for the asset
+        try:
+            # Create QR code instance
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            
+            # Add data to QR code
+            qr.add_data(asset_serial_id)
+            qr.make(fit=True)
+            
+            # Create QR code image
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+            
+            # Ensure directory exists
+            os.makedirs(settings.IMAGE_STORAGE_PATH, exist_ok=True)
+            
+            # Save QR code to file
+            qr_filename = f"{asset_serial_id}.png"
+            qr_path = os.path.join(settings.IMAGE_STORAGE_PATH, qr_filename)
+            qr_img.save(qr_path)
+            
+            # Log QR code generation
+            log_activity(
+                session=session,
+                log_name="QR Code Generated",
+                description=f"QR code generated for asset {asset_serial_id}",
+                event="asset_qr_generated",
+                user_id=current_user.id,
+                router_prefix="assets",
+                subject_type="Assets",
+                subject_id=item.id
+            )
+        except Exception as e:
+            # Log error but don't stop the process
+            log_activity(
+                session=session,
+                log_name="QR Code Generation Failed",
+                description=f"Failed to generate QR code for asset {asset_serial_id}: {str(e)}",
+                event="asset_qr_generation_failed",
+                user_id=current_user.id,
+                router_prefix="assets",
+                subject_type="Assets",
+                subject_id=item.id
+            )
+    
     item.status = "Edited"
     session.add(item)
     session.commit()

@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str = ""
     MYSQL_DB: str = ""
     SQLITE_DB_FILE: str = ""
+    IMAGE_STORAGE_PATH: str = "/app/media/storage" # for local run use "../media/storage"
 
     @computed_field  # type: ignore[prop-decorator]
     @property

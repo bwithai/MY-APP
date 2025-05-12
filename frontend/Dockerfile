@@ -16,7 +16,7 @@ COPY ./ /app/
 ARG VITE_API_URL=${VITE_API_URL}
 
 # Build with legacy mode explicitly
-RUN npm run build -- --mode legacy
+RUN npm run build
 
 
 # Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx

@@ -20,7 +20,7 @@ var AddOutflow = {
 
     render: function() {
         var modalHtml = '<div class="modal" id="addOutflowModal">' +
-            '<div class="modal-content">' +
+            '<div class="modal-content" style="max-width: 800px;">' +
                 '<div class="modal-header">' +
                     '<h2>Add Outflow</h2>' +
                     '<button type="button" class="close-btn">&times;</button>' +
@@ -59,6 +59,9 @@ var AddOutflow = {
                                 '<option value="EXPANDABLE">Expandable</option>' +
                                 '<option value="NONEXPANDABLE">Non Expandable</option>' +
                             '</select>' +
+                            '<div id="assetNotification" class="notification-message" style="display: none;">' +
+                                '<i class="fas fa-info-circle"></i> This will be added to Assets' +
+                            '</div>' +
                         '</div>' +
 
                         '<div class="form-group" id="entityContainer" style="display: none;">' +
@@ -157,17 +160,20 @@ var AddOutflow = {
 
         if (typeSelect) {
             typeSelect.addEventListener('change', function() {
-                if (this.value === 'NONEXPADABLE') {
+                var assetNotification = document.getElementById('assetNotification');
+                
+                if (this.value === 'NONEXPANDABLE') {
                     entityContainer.style.display = 'block';
                     placeTypeSelect.setAttribute('required', 'required');
+                    assetNotification.style.display = 'block';
                 } else {
                     entityContainer.style.display = 'none';
                     placeTypeSelect.removeAttribute('required');
+                    assetNotification.style.display = 'none';
                 }
             });
         }
         
-
         if (headSelect) {
             headSelect.addEventListener('change', function() {
                 Utils.loadSubHeads(this.value);
@@ -176,12 +182,26 @@ var AddOutflow = {
 
         if (paymentTypeSelect) {
             paymentTypeSelect.addEventListener('change', function() {
+                var dateInput = document.getElementById('date');
                 var ibanContainer = document.getElementById('ibanContainer');
+
+                // Handle IBAN container visibility
                 if (this.value === 'bank') {
                     ibanContainer.style.display = 'block';
                     Utils.loadIBANs();
                 } else {
                     ibanContainer.style.display = 'none';
+                }
+
+                 // Handle date input behavior
+                 if (this.value === 'prev_held') {
+                    // Allow manual date entry for previously held funds
+                    dateInput.removeAttribute('readonly');
+                } else {
+                    // For other payment methods, keep date readonly and use datepicker
+                    dateInput.setAttribute('readonly', true);
+                    Utils.setCurrentDate(dateInput);
+                    Utils.initDatePicker(dateInput);
                 }
             });
         }
@@ -199,6 +219,34 @@ var AddOutflow = {
             Utils.setCurrentDate(dateInput);
             Utils.initDatePicker(dateInput);
         }
+
+        // Add CSS for notification message
+        if (!document.getElementById('notification-styles')) {
+            var styleEl = document.createElement('style');
+            styleEl.id = 'notification-styles';
+            styleEl.textContent = `
+                .notification-message {
+                    margin-top: 6px;
+                    padding: 6px 10px;
+                    background-color: #e3f2fd;
+                    border-left: 3px solid #2196f3;
+                    color: #0d47a1;
+                    font-size: 14px;
+                    border-radius: 2px;
+                    transition: all 0.3s ease;
+                }
+                .notification-message i {
+                    margin-right: 5px;
+                }
+            `;
+            document.head.appendChild(styleEl);
+        }
+
+        // Apply word limit to fund_details textarea
+        var fundDetailsTextarea = document.getElementById('head_details');
+        if (fundDetailsTextarea) {
+            Utils.limitTextareaWords(fundDetailsTextarea, 800);
+        }
     },
 
     handleSubmit: function(formData) {
@@ -210,6 +258,9 @@ var AddOutflow = {
         }
         submitButton.disabled = true;
 
+        // Clear any existing errors
+        Utils.clearFieldErrors(document.getElementById('addOutflowForm'));
+
         var data = {};
         var entries = formData.entries();
         var entry;
@@ -220,10 +271,25 @@ var AddOutflow = {
         var amountStr = data.amount.toString();
         var amount = Number(parseFloat(amountStr).toFixed(2));
 
+        // Validate amount
         if (amount <= 0) {
-            alert('Amount must be greater than 0');
             submitButton.disabled = false;
-            return;
+            return Utils.showFieldError(document.getElementById('amount'), 'Amount must be greater than 0');
+        }
+
+        // Validate payment type
+        var paymentType = data.payment_type;
+        if (!paymentType || paymentType === '') {
+            submitButton.disabled = false;
+            return Utils.showFieldError(document.getElementById('payment_type'), 'Please select a payment type');
+        }
+
+        // Validate IBAN if payment type is bank
+        if (paymentType === 'bank') {
+            if (!data.iban_id || data.iban_id === '') {
+                submitButton.disabled = false;
+                return Utils.showFieldError(document.getElementById('iban'), 'Please select an IBAN for bank transfers');
+            }
         }
 
         var formattedData = {
@@ -233,14 +299,16 @@ var AddOutflow = {
             payment_to: data.payment_to,
             type: data.type,
             place_type: data.place_type,
-            payment_type: data.payment_type,
+            payment_type: paymentType,
             expense_date: data.date
         };
 
         if (data.subhead_id) {
             formattedData.subhead_id = parseInt(data.subhead_id);
         }
-        if (data.payment_type === 'bank') {
+        
+        // Only add IBAN if payment type is explicitly 'bank'
+        if (paymentType === 'bank' && data.iban_id) {
             formattedData.iban_id = parseInt(data.iban_id);
         }
 
@@ -256,7 +324,7 @@ var AddOutflow = {
             })
             .catch(function(error) {
                 console.error('Failed to create outflow:', error);
-                Utils.onSuccess('error', 'Outflow');
+                Utils.onSuccess('error', (error.message || 'Unknown error to create outflow'));
             })
             .then(function() {
                 submitButton.disabled = false;

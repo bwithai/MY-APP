@@ -6,6 +6,7 @@ docker-images/*
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -25,5 +26,18 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+*.cover
+*.py,cover
+.hypothesis/
 
 vtul_env
+.venv
+
+# S3 storage folder has its own .gitignore file
+# to keep the folder but ignore contents
